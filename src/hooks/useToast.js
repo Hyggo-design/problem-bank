@@ -1,0 +1,33 @@
+import toast from 'react-hot-toast';
+
+export const useToast = () => {
+  const success = (message) => {
+    toast.success(message, {
+      duration: 2000,
+      position: 'top-right'
+    });
+  };
+
+  const error = (message) => {
+    toast.error(message, {
+      duration: 3000,
+      position: 'top-right'
+    });
+  };
+
+  const loading = (message) => {
+    return toast.loading(message, {
+      position: 'top-right'
+    });
+  };
+
+  const info = (message) => {
+    toast(message, {
+      duration: 2000,
+      position: 'top-right',
+      icon: 'ℹ️'
+    });
+  };
+
+  return { success, error, loading, info };
+};
