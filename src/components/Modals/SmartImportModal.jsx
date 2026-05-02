@@ -37,67 +37,107 @@ const SmartImportModal = ({ onClose, onSave, genAI }) => {
     setFiles(files.filter((_, i) => i !== index));
   };
 
-  // --- XỬ LÝ AI & BÓC TÁCH ---
+  // --- XỬ LÝ AI & BÓC TÁCH (CÓ XỬ LÝ LỖI CHUẨN DOANH NGHIỆP) ---
   const handleProcess = async () => {
     if (files.length === 0) return;
     setStep('processing');
     let tempResults = [];
+    let hasError = false;
 
     try {
-      const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
+      // Đổi sang model flash mới nhất của Gemini
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
 
-        // LUỒNG 1: File .tex (Regex)
+        // LUỒNG 1: File .tex (Regex bóc tách trực tiếp không cần AI)
         if (file.name.endsWith('.tex') || file.name.endsWith('.txt')) {
-          const text = await file.text();
-          const safeText = text.replace(/\\angle\s*\{([^}]+)\}/g, '\\widehat{$1}')
-                               .replace(/\\angle\s+([a-zA-Z0-9]+)/g, '\\widehat{$1}')
-                               .replace(/\\angle([a-zA-Z0-9]+)/g, '\\widehat{$1}');
-
-          const regex = /\\begin\{bt\}([\s\S]*?)\\end\{bt\}/g;
-          let match;
-          while ((match = regex.exec(safeText)) !== null) {
-            tempResults.push({
-              id: Date.now() + Math.random(),
-              rawLatex: `\\begin{bt}\n${match[1].trim()}\n\\end{bt}`,
-              topic: 'Chưa phân loại', level: 1, type: 'Tự luận'
-            });
-          }
-        } 
-        // LUỒNG 2: Ảnh & PDF (Gemini)
-        else if (file.type.startsWith('image/') || file.type === 'application/pdf') {
-          const base64Data = await new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.onloadend = () => resolve(reader.result.split(',')[1]);
-            reader.readAsDataURL(file);
-          });
-          
-          const prompt = `Trích xuất tất cả bài toán trong tài liệu này sang LaTeX (chuẩn gói ex_test, dùng \\widehat{} thay cho \\angle). Trả về mảng JSON cấu trúc: [{"statement": "đề bài", "solution": "lời giải (nếu có)", "topic": "chuyên đề dự đoán", "level": 1 hoặc 2 hoặc 3, "type": "Tự luận" hoặc "Trắc nghiệm"}]. CHỈ TRẢ VỀ JSON.`;
-          
-          const result = await model.generateContent([prompt, { inlineData: { data: base64Data, mimeType: file.type } }]);
-          let textRes = result.response.text().replace(/```json/g, '').replace(/```/g, '').trim();
-          
           try {
-            const aiProblems = JSON.parse(textRes);
-            aiProblems.forEach(p => {
-              const latexStr = `\\begin{bt}\n${p.statement || ''}\n${p.solution ? `\\loigiai{\n${p.solution}\n}` : ''}\n\\end{bt}`;
+            const text = await file.text();
+            const safeText = text.replace(/\\angle\s*\{([^}]+)\}/g, '\\widehat{$1}')
+                                 .replace(/\\angle\s+([a-zA-Z0-9]+)/g, '\\widehat{$1}')
+                                 .replace(/\\angle([a-zA-Z0-9]+)/g, '\\widehat{$1}');
+
+            const regex = /\\begin\{bt\}([\s\S]*?)\\end\{bt\}/g;
+            let match;
+            while ((match = regex.exec(safeText)) !== null) {
               tempResults.push({
                 id: Date.now() + Math.random(),
-                rawLatex: latexStr,
-                topic: p.topic || 'Chưa phân loại',
-                level: p.level || 1,
-                type: p.type || 'Tự luận'
+                rawLatex: `\\begin{bt}\n${match[1].trim()}\n\\end{bt}`,
+                topic: 'Chưa phân loại', level: 1, type: 'Tự luận'
               });
+            }
+          } catch (fileErr) {
+            console.error("Lỗi đọc file text:", fileErr);
+            toast.error(`Không thể đọc nội dung file: ${file.name}`);
+            hasError = true;
+          }
+        } 
+        // LUỒNG 2: Ảnh & PDF (Gọi API Gemini)
+        else if (file.type.startsWith('image/') || file.type === 'application/pdf') {
+          try {
+            const base64Data = await new Promise((resolve) => {
+              const reader = new FileReader();
+              reader.onloadend = () => resolve(reader.result.split(',')[1]);
+              reader.readAsDataURL(file);
             });
-          } catch (err) { console.error("JSON Error:", textRes); }
+            
+            const prompt = `Trích xuất tất cả bài toán trong tài liệu này sang LaTeX (chuẩn gói ex_test, dùng \\widehat{} thay cho \\angle). Trả về mảng JSON cấu trúc: [{"statement": "đề bài", "solution": "lời giải (nếu có)", "topic": "chuyên đề dự đoán", "level": 1 hoặc 2 hoặc 3, "type": "Tự luận" hoặc "Trắc nghiệm"}]. CHỈ TRẢ VỀ JSON.`;
+            
+            // Gọi API (có nguy cơ rớt mạng ở đây)
+            const result = await model.generateContent([prompt, { inlineData: { data: base64Data, mimeType: file.type } }]);
+            let textRes = result.response.text().replace(/```json/g, '').replace(/```/g, '').trim();
+            
+            try {
+              const aiProblems = JSON.parse(textRes);
+              aiProblems.forEach(p => {
+                const latexStr = `\\begin{bt}\n${p.statement || ''}\n${p.solution ? `\\loigiai{\n${p.solution}\n}` : ''}\n\\end{bt}`;
+                tempResults.push({
+                  id: Date.now() + Math.random(),
+                  rawLatex: latexStr,
+                  topic: p.topic || 'Chưa phân loại', // Fallback nếu AI không phân loại được
+                  level: p.level || 1,
+                  type: p.type || 'Tự luận'
+                });
+              });
+            } catch (jsonErr) {
+              console.error("Lỗi JSON từ AI:", textRes);
+              toast.error(`AI không trả về đúng định dạng JSON cho file: ${file.name}`);
+              hasError = true;
+            }
+          } catch (apiErr) {
+            // Lỗi mạng hoặc lỗi server Gemini
+            console.error("Gemini API Error:", apiErr);
+            toast.error(`Lỗi kết nối AI (${file.name}): ${apiErr.message}`);
+            hasError = true;
+          }
         }
       }
-      setResults(tempResults);
-      setStep('review');
-    } catch (err) {
-      toast.error("Có lỗi xảy ra khi phân tích!");
+
+      // Xử lý kết quả sau khi duyệt xong tất cả các file
+      if (tempResults.length > 0) {
+        setResults(tempResults);
+        setStep('review');
+        if (hasError) {
+          toast.info("Đã bóc tách được một phần, nhưng có file bị lỗi trong quá trình xử lý.", { duration: 4000 });
+        } else {
+          toast.success("Bóc tách tài liệu thành công!");
+        }
+      } else {
+        // Không có kết quả nào được bóc ra
+        if (hasError) {
+          toast.error("Quá trình xử lý thất bại. Thầy vui lòng thử lại nhé.");
+        } else {
+          toast.info("Không tìm thấy cấu trúc bài tập nào trong các file Thầy tải lên.");
+        }
+        setStep('upload'); // Trả về màn hình cũ để không bị kẹt loading
+      }
+
+    } catch (criticalErr) {
+      // Bắt mọi lỗi tồi tệ nhất ở cấp cao nhất
+      console.error("Lỗi hệ thống nghiêm trọng:", criticalErr);
+      toast.error(`Hệ thống gặp sự cố: ${criticalErr.message}`);
       setStep('upload');
     }
   };

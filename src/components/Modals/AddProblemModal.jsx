@@ -1,31 +1,64 @@
 import React, { useState } from 'react';
 import { X, Save } from 'lucide-react';
+import { toast } from 'react-hot-toast';
+import { TOPICS, LEVELS, PROBLEM_TYPES } from 'src/utils/constants.js';
 
 const AddProblemModal = ({ onClose, onSave }) => {
-  const [formData, setFormData] = useState({
+  
+  // 2. Khai báo hàm tạo dữ liệu gốc
+  const getInitialFormData = () => ({
     rawLatex: '',
-    topic: 'Đạo hàm',
+    topic: 'Chưa phân loại', 
     level: 1,
     type: 'Tự luận',
     tags: '',
     notes: ''
   });
 
-  const topics = [
-    'Đạo hàm', 'Tích phân', 'Lượng giác', 'Số phức', 
-    'Ma trận', 'Hình học không gian', 'Xác suất', 'Giới hạn', 'Chưa phân loại'
-  ];
+  // 3. Nạp dữ liệu gốc vào state (CHỈ KHAI BÁO 1 LẦN DUY NHẤT)
+  const [formData, setFormData] = useState(getInitialFormData());
+
+  // 4. Hàm xử lý đóng Modal an toàn (Dọn rác trước khi đóng)
+  const handleSafeClose = () => {
+    setFormData(getInitialFormData());
+    onClose();
+  };
+
+  // --- HÀM KIỂM TRA DỮ LIỆU TẬP TRUNG ---
+  const validateForm = (raw) => {
+    const errors = [];
+    
+    if (!raw.trim()) {
+      errors.push('Thầy chưa dán nội dung bài tập LaTeX vào ạ!');
+    } else {
+      // Chỉ kiểm tra các lỗi sâu hơn nếu đã có nội dung
+      if (raw.length > 10000) {
+        errors.push('Nội dung quá dài (vượt quá 10.000 ký tự). Thầy vui lòng chia nhỏ bài nhé!');
+      }
+      if (!raw.includes('\\begin{bt}') || !raw.includes('\\end{bt}')) {
+        errors.push('Thiếu cấu trúc \\begin{bt} ... \\end{bt} chuẩn của ex_test!');
+      }
+      // Thầy có thể thêm check tags ở đây sau này nếu cần:
+      // if (formData.tags && formData.tags.split(',').length > 10) errors.push('Không nên để quá 10 tags');
+    }
+    
+    return errors;
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
     const raw = formData.rawLatex;
-    if (!raw.trim()) {
-      alert('Vui lòng dán nội dung bài tập LaTeX vào nhé!');
+
+    // 1. Chạy qua trạm kiểm duyệt
+    const errors = validateForm(raw);
+    
+    // 2. Nếu có lỗi, xả toàn bộ thông báo lỗi ra màn hình và dừng lại
+    if (errors.length > 0) {
+      errors.forEach(err => toast.error(err));
       return;
     }
 
-    // Tự động bóc tách Đề bài và Lời giải
+    // 3. Nếu an toàn, tự động bóc tách Đề bài và Lời giải
     let cleanText = raw.replace(/\\begin\{bt\}/g, '').replace(/\\end\{bt\}/g, '').trim();
     let statement = cleanText;
     let solution = '';
@@ -50,6 +83,7 @@ const AddProblemModal = ({ onClose, onSave }) => {
     };
 
     onSave(newProblem);
+    setFormData(getInitialFormData()); // Dọn sạch form
   };
 
   return (
@@ -59,7 +93,7 @@ const AddProblemModal = ({ onClose, onSave }) => {
         {/* Header Modal */}
         <div style={{ padding: '1.5rem', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h2 style={{ margin: 0, fontSize: '1.25rem', color: '#0f172a' }}>Thêm Bài Tập Mới</h2>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}>
+          <button onClick={handleSafeClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}>
             <X size={24} />
           </button>
         </div>
@@ -79,26 +113,27 @@ const AddProblemModal = ({ onClose, onSave }) => {
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
+            {/* Ô chọn Chủ đề */}
             <div>
               <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: '#334155', fontSize: '0.9rem' }}>Chủ đề</label>
               <select value={formData.topic} onChange={(e) => setFormData({...formData, topic: e.target.value})} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#fff', outline: 'none' }}>
-                {topics.map(t => <option key={t} value={t}>{t}</option>)}
+                {TOPICS.map(t => <option key={t} value={t}>{t}</option>)}
               </select>
             </div>
+            
+            {/* Ô chọn Độ khó */}
             <div>
               <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: '#334155', fontSize: '0.9rem' }}>Độ khó</label>
               <select value={formData.level} onChange={(e) => setFormData({...formData, level: e.target.value})} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#fff', outline: 'none' }}>
-                <option value="1">1 - Cơ bản</option>
-                <option value="2">2 - Trung bình</option>
-                <option value="3">3 - Nâng cao</option>
+                {LEVELS.map(l => <option key={l.value} value={l.value}>{l.label}</option>)}
               </select>
             </div>
+            
+            {/* Ô chọn Loại câu */}
             <div>
               <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: '#334155', fontSize: '0.9rem' }}>Loại câu</label>
               <select value={formData.type} onChange={(e) => setFormData({...formData, type: e.target.value})} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#fff', outline: 'none' }}>
-                <option value="Tự luận">Tự luận</option>
-                <option value="Trắc nghiệm">Trắc nghiệm</option>
-                <option value="Chứng minh">Chứng minh</option>
+                {PROBLEM_TYPES.map(type => <option key={type} value={type}>{type}</option>)}
               </select>
             </div>
           </div>
@@ -116,7 +151,7 @@ const AddProblemModal = ({ onClose, onSave }) => {
 
           {/* Nút lưu */}
           <div style={{ marginTop: '1rem', display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
-            <button type="button" onClick={onClose} style={{ padding: '0.75rem 1.5rem', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#fff', color: '#475569', fontWeight: 600, cursor: 'pointer' }}>
+            <button type="button" onClick={handleSafeClose} style={{ padding: '0.75rem 1.5rem', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#fff', color: '#475569', fontWeight: 600, cursor: 'pointer' }}>
               Hủy
             </button>
             <button type="submit" style={{ padding: '0.75rem 1.5rem', borderRadius: '8px', border: 'none', backgroundColor: '#3b82f6', color: '#fff', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>

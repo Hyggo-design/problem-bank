@@ -24,63 +24,43 @@ export const useKeyboardShortcuts = ({
         return event.keyCode === 27; 
       }
       
-      // Nếu đang ở ngoài bảng dữ liệu, phím tắt hoạt động bình thường
       return true; 
     };
 
-    // Ctrl+N: Thêm bài mới
-    hotkeys('ctrl+n', (e) => {
-      e.preventDefault();
-      onNewProblem();
-    });
+    // Đăng ký phím tắt
+    hotkeys('ctrl+n', (e) => { e.preventDefault(); onNewProblem(); });
+    hotkeys('ctrl+f', (e) => { e.preventDefault(); onSearch(); });
+    hotkeys('escape', () => { onEscape(); });
+    hotkeys('ctrl+shift+a', (e) => { e.preventDefault(); onSelectAll(); });
+    hotkeys('ctrl+shift+n', (e) => { e.preventDefault(); onDeselectAll(); });
+    hotkeys('del, backspace', () => { onDelete(); });
+    hotkeys('ctrl+e', (e) => { e.preventDefault(); onExport(); });
+    hotkeys('ctrl+l', (e) => { e.preventDefault(); onClearFilters(); });
+    hotkeys('ctrl+,', (e) => { e.preventDefault(); onSettings(); });
 
-    // Ctrl+F: Nhảy nhanh vào ô Tìm kiếm
-    hotkeys('ctrl+f', (e) => {
-      e.preventDefault();
-      onSearch();
-    });
+    // HÀM DỌN DẸP (CLEANUP): Gỡ các phím tắt khi component bị hủy hoặc re-render
+    return () => {
+      hotkeys.unbind('ctrl+n');
+      hotkeys.unbind('ctrl+f');
+      hotkeys.unbind('escape');
+      hotkeys.unbind('ctrl+shift+a');
+      hotkeys.unbind('ctrl+shift+n');
+      hotkeys.unbind('del, backspace');
+      hotkeys.unbind('ctrl+e');
+      hotkeys.unbind('ctrl+l');
+      hotkeys.unbind('ctrl+,');
+    };
 
-    // ESC: Đóng cửa sổ đang xem hoặc Hủy form
-    hotkeys('escape', (e) => {
-      onEscape();
-    });
-
-    // Ctrl+Shift+A: Chọn tất cả các bài đang hiển thị
-    hotkeys('ctrl+shift+a', (e) => {
-      e.preventDefault();
-      onSelectAll();
-    });
-
-    // Ctrl+Shift+N: Bỏ chọn tất cả
-    hotkeys('ctrl+shift+n', (e) => {
-      e.preventDefault();
-      onDeselectAll();
-    });
-
-    // Nút Delete / Backspace: Xóa các bài đã chọn
-    hotkeys('del, backspace', (e) => {
-      onDelete();
-    });
-
-    // Ctrl+E: Xuất file đề thi nhanh
-    hotkeys('ctrl+e', (e) => {
-      e.preventDefault();
-      onExport();
-    });
-
-    // Ctrl+L: Xóa mọi bộ lọc
-    hotkeys('ctrl+l', (e) => {
-      e.preventDefault();
-      onClearFilters();
-    });
-
-    // Ctrl+, : Mở cài đặt (Giống VS Code)
-    hotkeys('ctrl+,', (e) => {
-      e.preventDefault();
-      onSettings();
-    });
-
-    // Dọn dẹp phím tắt khi đóng component để tránh rò rỉ bộ nhớ
-    return () => hotkeys.unbind();
-  }, [onNewProblem, onSearch, onEscape, onSelectAll, onDeselectAll, onDelete, onExport, onClearFilters, onSettings]);
+  // ✅ Đầy đủ dependencies: Chỉ đăng ký lại phím tắt khi các hàm này thực sự thay đổi
+  }, [
+    onNewProblem,
+    onSearch,
+    onEscape,
+    onSelectAll,
+    onDeselectAll,
+    onDelete,
+    onExport,
+    onClearFilters,
+    onSettings
+  ]);
 };
