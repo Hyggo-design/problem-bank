@@ -46,7 +46,7 @@ const SmartImportModal = ({ onClose, onSave, genAI }) => {
 
     try {
       // Đổi sang model flash mới nhất của Gemini
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
 
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
@@ -63,7 +63,7 @@ const SmartImportModal = ({ onClose, onSave, genAI }) => {
             let match;
             while ((match = regex.exec(safeText)) !== null) {
               tempResults.push({
-                id: Date.now() + Math.random(),
+                id: crypto.randomUUID(),
                 rawLatex: `\\begin{bt}\n${match[1].trim()}\n\\end{bt}`,
                 topic: 'Chưa phân loại', level: 1, type: 'Tự luận'
               });
@@ -94,7 +94,7 @@ const SmartImportModal = ({ onClose, onSave, genAI }) => {
               aiProblems.forEach(p => {
                 const latexStr = `\\begin{bt}\n${p.statement || ''}\n${p.solution ? `\\loigiai{\n${p.solution}\n}` : ''}\n\\end{bt}`;
                 tempResults.push({
-                  id: Date.now() + Math.random(),
+                  id: crypto.randomUUID(),
                   rawLatex: latexStr,
                   topic: p.topic || 'Chưa phân loại', // Fallback nếu AI không phân loại được
                   level: p.level || 1,

@@ -98,7 +98,7 @@ function App() {
     success('Đề thi đã được đóng gói và tải về!');
   };
 
-  // 4. RÁP GIAO DIỆN (UI)
+// 4. RÁP GIAO DIỆN (UI)
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', backgroundColor: '#f1f5f9', fontFamily: 'Inter, sans-serif' }}>
       
@@ -109,6 +109,7 @@ function App() {
         used: problems.reduce((sum, p) => sum + (p.timesUsed || 0), 0)
       }} />
 
+      {/* THẺ BỌC CẢ TRÁI VÀ PHẢI */}
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
         
         {/* NỬA TRÁI: Dữ liệu & Bộ lọc */}
@@ -137,7 +138,11 @@ function App() {
             onSelectChange={(id) => ui.setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])}
             onSelectAll={(isChecked, allIds) => ui.setSelectedIds(isChecked ? allIds : [])}
             onPreviewClick={(prob) => ui.setSelectedPreview(prob)}
-            onAddToCart={(prob) => { addToCart(prob); success('Đã tóm vào giỏ!'); }}
+            onAddToCart={(prob) => { 
+              addToCart(prob);             
+              ui.setIsCartOpen(true);      
+              success('Đã thêm vào giỏ!'); 
+            }}
             onDelete={(id) => {
               if (window.confirm('Thầy chắc chắn muốn xóa bài này?')) {
                 deleteProblem(id);
@@ -149,11 +154,34 @@ function App() {
           />
         </div>
 
-        {/* NỬA PHẢI: Xem trước & Giỏ hàng */}
-        <div style={{ flex: '1 1 40%', display: 'flex', flexDirection: 'column', backgroundColor: '#f8fafc', maxWidth: '600px' }}>
-          <PreviewPanel problem={ui.selectedPreview} onClose={() => ui.setSelectedPreview(null)} />
-          <CartPanel items={cartItems} onRemove={removeFromCart} onClear={clearCart} onExport={() => ui.setShowExportModal(true)} />
-        </div>
+        {/* NỬA PHẢI: Chỉ hiện khi có Preview hoặc Giỏ hàng đang mở */}
+        {(ui.selectedPreview || ui.isCartOpen) && (
+          <div style={{ flex: '0 0 450px', display: 'flex', flexDirection: 'column', backgroundColor: '#f8fafc', borderLeft: '1px solid #e2e8f0' }}>
+              
+            {/* 1. Khu vực Preview */}
+            {ui.selectedPreview && (
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                <PreviewPanel problem={ui.selectedPreview} onClose={() => ui.setSelectedPreview(null)} />
+              </div>
+            )}
+
+            {/* Vạch kẻ ngăn cách nếu mở cả hai bảng cùng lúc */}
+            {ui.selectedPreview && ui.isCartOpen && <div style={{ height: '4px', backgroundColor: '#cbd5e1', flexShrink: 0 }}></div>}
+
+            {/* 2. Khu vực Giỏ hàng */}
+            {ui.isCartOpen && (
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                <CartPanel 
+                  items={cartItems} 
+                  onRemove={removeFromCart} 
+                  onClear={clearCart}       
+                  onExport={() => ui.setShowExportModal(true)} 
+                  onClose={() => ui.setIsCartOpen(false)} 
+                />
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* CÁC CỬA SỔ MODAL */}

@@ -1,7 +1,8 @@
 import React from 'react';
 import { ShoppingCart, Trash2, Download, X } from 'lucide-react';
 
-const CartPanel = ({ items, onRemove, onClear, onExport }) => {
+// Bổ sung thêm prop onClose
+const CartPanel = ({ items, onRemove, onClear, onExport, onClose }) => {
   return (
     <div style={{ height: '40%', display: 'flex', flexDirection: 'column', backgroundColor: '#f8fafc' }}>
       
@@ -12,18 +13,34 @@ const CartPanel = ({ items, onRemove, onClear, onExport }) => {
           Giỏ đề thi ({items.length} bài)
         </h3>
         
-        {items.length > 0 && (
-          <div style={{ display: 'flex', gap: '1rem' }}>
-            <button onClick={onClear} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-              <Trash2 size={16} /> Làm sạch
-            </button>
+        {/* Khung chứa các nút thao tác bên phải */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          {items.length > 0 && (
+            <>
+              <button onClick={onClear} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                <Trash2 size={16} /> Làm sạch
+              </button>
 
-            {/* ĐÃ SỬA: Chỉ cần gọi onExport để App.jsx mở Modal lên */}
-            <button onClick={onExport} className="btn btn-primary" style={{ padding: '0.4rem 0.75rem', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.4rem', border: 'none', borderRadius: '6px', backgroundColor: '#3b82f6', color: '#fff', cursor: 'pointer' }}>
-              <Download size={16} /> Xuất Đề (.tex)
-            </button>
-          </div>
-        )}
+              <button onClick={onExport} className="btn btn-primary" style={{ padding: '0.4rem 0.75rem', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.4rem', border: 'none', borderRadius: '6px', backgroundColor: '#3b82f6', color: '#fff', cursor: 'pointer' }}>
+                <Download size={16} /> Xuất Đề (.tex)
+              </button>
+            </>
+          )}
+
+          {/* Vạch kẻ phân cách nhẹ nhàng (Chỉ hiện khi có bài trong giỏ) */}
+          {items.length > 0 && <div style={{ width: '1px', height: '24px', backgroundColor: '#e2e8f0', margin: '0 0.25rem' }}></div>}
+
+          {/* NÚT ĐÓNG GIỎ HÀNG */}
+          <button 
+            onClick={onClose} 
+            title="Đóng giỏ hàng"
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', padding: '0.4rem', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f1f5f9'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+          >
+            <X size={20} />
+          </button>
+        </div>
       </div>
 
       {/* Danh sách các câu đã chọn */}

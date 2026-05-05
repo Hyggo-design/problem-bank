@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Save } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-import { TOPICS, LEVELS, PROBLEM_TYPES } from 'src/utils/constants.js';
+import { TOPICS, LEVELS, PROBLEM_TYPES } from '../../utils/constants';
 
 const EditProblemModal = ({ problem, onClose, onSave }) => {
   // 1. Danh sách các chủ đề đồng bộ với AddProblemModal

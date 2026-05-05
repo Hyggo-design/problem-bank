@@ -18,6 +18,7 @@ export const useUIState = () => {
   const [selectedPreview, setSelectedPreview] = useState(null);
   const [editingProblem, setEditingProblem] = useState(null);
   const [isImporting, setIsImporting] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(true);
 
   // Hàm tiện ích xoá bộ lọc
   const clearFilters = () => {
@@ -40,6 +41,7 @@ export const useUIState = () => {
     selectedIds, setSelectedIds,
     selectedPreview, setSelectedPreview,
     editingProblem, setEditingProblem,
-    isImporting, setIsImporting
+    isImporting, setIsImporting,
+    isCartOpen, setIsCartOpen
   };
 };

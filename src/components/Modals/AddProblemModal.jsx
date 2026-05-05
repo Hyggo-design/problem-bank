@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, Save } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-import { TOPICS, LEVELS, PROBLEM_TYPES } from 'src/utils/constants.js';
+import { TOPICS, LEVELS, PROBLEM_TYPES } from '../../utils/constants';
 
 const AddProblemModal = ({ onClose, onSave }) => {
   
@@ -70,7 +70,7 @@ const AddProblemModal = ({ onClose, onSave }) => {
     }
 
     const newProblem = {
-      id: Date.now(),
+      id: crypto.randomUUID(),
       statement: statement,
       solution: solution,
       topic: formData.topic,
