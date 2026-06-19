@@ -168,7 +168,7 @@ const SmartImportModal = ({ onClose, onSave, genAI }) => {
         topic: item.topic,
         level: parseInt(item.level),
         type: item.type,
-        dateAdded: new Date().toLocaleDateString('vi-VN'),
+        dateAdded: new Date().toISOString(),
         timesUsed: 0
       };
     });

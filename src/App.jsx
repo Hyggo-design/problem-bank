@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import Header from './components/Header';
 import Toolbar from './components/Toolbar';
 import ControlsRow from './components/ControlsRow';
@@ -9,6 +9,7 @@ import AddProblemModal from './components/Modals/AddProblemModal';
 import EditProblemModal from './components/Modals/EditProblemModal';
 import SmartImportModal from './components/Modals/SmartImportModal';
 import ExportModal from './components/Modals/ExportModal';
+import DuplicateWarningModal from './components/Modals/DuplicateWarningModal';
 
 import { Toaster } from 'react-hot-toast';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
@@ -23,14 +24,23 @@ const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 
 function App() {
   // 1. GỌI CÁC THƯ KÝ (Hooks) ĐỂ LẤY DỮ LIỆU
-  const { problems, addProblem, updateProblem, deleteProblem, bulkDeleteProblems, saveImportedProblems } = useProblems();
+  const { 
+    problems, 
+    addProblem, 
+    updateProblem, 
+    deleteProblem, 
+    bulkDeleteProblems, 
+    saveImportedProblems,
+    checkDuplicate 
+  } = useProblems();
   const ui = useUIState(); 
   const { cartItems, addToCart, removeFromCart, clearCart, cartCount } = useCart();
   const { success, info } = useToast();
+  const [pendingSave, setPendingSave] = useState(null); // { type: 'add' | 'edit', problem, duplicateInfo }
 
   // 2. ĐĂNG KÝ PHÍM TẮT
   useKeyboardShortcuts({
-    onNewProblem: () => info('Tính năng thêm bằng tay đang mở...'),
+    onNewProblem: () => ui.setShowAddModal(true),
     onSearch: () => ui.searchInputRef.current?.focus(),
     onEscape: () => ui.setSelectedPreview(null),
     onSelectAll: () => {}, 
@@ -96,6 +106,28 @@ function App() {
     link.download = `${config.fileName}.tex`;
     link.click();
     success('Đề thi đã được đóng gói và tải về!');
+  };
+
+  const handleConfirmDuplicateSave = () => {
+    if (!pendingSave) return;
+    const { type, problem } = pendingSave;
+    
+    if (type === 'add') {
+      addProblem(problem);
+      ui.setShowAddModal(false);
+      success('Đã thêm bài tập!');
+      ui.setSelectedPreview(problem);
+    } else if (type === 'edit') {
+      updateProblem(problem);
+      ui.setEditingProblem(null);
+      success('Cập nhật thành công!');
+      if (ui.selectedPreview?.id === problem.id) ui.setSelectedPreview(problem);
+    }
+    setPendingSave(null);
+  };
+
+  const handleCancelDuplicateSave = () => {
+    setPendingSave(null);
   };
 
 // 4. RÁP GIAO DIỆN (UI)
@@ -189,10 +221,15 @@ function App() {
         <AddProblemModal 
           onClose={() => ui.setShowAddModal(false)} 
           onSave={(prob) => {
-            addProblem(prob);
-            ui.setShowAddModal(false);
-            success('Đã thêm bài tập!');
-            ui.setSelectedPreview(prob);
+            const dup = checkDuplicate(prob.statement);
+            if (dup) {
+              setPendingSave({ type: 'add', problem: prob, duplicateInfo: dup });
+            } else {
+              addProblem(prob);
+              ui.setShowAddModal(false);
+              success('Đã thêm bài tập!');
+              ui.setSelectedPreview(prob);
+            }
           }} 
         />
       )}
@@ -202,10 +239,15 @@ function App() {
           problem={ui.editingProblem} 
           onClose={() => ui.setEditingProblem(null)} 
           onSave={(prob) => {
-            updateProblem(prob);
-            ui.setEditingProblem(null);
-            success('Cập nhật thành công!');
-            if (ui.selectedPreview?.id === prob.id) ui.setSelectedPreview(prob);
+            const dup = checkDuplicate(prob.statement, prob.id);
+            if (dup) {
+              setPendingSave({ type: 'edit', problem: prob, duplicateInfo: dup });
+            } else {
+              updateProblem(prob);
+              ui.setEditingProblem(null);
+              success('Cập nhật thành công!');
+              if (ui.selectedPreview?.id === prob.id) ui.setSelectedPreview(prob);
+            }
           }} 
         />
       )}
@@ -227,6 +269,14 @@ function App() {
           cartItems={cartItems} 
           onClose={() => ui.setShowExportModal(false)} 
           onExport={handleFinalExport} 
+        />
+      )}
+
+      {pendingSave && (
+        <DuplicateWarningModal 
+          pendingSave={pendingSave} 
+          onConfirm={handleConfirmDuplicateSave} 
+          onCancel={handleCancelDuplicateSave} 
         />
       )}
 

@@ -78,7 +78,7 @@ const AddProblemModal = ({ onClose, onSave }) => {
       type: formData.type,
       tags: formData.tags,
       notes: formData.notes,
-      dateAdded: new Date().toLocaleDateString('vi-VN'),
+      dateAdded: new Date().toISOString(),
       timesUsed: 0
     };
 
