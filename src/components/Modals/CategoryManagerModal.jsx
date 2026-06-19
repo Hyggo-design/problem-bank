@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { X, FolderTree, FolderPlus, Plus, Pencil, Trash2, Check, FolderInput, Gauge } from 'lucide-react';
+import { X, FolderTree, FolderPlus, Plus, Pencil, Trash2, Check, FolderInput, Gauge, GraduationCap } from 'lucide-react';
 import { useTaxonomy, getDescendantIds } from '../../hooks/useTaxonomy';
 
 // =============================================================================
@@ -184,9 +184,46 @@ const DifficultyPanel = ({ he, levels, onAdd, onRename, onDelete }) => {
   );
 };
 
+// Khu "Lớp" (Task 9) — danh sách phẳng dùng chung cho mọi hệ. Chip + nút xóa.
+const GradesPanel = ({ grades, onAdd, onDelete }) => {
+  const [newName, setNewName] = useState('');
+  const commitAdd = async () => {
+    if (newName.trim()) { await onAdd(newName); setNewName(''); }
+  };
+  return (
+    <div>
+      <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+        <GraduationCap size={15} /> Danh sách Lớp
+        <span style={{ fontWeight: 500, textTransform: 'none', letterSpacing: 0, color: '#94a3b8' }}>(dùng chung mọi hệ)</span>
+      </div>
+
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+        {grades.length === 0 && (
+          <div style={{ color: '#94a3b8', fontSize: '0.85rem', fontStyle: 'italic' }}>Chưa có lớp nào.</div>
+        )}
+        {grades.map((g) => (
+          <span key={g.id} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', padding: '0.25rem 0.3rem 0.25rem 0.7rem', borderRadius: '999px', backgroundColor: '#f1f5f9', border: '1px solid #e2e8f0', fontSize: '0.85rem', color: '#334155' }}>
+            {g.name}
+            <button
+              onClick={() => { if (window.confirm(`Xóa “${g.name}”? Các bài đang gắn lớp này sẽ bị gỡ.`)) onDelete(g.id); }}
+              title="Xóa lớp"
+              style={{ ...iconBtn, padding: '0.1rem', color: '#94a3b8' }}
+            ><X size={14} /></button>
+          </span>
+        ))}
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.75rem' }}>
+        <input value={newName} onChange={(e) => setNewName(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') commitAdd(); }} placeholder="Thêm lớp…" style={{ ...inputStyle, border: '1px solid #cbd5e1' }} />
+        <button onClick={commitAdd} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', padding: '0.4rem 0.7rem', borderRadius: '7px', border: 'none', backgroundColor: '#2563eb', color: '#fff', fontWeight: 600, fontSize: '0.82rem', cursor: 'pointer', whiteSpace: 'nowrap' }}><Plus size={15} /> Thêm</button>
+      </div>
+    </div>
+  );
+};
+
 const CategoryManagerModal = ({ onClose }) => {
   const tax = useTaxonomy();
-  const { categories, difficulties } = tax;
+  const { categories, difficulties, grades } = tax;
 
   const [adding, setAdding] = useState(null);     // { parentId, value } | null
   const [renaming, setRenaming] = useState(null); // { nodeId, value } | null
@@ -311,9 +348,9 @@ const CategoryManagerModal = ({ onClose }) => {
               </div>
             )}
 
-            {/* Khu Lớp — Task 9 */}
-            <div style={{ color: '#cbd5e1', fontSize: '0.85rem', borderTop: '1px dashed #e2e8f0', paddingTop: '1rem' }}>
-              Danh sách Lớp — sắp có (Task 9)
+            {/* Khu Lớp — Task 9 (dùng chung, luôn hiện) */}
+            <div style={{ borderTop: '1px dashed #e2e8f0', paddingTop: '1.25rem' }}>
+              <GradesPanel grades={grades} onAdd={tax.addGrade} onDelete={tax.deleteGrade} />
             </div>
           </div>
 
