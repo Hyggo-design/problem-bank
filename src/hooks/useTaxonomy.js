@@ -145,11 +145,53 @@ export const useTaxonomy = () => {
     }
   };
 
+  // 8. ĐỔI VỊ TRÍ — đánh số lại position = 0..n-1 cho cả nhóm "anh em" theo thứ tự mới.
+  //    Cách này tự dọn mọi lệch/trùng position cũ. `table` là hằng số cố định trong
+  //    code (không phải dữ liệu người dùng) nên ghép thẳng vào SQL là an toàn.
+  const reorderInGroup = async (table, siblings, id, dir) => {
+    try {
+      const arr = [...siblings].sort((a, b) => a.position - b.position);
+      const idx = arr.findIndex((x) => x.id === id);
+      const swapWith = dir === 'up' ? idx - 1 : idx + 1;
+      if (idx === -1 || swapWith < 0 || swapWith >= arr.length) return; // đã ở đầu/cuối
+      [arr[idx], arr[swapWith]] = [arr[swapWith], arr[idx]];
+      const db = await getDb();
+      for (let i = 0; i < arr.length; i++) {
+        await db.execute(`UPDATE ${table} SET position = $1 WHERE id = $2`, [i, arr[i].id]);
+      }
+      await loadAll();
+    } catch (error) {
+      console.error('Lỗi đổi vị trí:', error);
+    }
+  };
+
+  // Đổi vị trí một NHÁNH trong cùng cha (dir: 'up' | 'down')
+  const reorderCategory = async (id, dir) => {
+    const node = categories.find((c) => c.id === id);
+    if (!node) return;
+    const siblings = categories.filter((c) => c.parent_id === node.parent_id);
+    await reorderInGroup('categories', siblings, id, dir);
+  };
+
+  // Đổi vị trí một MỨC ĐỘ KHÓ trong cùng hệ
+  const reorderDifficulty = async (id, dir) => {
+    const lv = difficulties.find((d) => d.id === id);
+    if (!lv) return;
+    const siblings = difficulties.filter((d) => d.he_id === lv.he_id);
+    await reorderInGroup('difficulty_levels', siblings, id, dir);
+  };
+
+  // Đổi vị trí một LỚP (cả danh sách là một nhóm)
+  const reorderGrade = async (id, dir) => {
+    await reorderInGroup('grades', grades, id, dir);
+  };
+
   return {
     categories, difficulties, grades, reload: loadAll,
     addCategory, renameCategory, deleteCategory, moveCategory,
     addDifficulty, renameDifficulty, deleteDifficulty,
     addGrade, deleteGrade,
+    reorderCategory, reorderDifficulty, reorderGrade,
   };
 };
 
