@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { X, FolderTree, FolderPlus, Plus, Pencil, Trash2, Check, FolderInput } from 'lucide-react';
+import { X, FolderTree, FolderPlus, Plus, Pencil, Trash2, Check, FolderInput, Gauge } from 'lucide-react';
 import { useTaxonomy, getDescendantIds } from '../../hooks/useTaxonomy';
 
 // =============================================================================
@@ -73,7 +73,19 @@ const CategoryNode = ({ node, depth, ctx }) => {
           />
         ) : (
           <>
-            <span style={{ fontWeight: depth === 0 ? 700 : 500, flex: 1 }}>{node.name}</span>
+            <span
+              onClick={depth === 0 ? () => ctx.selectHe(node.id) : undefined}
+              title={depth === 0 ? 'Bấm để xem/sửa thang độ khó của hệ' : undefined}
+              style={{
+                flex: 1, fontWeight: depth === 0 ? 700 : 500,
+                cursor: depth === 0 ? 'pointer' : 'default',
+                color: depth === 0 && ctx.selectedHeId === node.id ? '#1d4ed8' : '#1e293b',
+                backgroundColor: depth === 0 && ctx.selectedHeId === node.id ? '#dbeafe' : 'transparent',
+                padding: depth === 0 ? '0.1rem 0.45rem' : 0, borderRadius: '5px',
+              }}
+            >
+              {node.name}
+            </span>
             <button onClick={() => ctx.startAdd(node.id)} title="Thêm nhánh con" style={iconBtn}><Plus size={16} /></button>
             <button onClick={() => ctx.startRename(node)} title="Đổi tên" style={iconBtn}><Pencil size={15} /></button>
             <button onClick={() => ctx.startMove(node.id)} title="Di chuyển" style={iconBtn}><FolderInput size={15} /></button>
@@ -121,13 +133,65 @@ const CategoryNode = ({ node, depth, ctx }) => {
   );
 };
 
+// Cột phải: thang độ khó của MỘT hệ (Task 8). Tự quản state nhập/đổi tên;
+// được keyed theo he.id ở chỗ render nên khi đổi hệ thì state tự reset.
+const DifficultyPanel = ({ he, levels, onAdd, onRename, onDelete }) => {
+  const [newName, setNewName] = useState('');
+  const [renaming, setRenaming] = useState(null); // { id, value }
+
+  const commitAdd = async () => {
+    if (newName.trim()) { await onAdd(he.id, newName); setNewName(''); }
+  };
+  const commitRename = async () => {
+    if (renaming && renaming.value.trim()) await onRename(renaming.id, renaming.value);
+    setRenaming(null);
+  };
+
+  return (
+    <div>
+      <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+        <Gauge size={15} /> Thang độ khó — <span style={{ color: '#2563eb' }}>{he.name}</span>
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+        {levels.length === 0 && (
+          <div style={{ color: '#94a3b8', fontSize: '0.85rem', fontStyle: 'italic' }}>Chưa có mức độ khó nào.</div>
+        )}
+        {levels.map((lv, i) => {
+          const isRen = renaming && renaming.id === lv.id;
+          return (
+            <div key={lv.id} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.6rem', backgroundColor: '#f8fafc', borderRadius: '7px' }}>
+              <span style={{ color: '#cbd5e1', fontSize: '0.8rem', minWidth: '1.2rem' }}>{i + 1}.</span>
+              {isRen ? (
+                <InlineInput value={renaming.value} onChange={(v) => setRenaming({ ...renaming, value: v })} onCommit={commitRename} onCancel={() => setRenaming(null)} />
+              ) : (
+                <>
+                  <span style={{ flex: 1, fontSize: '0.9rem', color: '#1e293b' }}>{lv.name}</span>
+                  <button onClick={() => setRenaming({ id: lv.id, value: lv.name })} title="Đổi tên" style={iconBtn}><Pencil size={14} /></button>
+                  <button onClick={() => { if (window.confirm(`Xóa mức “${lv.name}”? Các bài đang gắn mức này (ở hệ ${he.name}) sẽ bị gỡ độ khó.`)) onDelete(lv.id); }} title="Xóa" style={{ ...iconBtn, color: '#f87171' }}><Trash2 size={14} /></button>
+                </>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.75rem' }}>
+        <input value={newName} onChange={(e) => setNewName(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') commitAdd(); }} placeholder="Thêm mức độ khó…" style={{ ...inputStyle, border: '1px solid #cbd5e1' }} />
+        <button onClick={commitAdd} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', padding: '0.4rem 0.7rem', borderRadius: '7px', border: 'none', backgroundColor: '#2563eb', color: '#fff', fontWeight: 600, fontSize: '0.82rem', cursor: 'pointer', whiteSpace: 'nowrap' }}><Plus size={15} /> Thêm</button>
+      </div>
+    </div>
+  );
+};
+
 const CategoryManagerModal = ({ onClose }) => {
   const tax = useTaxonomy();
-  const { categories } = tax;
+  const { categories, difficulties } = tax;
 
   const [adding, setAdding] = useState(null);     // { parentId, value } | null
   const [renaming, setRenaming] = useState(null); // { nodeId, value } | null
   const [moving, setMoving] = useState(null);     // nodeId | null
+  const [selectedHeId, setSelectedHeId] = useState(null); // hệ đang chọn để xem thang độ khó
 
   // map parent_id -> con (đã sắp theo position) + danh sách hệ gốc
   const { childrenMap, roots } = useMemo(() => {
@@ -154,12 +218,17 @@ const CategoryManagerModal = ({ onClose }) => {
     return m;
   }, [categories]);
 
+  // Hệ đang chọn (bỏ qua nếu nó vừa bị xóa)
+  const selectedHe = roots.find((r) => r.id === selectedHeId) || null;
+
   const cancel = () => { setAdding(null); setRenaming(null); setMoving(null); };
 
   const ctx = {
     categories,
     childrenMap,
     adding, renaming, moving,
+    selectedHeId,
+    selectHe: (id) => setSelectedHeId((cur) => (cur === id ? null : id)), // bấm lại để bỏ chọn
     pathOf: (id) => pathMap[id] || '',
     setAddValue: (v) => setAdding((a) => ({ ...a, value: v })),
     setRenameValue: (v) => setRenaming((r) => ({ ...r, value: v })),
@@ -225,9 +294,27 @@ const CategoryManagerModal = ({ onClose }) => {
             </div>
           </div>
 
-          {/* Cột phải: placeholder cho Thang độ khó (Task 8) & Lớp (Task 9) */}
-          <div style={{ flex: '1 1 45%', display: 'flex', flexDirection: 'column', overflowY: 'auto', padding: '1.25rem', color: '#94a3b8', fontSize: '0.9rem' }}>
-            Chọn một hệ để xem thang độ khó. (Sắp có)
+          {/* Cột phải: Thang độ khó (Task 8) + Lớp (Task 9 - sắp có) */}
+          <div style={{ flex: '1 1 45%', display: 'flex', flexDirection: 'column', overflowY: 'auto', padding: '1.25rem', gap: '1.5rem' }}>
+            {selectedHe ? (
+              <DifficultyPanel
+                key={selectedHe.id}
+                he={selectedHe}
+                levels={difficulties.filter((d) => d.he_id === selectedHe.id)}
+                onAdd={tax.addDifficulty}
+                onRename={tax.renameDifficulty}
+                onDelete={tax.deleteDifficulty}
+              />
+            ) : (
+              <div style={{ color: '#94a3b8', fontSize: '0.9rem' }}>
+                Bấm vào một <b>hệ</b> (dòng chữ xanh đậm bên trái) để xem và sửa thang độ khó của hệ đó.
+              </div>
+            )}
+
+            {/* Khu Lớp — Task 9 */}
+            <div style={{ color: '#cbd5e1', fontSize: '0.85rem', borderTop: '1px dashed #e2e8f0', paddingTop: '1rem' }}>
+              Danh sách Lớp — sắp có (Task 9)
+            </div>
           </div>
 
         </div>
