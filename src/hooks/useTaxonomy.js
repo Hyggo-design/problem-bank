@@ -24,7 +24,70 @@ export const useTaxonomy = () => {
 
   useEffect(() => { loadAll(); }, [loadAll]);
 
-  return { categories, difficulties, grades, reload: loadAll };
+  // 2. THÊM NHÁNH (parentId = null -> thêm một hệ ở tầng gốc)
+  // `parent_id IS $1` xử lý gọn cả 2 trường hợp: gốc (NULL) và nhánh con (uuid).
+  const addCategory = async (name, parentId = null) => {
+    try {
+      const db = await getDb();
+      const sib = await db.select('SELECT COUNT(*) AS n FROM categories WHERE parent_id IS $1', [parentId]);
+      await db.execute(
+        'INSERT INTO categories (id, name, parent_id, position, created_at) VALUES ($1, $2, $3, $4, $5)',
+        [crypto.randomUUID(), name.trim(), parentId, sib[0].n, new Date().toISOString()]
+      );
+      await loadAll();
+    } catch (error) {
+      console.error('Lỗi thêm nhánh phân loại:', error);
+    }
+  };
+
+  // 3. ĐỔI TÊN NHÁNH
+  const renameCategory = async (id, name) => {
+    try {
+      const db = await getDb();
+      await db.execute('UPDATE categories SET name = $1 WHERE id = $2', [name.trim(), id]);
+      await loadAll();
+    } catch (error) {
+      console.error('Lỗi đổi tên nhánh:', error);
+    }
+  };
+
+  // 4. XÓA NHÁNH (xóa CẢ cây con bên dưới để không để lại nhánh mồ côi).
+  // Chỉ gỡ nhãn khỏi problem_categories — KHÔNG đụng bảng problems (bài tập vẫn còn).
+  const deleteCategory = async (id) => {
+    try {
+      const db = await getDb();
+      const all = await db.select('SELECT id, parent_id FROM categories');
+      const childrenMap = {};
+      for (const c of all) {
+        if (!childrenMap[c.parent_id]) childrenMap[c.parent_id] = [];
+        childrenMap[c.parent_id].push(c.id);
+      }
+      const ids = getDescendantIds(id, childrenMap); // gồm chính nó + mọi con cháu
+      for (const cid of ids) {
+        await db.execute('DELETE FROM problem_categories WHERE category_id = $1', [cid]);
+        await db.execute('DELETE FROM categories WHERE id = $1', [cid]);
+      }
+      await loadAll();
+    } catch (error) {
+      console.error('Lỗi xóa nhánh:', error);
+    }
+  };
+
+  // 5. DI CHUYỂN NHÁNH sang cha mới (newParentId = null -> đưa lên tầng gốc)
+  const moveCategory = async (id, newParentId) => {
+    try {
+      const db = await getDb();
+      await db.execute('UPDATE categories SET parent_id = $1 WHERE id = $2', [newParentId, id]);
+      await loadAll();
+    } catch (error) {
+      console.error('Lỗi di chuyển nhánh:', error);
+    }
+  };
+
+  return {
+    categories, difficulties, grades, reload: loadAll,
+    addCategory, renameCategory, deleteCategory, moveCategory,
+  };
 };
 
 // --- Tiện ích dùng chung (đặt ngoài hook) ---------------------------------------
