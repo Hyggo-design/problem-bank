@@ -2,6 +2,37 @@ import Database from '@tauri-apps/plugin-sql';
 
 let dbPromise = null;
 
+// Tạo sẵn 4 hệ mặc định + thang độ khó + danh sách lớp khi database còn trống.
+// Có guard đếm số dòng nên chạy nhiều lần vẫn an toàn (chỉ seed đúng một lần).
+const seedTaxonomy = async (db) => {
+  const rows = await db.select('SELECT COUNT(*) AS n FROM categories');
+  if (rows[0].n > 0) return; // đã có dữ liệu phân loại -> không seed lại
+
+  const heList = ['Toán THCS', 'Toán THPT', 'Toán Chuyên', 'Olympic'];
+  const diffDefault = ['Cơ bản', 'Trung bình', 'Nâng cao'];
+
+  for (let i = 0; i < heList.length; i++) {
+    const heId = crypto.randomUUID();
+    await db.execute(
+      'INSERT INTO categories (id, name, parent_id, position, created_at) VALUES ($1, $2, NULL, $3, $4)',
+      [heId, heList[i], i, new Date().toISOString()]
+    );
+    for (let j = 0; j < diffDefault.length; j++) {
+      await db.execute(
+        'INSERT INTO difficulty_levels (id, he_id, name, position) VALUES ($1, $2, $3, $4)',
+        [crypto.randomUUID(), heId, diffDefault[j], j]
+      );
+    }
+  }
+
+  for (let g = 6; g <= 12; g++) {
+    await db.execute(
+      'INSERT INTO grades (id, name, position) VALUES ($1, $2, $3)',
+      [crypto.randomUUID(), 'Lớp ' + g, g]
+    );
+  }
+};
+
 export const getDb = () => {
   if (!dbPromise) {
     dbPromise = (async () => {
@@ -112,6 +143,9 @@ export const getDb = () => {
         await db.execute(`CREATE INDEX IF NOT EXISTS idx_pc_category ON problem_categories(category_id);`);
         await db.execute(`CREATE INDEX IF NOT EXISTS idx_pd_problem ON problem_difficulties(problem_id);`);
         await db.execute(`CREATE INDEX IF NOT EXISTS idx_pg_problem ON problem_grades(problem_id);`);
+
+        // 4. SEED: tạo sẵn 4 hệ mặc định (THCS, THPT, Chuyên, Olympic) nếu database còn trống
+        await seedTaxonomy(db);
 
         return db;
       } catch (error) {
