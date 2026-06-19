@@ -145,9 +145,10 @@ const CategoryNode = ({ node, depth, ctx, isFirst, isLast }) => {
 
 // Cột phải: thang độ khó của MỘT hệ (Task 8). Tự quản state nhập/đổi tên;
 // được keyed theo he.id ở chỗ render nên khi đổi hệ thì state tự reset.
-const DifficultyPanel = ({ he, levels, onAdd, onRename, onDelete }) => {
+const DifficultyPanel = ({ he, levels, onAdd, onRename, onDelete, onReorder }) => {
   const [newName, setNewName] = useState('');
   const [renaming, setRenaming] = useState(null); // { id, value }
+  const [hoveredId, setHoveredId] = useState(null);
 
   const commitAdd = async () => {
     if (newName.trim()) { await onAdd(he.id, newName); setNewName(''); }
@@ -170,15 +171,25 @@ const DifficultyPanel = ({ he, levels, onAdd, onRename, onDelete }) => {
         {levels.map((lv, i) => {
           const isRen = renaming && renaming.id === lv.id;
           return (
-            <div key={lv.id} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.6rem', backgroundColor: '#f8fafc', borderRadius: '7px' }}>
+            <div key={lv.id}
+              onMouseEnter={() => setHoveredId(lv.id)} onMouseLeave={() => setHoveredId(null)}
+              style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.6rem', backgroundColor: '#f8fafc', borderRadius: '7px' }}>
               <span style={{ color: '#cbd5e1', fontSize: '0.8rem', minWidth: '1.2rem' }}>{i + 1}.</span>
               {isRen ? (
                 <InlineInput value={renaming.value} onChange={(v) => setRenaming({ ...renaming, value: v })} onCommit={commitRename} onCancel={() => setRenaming(null)} />
               ) : (
                 <>
                   <span style={{ flex: 1, fontSize: '0.9rem', color: '#1e293b' }}>{lv.name}</span>
-                  <button onClick={() => setRenaming({ id: lv.id, value: lv.name })} title="Đổi tên" style={iconBtn}><Pencil size={14} /></button>
-                  <button onClick={() => { if (window.confirm(`Xóa mức “${lv.name}”? Các bài đang gắn mức này (ở hệ ${he.name}) sẽ bị gỡ độ khó.`)) onDelete(lv.id); }} title="Xóa" style={{ ...iconBtn, color: '#f87171' }}><Trash2 size={14} /></button>
+                  {hoveredId === lv.id && (
+                    <>
+                      <button onClick={() => onReorder(lv.id, 'up')} disabled={i === 0} title="Lên trên"
+                        style={{ ...iconBtn, opacity: i === 0 ? 0.25 : 1, cursor: i === 0 ? 'default' : 'pointer' }}><ChevronUp size={14} /></button>
+                      <button onClick={() => onReorder(lv.id, 'down')} disabled={i === levels.length - 1} title="Xuống dưới"
+                        style={{ ...iconBtn, opacity: i === levels.length - 1 ? 0.25 : 1, cursor: i === levels.length - 1 ? 'default' : 'pointer' }}><ChevronDown size={14} /></button>
+                      <button onClick={() => setRenaming({ id: lv.id, value: lv.name })} title="Đổi tên" style={iconBtn}><Pencil size={14} /></button>
+                      <button onClick={() => { if (window.confirm(`Xóa mức “${lv.name}”? Các bài đang gắn mức này (ở hệ ${he.name}) sẽ bị gỡ độ khó.`)) onDelete(lv.id); }} title="Xóa" style={{ ...iconBtn, color: '#f87171' }}><Trash2 size={14} /></button>
+                    </>
+                  )}
                 </>
               )}
             </div>
@@ -353,6 +364,7 @@ const CategoryManagerModal = ({ onClose }) => {
                 onAdd={tax.addDifficulty}
                 onRename={tax.renameDifficulty}
                 onDelete={tax.deleteDifficulty}
+                onReorder={tax.reorderDifficulty}
               />
             ) : (
               <div style={{ color: '#94a3b8', fontSize: '0.9rem' }}>
