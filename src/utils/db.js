@@ -25,7 +25,9 @@ const seedTaxonomy = async (db) => {
     }
   }
 
-  for (let g = 6; g <= 12; g++) {
+  // Lớp 5 → 12: bắt đầu từ 5 để phục vụ các kỳ olympic dành cho tiểu học.
+  // position = số lớp nên Lớp 5 luôn đứng đầu khi ORDER BY position.
+  for (let g = 5; g <= 12; g++) {
     await db.execute(
       'INSERT INTO grades (id, name, position) VALUES ($1, $2, $3)',
       [crypto.randomUUID(), 'Lớp ' + g, g]
