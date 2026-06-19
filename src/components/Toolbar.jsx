@@ -1,7 +1,7 @@
 import React from 'react';
-import { PlusSquare, Upload, Trash2, ShoppingCart } from 'lucide-react';
+import { PlusSquare, Upload, Trash2, ShoppingCart, FolderTree } from 'lucide-react';
 
-const Toolbar = ({ onAdd, onSmartImport, isImporting, selectedCount, onBulkDelete, onBulkAddToCart }) => {
+const Toolbar = ({ onAdd, onSmartImport, isImporting, selectedCount, onBulkDelete, onBulkAddToCart, onManageCategories }) => {
   return (
     <div style={{ display: 'flex', gap: '1rem', padding: '1.5rem 2rem 0.5rem', backgroundColor: '#fff', alignItems: 'center' }}>
       
@@ -13,6 +13,11 @@ const Toolbar = ({ onAdd, onSmartImport, isImporting, selectedCount, onBulkDelet
       {/* Nút Import Đa Năng (Mở Modal) */}
       <button onClick={onSmartImport} style={{ padding: '0.6rem 1.2rem', borderRadius: '8px', backgroundColor: '#f0f9ff', color: '#0369a1', border: '1px solid #bae6fd', display: 'flex', gap: '0.5rem', alignItems: 'center', cursor: 'pointer', fontWeight: 600, fontSize: '0.95rem' }}>
         <Upload size={18} /> Import
+      </button>
+
+      {/* Nút Quản lý phân loại (Mở Modal) */}
+      <button onClick={onManageCategories} style={{ padding: '0.6rem 1.2rem', borderRadius: '8px', backgroundColor: '#f5f3ff', color: '#6d28d9', border: '1px solid #ddd6fe', display: 'flex', gap: '0.5rem', alignItems: 'center', cursor: 'pointer', fontWeight: 600, fontSize: '0.95rem' }}>
+        <FolderTree size={18} /> Quản lý phân loại
       </button>
 
       {/* Cụm Nút Thao tác hàng loạt (CHỈ HIỆN KHI CÓ BÀI ĐƯỢC CHỌN) */}

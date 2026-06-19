@@ -10,6 +10,7 @@ import EditProblemModal from './components/Modals/EditProblemModal';
 import SmartImportModal from './components/Modals/SmartImportModal';
 import ExportModal from './components/Modals/ExportModal';
 import DuplicateWarningModal from './components/Modals/DuplicateWarningModal';
+import CategoryManagerModal from './components/Modals/CategoryManagerModal';
 
 import { Toaster } from 'react-hot-toast';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
@@ -146,9 +147,10 @@ function App() {
         
         {/* NỬA TRÁI: Dữ liệu & Bộ lọc */}
         <div style={{ flex: '1 1 60%', display: 'flex', flexDirection: 'column', borderRight: '1px solid #e2e8f0', backgroundColor: '#fff', zIndex: 1 }}>
-          <Toolbar 
-            onAdd={() => ui.setShowAddModal(true)} 
-            onSmartImport={() => ui.setShowImportModal(true)} 
+          <Toolbar
+            onAdd={() => ui.setShowAddModal(true)}
+            onSmartImport={() => ui.setShowImportModal(true)}
+            onManageCategories={() => ui.setShowCategoryManager(true)}
             isImporting={ui.isImporting}
             selectedCount={ui.selectedIds.length}
             onBulkDelete={handleBulkDelete}
@@ -273,11 +275,15 @@ function App() {
       )}
 
       {pendingSave && (
-        <DuplicateWarningModal 
-          pendingSave={pendingSave} 
-          onConfirm={handleConfirmDuplicateSave} 
-          onCancel={handleCancelDuplicateSave} 
+        <DuplicateWarningModal
+          pendingSave={pendingSave}
+          onConfirm={handleConfirmDuplicateSave}
+          onCancel={handleCancelDuplicateSave}
         />
+      )}
+
+      {ui.showCategoryManager && (
+        <CategoryManagerModal onClose={() => ui.setShowCategoryManager(false)} />
       )}
 
       <Toaster />

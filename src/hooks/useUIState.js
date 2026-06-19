@@ -12,6 +12,7 @@ export const useUIState = () => {
   const [showImportModal, setShowImportModal] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showCategoryManager, setShowCategoryManager] = useState(false);
   
   // 3. Quản lý trạng thái đang chọn/Xem trước/Sửa
   const [selectedIds, setSelectedIds] = useState([]);
@@ -37,6 +38,7 @@ export const useUIState = () => {
     showImportModal, setShowImportModal,
     showExportModal, setShowExportModal,
     showAddModal, setShowAddModal,
+    showCategoryManager, setShowCategoryManager,
     
     selectedIds, setSelectedIds,
     selectedPreview, setSelectedPreview,
