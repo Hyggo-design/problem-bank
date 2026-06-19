@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { X, FolderTree, FolderPlus, Plus, Pencil, Trash2, Check, FolderInput, Gauge, GraduationCap, ChevronUp, ChevronDown } from 'lucide-react';
+import { X, FolderTree, FolderPlus, Plus, Pencil, Trash2, Check, FolderInput, Gauge, GraduationCap, ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useTaxonomy, getDescendantIds } from '../../hooks/useTaxonomy';
 
 // =============================================================================
@@ -206,8 +206,9 @@ const DifficultyPanel = ({ he, levels, onAdd, onRename, onDelete, onReorder }) =
 };
 
 // Khu "Lớp" (Task 9) — danh sách phẳng dùng chung cho mọi hệ. Chip + nút xóa.
-const GradesPanel = ({ grades, onAdd, onDelete }) => {
+const GradesPanel = ({ grades, onAdd, onDelete, onReorder }) => {
   const [newName, setNewName] = useState('');
+  const [hoveredId, setHoveredId] = useState(null);
   const commitAdd = async () => {
     if (newName.trim()) { await onAdd(newName); setNewName(''); }
   };
@@ -222,14 +223,21 @@ const GradesPanel = ({ grades, onAdd, onDelete }) => {
         {grades.length === 0 && (
           <div style={{ color: '#94a3b8', fontSize: '0.85rem', fontStyle: 'italic' }}>Chưa có lớp nào.</div>
         )}
-        {grades.map((g) => (
-          <span key={g.id} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', padding: '0.25rem 0.3rem 0.25rem 0.7rem', borderRadius: '999px', backgroundColor: '#f1f5f9', border: '1px solid #e2e8f0', fontSize: '0.85rem', color: '#334155' }}>
+        {grades.map((g, i) => (
+          <span key={g.id}
+            onMouseEnter={() => setHoveredId(g.id)} onMouseLeave={() => setHoveredId(null)}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', padding: '0.25rem 0.6rem', borderRadius: '999px', backgroundColor: '#f1f5f9', border: '1px solid #e2e8f0', fontSize: '0.85rem', color: '#334155' }}>
             {g.name}
-            <button
-              onClick={() => { if (window.confirm(`Xóa “${g.name}”? Các bài đang gắn lớp này sẽ bị gỡ.`)) onDelete(g.id); }}
-              title="Xóa lớp"
-              style={{ ...iconBtn, padding: '0.1rem', color: '#94a3b8' }}
-            ><X size={14} /></button>
+            {hoveredId === g.id && (
+              <>
+                <button onClick={() => onReorder(g.id, 'up')} disabled={i === 0} title="Dời sớm hơn"
+                  style={{ ...iconBtn, padding: '0.1rem', opacity: i === 0 ? 0.25 : 1, cursor: i === 0 ? 'default' : 'pointer' }}><ChevronLeft size={14} /></button>
+                <button onClick={() => onReorder(g.id, 'down')} disabled={i === grades.length - 1} title="Dời muộn hơn"
+                  style={{ ...iconBtn, padding: '0.1rem', opacity: i === grades.length - 1 ? 0.25 : 1, cursor: i === grades.length - 1 ? 'default' : 'pointer' }}><ChevronRight size={14} /></button>
+                <button onClick={() => { if (window.confirm(`Xóa “${g.name}”? Các bài đang gắn lớp này sẽ bị gỡ.`)) onDelete(g.id); }} title="Xóa lớp"
+                  style={{ ...iconBtn, padding: '0.1rem', color: '#94a3b8' }}><X size={14} /></button>
+              </>
+            )}
           </span>
         ))}
       </div>
@@ -374,7 +382,7 @@ const CategoryManagerModal = ({ onClose }) => {
 
             {/* Khu Lớp — Task 9 (dùng chung, luôn hiện) */}
             <div style={{ borderTop: '1px dashed #e2e8f0', paddingTop: '1.25rem' }}>
-              <GradesPanel grades={grades} onAdd={tax.addGrade} onDelete={tax.deleteGrade} />
+              <GradesPanel grades={grades} onAdd={tax.addGrade} onDelete={tax.deleteGrade} onReorder={tax.reorderGrade} />
             </div>
           </div>
 
