@@ -84,9 +84,72 @@ export const useTaxonomy = () => {
     }
   };
 
+  // 6. ĐỘ KHÓ — theo từng hệ (mỗi hệ có thang riêng)
+  const addDifficulty = async (heId, name) => {
+    try {
+      const db = await getDb();
+      const sib = await db.select('SELECT COUNT(*) AS n FROM difficulty_levels WHERE he_id = $1', [heId]);
+      await db.execute(
+        'INSERT INTO difficulty_levels (id, he_id, name, position) VALUES ($1, $2, $3, $4)',
+        [crypto.randomUUID(), heId, name.trim(), sib[0].n]
+      );
+      await loadAll();
+    } catch (error) {
+      console.error('Lỗi thêm mức độ khó:', error);
+    }
+  };
+
+  const renameDifficulty = async (id, name) => {
+    try {
+      const db = await getDb();
+      await db.execute('UPDATE difficulty_levels SET name = $1 WHERE id = $2', [name.trim(), id]);
+      await loadAll();
+    } catch (error) {
+      console.error('Lỗi đổi tên mức độ khó:', error);
+    }
+  };
+
+  // Xóa mức độ khó: gỡ liên kết ở problem_difficulties rồi xóa mức đó
+  const deleteDifficulty = async (id) => {
+    try {
+      const db = await getDb();
+      await db.execute('DELETE FROM problem_difficulties WHERE difficulty_id = $1', [id]);
+      await db.execute('DELETE FROM difficulty_levels WHERE id = $1', [id]);
+      await loadAll();
+    } catch (error) {
+      console.error('Lỗi xóa mức độ khó:', error);
+    }
+  };
+
+  // 7. LỚP — danh sách phẳng dùng chung
+  const addGrade = async (name) => {
+    try {
+      const db = await getDb();
+      const n = await db.select('SELECT COUNT(*) AS n FROM grades');
+      await db.execute('INSERT INTO grades (id, name, position) VALUES ($1, $2, $3)',
+        [crypto.randomUUID(), name.trim(), n[0].n]);
+      await loadAll();
+    } catch (error) {
+      console.error('Lỗi thêm lớp:', error);
+    }
+  };
+
+  const deleteGrade = async (id) => {
+    try {
+      const db = await getDb();
+      await db.execute('DELETE FROM problem_grades WHERE grade_id = $1', [id]);
+      await db.execute('DELETE FROM grades WHERE id = $1', [id]);
+      await loadAll();
+    } catch (error) {
+      console.error('Lỗi xóa lớp:', error);
+    }
+  };
+
   return {
     categories, difficulties, grades, reload: loadAll,
     addCategory, renameCategory, deleteCategory, moveCategory,
+    addDifficulty, renameDifficulty, deleteDifficulty,
+    addGrade, deleteGrade,
   };
 };
 
