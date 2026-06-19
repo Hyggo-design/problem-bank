@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { X, FolderTree, FolderPlus, Plus, Pencil, Trash2, Check, FolderInput, Gauge, GraduationCap } from 'lucide-react';
+import { X, FolderTree, FolderPlus, Plus, Pencil, Trash2, Check, FolderInput, Gauge, GraduationCap, ChevronUp, ChevronDown } from 'lucide-react';
 import { useTaxonomy, getDescendantIds } from '../../hooks/useTaxonomy';
 
 // =============================================================================
@@ -39,8 +39,9 @@ const InlineInput = ({ value, onChange, onCommit, onCancel, placeholder }) => (
 
 // Một nút trong cây (đệ quy). Định nghĩa NGOÀI modal để ô nhập inline không bị
 // remount (mất focus) mỗi lần re-render. Mọi handler/state truyền qua `ctx`.
-const CategoryNode = ({ node, depth, ctx }) => {
+const CategoryNode = ({ node, depth, ctx, isFirst, isLast }) => {
   const children = ctx.childrenMap[node.id] || [];
+  const [hovered, setHovered] = useState(false);
   const isRenaming = ctx.renaming && ctx.renaming.nodeId === node.id;
   const isMoving = ctx.moving === node.id;
 
@@ -59,8 +60,8 @@ const CategoryNode = ({ node, depth, ctx }) => {
           padding: '0.35rem 0.5rem', paddingLeft: `${0.5 + depth * 1.4}rem`,
           borderRadius: '6px', fontSize: '0.95rem', color: '#1e293b',
         }}
-        onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#f8fafc'; }}
-        onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
+        onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#f8fafc'; setHovered(true); }}
+        onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; setHovered(false); }}
       >
         <span style={{ color: depth === 0 ? '#2563eb' : '#94a3b8' }}>{depth === 0 ? '■' : '•'}</span>
 
@@ -86,10 +87,18 @@ const CategoryNode = ({ node, depth, ctx }) => {
             >
               {node.name}
             </span>
-            <button onClick={() => ctx.startAdd(node.id)} title="Thêm nhánh con" style={iconBtn}><Plus size={16} /></button>
-            <button onClick={() => ctx.startRename(node)} title="Đổi tên" style={iconBtn}><Pencil size={15} /></button>
-            <button onClick={() => ctx.startMove(node.id)} title="Di chuyển" style={iconBtn}><FolderInput size={15} /></button>
-            <button onClick={() => ctx.remove(node)} title="Xóa" style={{ ...iconBtn, color: '#f87171' }}><Trash2 size={15} /></button>
+            {hovered && (
+              <>
+                <button onClick={() => ctx.reorderCategory(node.id, 'up')} disabled={isFirst} title="Lên trên"
+                  style={{ ...iconBtn, opacity: isFirst ? 0.25 : 1, cursor: isFirst ? 'default' : 'pointer' }}><ChevronUp size={16} /></button>
+                <button onClick={() => ctx.reorderCategory(node.id, 'down')} disabled={isLast} title="Xuống dưới"
+                  style={{ ...iconBtn, opacity: isLast ? 0.25 : 1, cursor: isLast ? 'default' : 'pointer' }}><ChevronDown size={16} /></button>
+                <button onClick={() => ctx.startAdd(node.id)} title="Thêm nhánh con" style={iconBtn}><Plus size={16} /></button>
+                <button onClick={() => ctx.startRename(node)} title="Đổi tên" style={iconBtn}><Pencil size={15} /></button>
+                <button onClick={() => ctx.startMove(node.id)} title="Di chuyển" style={iconBtn}><FolderInput size={15} /></button>
+                <button onClick={() => ctx.remove(node)} title="Xóa" style={{ ...iconBtn, color: '#f87171' }}><Trash2 size={15} /></button>
+              </>
+            )}
           </>
         )}
       </div>
@@ -126,8 +135,9 @@ const CategoryNode = ({ node, depth, ctx }) => {
         </div>
       )}
 
-      {children.map((child) => (
-        <CategoryNode key={child.id} node={child} depth={depth + 1} ctx={ctx} />
+      {children.map((child, i) => (
+        <CategoryNode key={child.id} node={child} depth={depth + 1} ctx={ctx}
+          isFirst={i === 0} isLast={i === children.length - 1} />
       ))}
     </div>
   );
@@ -267,6 +277,7 @@ const CategoryManagerModal = ({ onClose }) => {
     selectedHeId,
     selectHe: (id) => setSelectedHeId((cur) => (cur === id ? null : id)), // bấm lại để bỏ chọn
     pathOf: (id) => pathMap[id] || '',
+    reorderCategory: (id, dir) => tax.reorderCategory(id, dir),
     setAddValue: (v) => setAdding((a) => ({ ...a, value: v })),
     setRenameValue: (v) => setRenaming((r) => ({ ...r, value: v })),
     startAdd: (parentId) => { cancel(); setAdding({ parentId, value: '' }); },
@@ -324,8 +335,9 @@ const CategoryManagerModal = ({ onClose }) => {
                   Chưa có hệ nào. Bấm “Thêm hệ” để bắt đầu.
                 </div>
               ) : (
-                roots.map((node) => (
-                  <CategoryNode key={node.id} node={node} depth={0} ctx={ctx} />
+                roots.map((node, i) => (
+                  <CategoryNode key={node.id} node={node} depth={0} ctx={ctx}
+                    isFirst={i === 0} isLast={i === roots.length - 1} />
                 ))
               )}
             </div>
