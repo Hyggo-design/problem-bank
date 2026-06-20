@@ -7,7 +7,7 @@ import { useTaxonomy, getDescendantIds } from '../hooks/useTaxonomy';
 // COMPONENT BẢNG CHÍNH (Cuộn vô hạn với Virtuoso)
 // ==========================================
 const DataGrid = ({
-  problems, sortBy, filterTopic, filterLevel, searchTerm, selectedIds,
+  problems, sortBy, filterTopic, filterGrade, filterDifficulty, searchTerm, selectedIds,
   onSelectChange, onSelectAll, onPreviewClick, onAddToCart, onDelete, onEdit
 }) => {
   
@@ -42,7 +42,10 @@ const DataGrid = ({
       }
       // Khớp nếu bài có ÍT NHẤT một nhánh nằm trong tập nhánh hợp lệ (gồm nhánh con).
       if (validBranchIds && !(p.categoryIds || []).some((id) => validBranchIds.has(id))) return false;
-      if (filterLevel !== 'all' && p.level !== parseInt(filterLevel)) return false;
+      // Task 16: lọc theo Lớp (gradeIds chứa lớp đã chọn).
+      if (filterGrade !== 'all' && !(p.gradeIds || []).includes(filterGrade)) return false;
+      // Task 16: lọc theo Độ khó (difficultyByHe có chứa mức đã chọn ở bất kỳ hệ nào).
+      if (filterDifficulty !== 'all' && !Object.values(p.difficultyByHe || {}).includes(filterDifficulty)) return false;
       return true;
     });
 
@@ -55,7 +58,7 @@ const DataGrid = ({
         default: return 0;
       }
     });
-  }, [problems, sortBy, validBranchIds, filterLevel, searchTerm]);
+  }, [problems, sortBy, validBranchIds, filterGrade, filterDifficulty, searchTerm]);
 
   const isAllSelected = filteredAndSorted.length > 0 && filteredAndSorted.every(p => selectedIds.includes(p.id));
 

@@ -4,7 +4,8 @@ export const useUIState = () => {
   // 1. Quản lý Tìm kiếm & Lọc
   const [searchTerm, setSearchTerm] = useState('');
   const [filterTopic, setFilterTopic] = useState('all');
-  const [filterLevel, setFilterLevel] = useState('all');
+  const [filterGrade, setFilterGrade] = useState('all');       // Task 16: lọc theo Lớp (grade id)
+  const [filterDifficulty, setFilterDifficulty] = useState('all'); // Task 16: lọc theo Độ khó (difficulty id)
   const [sortBy, setSortBy] = useState('date-new');
   const searchInputRef = useRef(null);
 
@@ -25,13 +26,15 @@ export const useUIState = () => {
   const clearFilters = () => {
     setSearchTerm('');
     setFilterTopic('all');
-    setFilterLevel('all');
+    setFilterGrade('all');
+    setFilterDifficulty('all');
   };
 
   return {
     searchTerm, setSearchTerm,
     filterTopic, setFilterTopic,
-    filterLevel, setFilterLevel,
+    filterGrade, setFilterGrade,
+    filterDifficulty, setFilterDifficulty,
     sortBy, setSortBy,
     searchInputRef, clearFilters,
     

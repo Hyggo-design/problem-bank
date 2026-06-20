@@ -160,14 +160,15 @@ function App() {
           <ControlsRow 
             searchTerm={ui.searchTerm} onSearchChange={ui.setSearchTerm}
             filterTopic={ui.filterTopic} onFilterTopicChange={ui.setFilterTopic}
-            filterLevel={ui.filterLevel} onFilterLevelChange={ui.setFilterLevel}
+            filterGrade={ui.filterGrade} onFilterGradeChange={ui.setFilterGrade}
+            filterDifficulty={ui.filterDifficulty} onFilterDifficultyChange={ui.setFilterDifficulty}
             sortBy={ui.sortBy} onSortChange={ui.setSortBy}
             searchInputRef={ui.searchInputRef}
           />
           
           <DataGrid 
             problems={problems}
-            sortBy={ui.sortBy} filterTopic={ui.filterTopic} filterLevel={ui.filterLevel} searchTerm={ui.searchTerm}
+            sortBy={ui.sortBy} filterTopic={ui.filterTopic} filterGrade={ui.filterGrade} filterDifficulty={ui.filterDifficulty} searchTerm={ui.searchTerm}
             selectedIds={ui.selectedIds}
             onSelectChange={(id) => ui.setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])}
             onSelectAll={(isChecked, allIds) => ui.setSelectedIds(isChecked ? allIds : [])}

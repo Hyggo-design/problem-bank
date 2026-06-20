@@ -7,15 +7,24 @@ const ControlsRow = ({
   onSearchChange,
   filterTopic,
   onFilterTopicChange,
-  filterLevel,
-  onFilterLevelChange,
+  filterGrade,
+  onFilterGradeChange,
+  filterDifficulty,
+  onFilterDifficultyChange,
   sortBy,
   onSortChange,
   searchInputRef
 }) => {
   // Task 15: danh sách chuyên đề lấy từ cây phân loại (useTaxonomy), làm phẳng theo
   // thứ tự cây + ghi độ sâu để thụt lề — Thầy chọn đúng nhánh muốn lọc.
-  const { categories } = useTaxonomy();
+  const { categories, grades, difficulties } = useTaxonomy();
+
+  // Các hệ (nút gốc) — để gom nhóm độ khó theo hệ trong ô lọc Độ khó.
+  const roots = useMemo(
+    () => categories.filter((c) => !c.parent_id).sort((a, b) => a.position - b.position),
+    [categories]
+  );
+
   const flatTopics = useMemo(() => {
     const childrenMap = {};
     for (const c of categories) {
@@ -67,16 +76,36 @@ const ControlsRow = ({
         ))}
       </select>
 
-      {/* Lọc theo Độ khó */}
+      {/* Lọc theo Lớp */}
       <select
-        value={filterLevel}
-        onChange={(e) => onFilterLevelChange(e.target.value)}
+        value={filterGrade}
+        onChange={(e) => onFilterGradeChange(e.target.value)}
         style={{ padding: '0.5rem 1rem', border: '1px solid #e2e8f0', borderRadius: '8px', outline: 'none', color: '#334155', backgroundColor: '#fff', cursor: 'pointer' }}
       >
-        <option value="all">Tất cả cấp độ</option>
-        <option value="1">Level 1 - Cơ bản</option>
-        <option value="2">Level 2 - Trung bình</option>
-        <option value="3">Level 3 - Nâng cao</option>
+        <option value="all">Tất cả lớp</option>
+        {grades.map(g => (
+          <option key={g.id} value={g.id}>{g.name}</option>
+        ))}
+      </select>
+
+      {/* Lọc theo Độ khó — gom nhóm theo từng hệ (mỗi hệ có thang riêng) */}
+      <select
+        value={filterDifficulty}
+        onChange={(e) => onFilterDifficultyChange(e.target.value)}
+        style={{ padding: '0.5rem 1rem', border: '1px solid #e2e8f0', borderRadius: '8px', outline: 'none', color: '#334155', backgroundColor: '#fff', cursor: 'pointer' }}
+      >
+        <option value="all">Tất cả độ khó</option>
+        {roots.map(he => {
+          const levels = difficulties.filter(d => d.he_id === he.id);
+          if (levels.length === 0) return null;
+          return (
+            <optgroup key={he.id} label={he.name}>
+              {levels.map(lv => (
+                <option key={lv.id} value={lv.id}>{lv.name}</option>
+              ))}
+            </optgroup>
+          );
+        })}
       </select>
 
       {/* Sắp xếp dữ liệu */}
