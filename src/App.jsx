@@ -190,7 +190,7 @@ function App() {
 
         {/* NỬA PHẢI: Chỉ hiện khi có Preview hoặc Giỏ hàng đang mở */}
         {(ui.selectedPreview || ui.isCartOpen) && (
-          <div style={{ flex: '0 0 450px', display: 'flex', flexDirection: 'column', backgroundColor: '#f8fafc', borderLeft: '1px solid #e2e8f0' }}>
+          <div style={{ flex: '0 0 450px', minWidth: 0, display: 'flex', flexDirection: 'column', backgroundColor: '#f8fafc', borderLeft: '1px solid #e2e8f0' }}>
               
             {/* 1. Khu vực Preview */}
             {ui.selectedPreview && (
