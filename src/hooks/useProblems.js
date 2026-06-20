@@ -73,10 +73,33 @@ export const useProblems = () => {
     try {
       const db = await getDb();
       const result = await db.select('SELECT * FROM problems ORDER BY dateAdded DESC');
-      
+
+      // Task 14: tải 3 bảng nối phân loại rồi gộp theo problem_id để gắn vào từng bài.
+      const pc = await db.select('SELECT * FROM problem_categories');
+      const pd = await db.select('SELECT * FROM problem_difficulties');
+      const pg = await db.select('SELECT * FROM problem_grades');
+
+      const catsByProblem = {};   // problem_id -> [category_id]
+      for (const row of pc) {
+        (catsByProblem[row.problem_id] = catsByProblem[row.problem_id] || []).push(row.category_id);
+      }
+      const diffByProblem = {};   // problem_id -> { he_id: difficulty_id }
+      for (const row of pd) {
+        if (!diffByProblem[row.problem_id]) diffByProblem[row.problem_id] = {};
+        diffByProblem[row.problem_id][row.he_id] = row.difficulty_id;
+      }
+      const gradesByProblem = {}; // problem_id -> [grade_id]
+      for (const row of pg) {
+        (gradesByProblem[row.problem_id] = gradesByProblem[row.problem_id] || []).push(row.grade_id);
+      }
+
       const parsedProblems = result.map(p => ({
         ...p,
-        options: safeJSONParse(p.options) // Dùng hàm an toàn
+        options: safeJSONParse(p.options), // Dùng hàm an toàn
+        // Phân loại mới (Task 14) — mặc định rỗng nếu bài chưa gắn gì
+        categoryIds: catsByProblem[p.id] || [],
+        difficultyByHe: diffByProblem[p.id] || {},
+        gradeIds: gradesByProblem[p.id] || []
       }));
 
       setProblems(parsedProblems);
@@ -129,12 +152,15 @@ export const useProblems = () => {
       await db.execute(
         `UPDATE problems SET statement = $1, solution = $2, topic = $3, level = $4, tags = $5, type = $6, shortAnswer = $7, options = $8 WHERE id = $9`,
         [
-          updatedProblem.statement, updatedProblem.solution || '', updatedProblem.topic, 
-          updatedProblem.level, updatedProblem.tags || '', updatedProblem.type || 'Tự luận', 
+          updatedProblem.statement, updatedProblem.solution || '', updatedProblem.topic,
+          updatedProblem.level, updatedProblem.tags || '', updatedProblem.type || 'Tự luận',
           updatedProblem.shortAnswer || '', optionsStr, updatedProblem.id
         ]
       );
-      
+
+      // Task 14: lưu lại phân loại mới (cây + độ khó theo hệ + lớp) đi kèm trên object.
+      await saveClassification(db, updatedProblem.id, updatedProblem);
+
       setProblems(prev => prev.map(p => p.id === updatedProblem.id ? updatedProblem : p));
     } catch (error) { console.error("Lỗi cập nhật:", error); }
   };
