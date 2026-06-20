@@ -1,6 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Upload, FileText, CheckCircle, Trash2, Loader } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import ClassificationPicker from '../ClassificationPicker';
+
+// Phân loại rỗng khởi tạo cho mỗi câu rà soát (giống form Thêm/Sửa).
+const makeEmptyCls = () => ({ categoryIds: [], difficultyByHe: {}, gradeIds: [], tags: '' });
 
 const SmartImportModal = ({ onClose, onSave, genAI }) => {
   const [files, setFiles] = useState([]);
@@ -65,7 +69,8 @@ const SmartImportModal = ({ onClose, onSave, genAI }) => {
               tempResults.push({
                 id: crypto.randomUUID(),
                 rawLatex: `\\begin{bt}\n${match[1].trim()}\n\\end{bt}`,
-                topic: 'Chưa phân loại', level: 1, type: 'Tự luận'
+                type: 'Tự luận',
+                cls: makeEmptyCls()
               });
             }
           } catch (fileErr) {
@@ -96,9 +101,8 @@ const SmartImportModal = ({ onClose, onSave, genAI }) => {
                 tempResults.push({
                   id: crypto.randomUUID(),
                   rawLatex: latexStr,
-                  topic: p.topic || 'Chưa phân loại', // Fallback nếu AI không phân loại được
-                  level: p.level || 1,
-                  type: p.type || 'Tự luận'
+                  type: p.type || 'Tự luận', // giữ loại câu AI dự đoán; phân loại để Thầy tự gắn
+                  cls: makeEmptyCls()
                 });
               });
             } catch (jsonErr) {
@@ -165,17 +169,20 @@ const SmartImportModal = ({ onClose, onSave, genAI }) => {
         id: item.id,
         statement: statement,
         solution: solution,
-        topic: item.topic,
-        level: parseInt(item.level),
+        topic: 'Chưa phân loại', // cột cũ (legacy) — giữ mặc định, không dùng nữa
+        level: 1,                // cột cũ (legacy) — giữ mặc định
         type: item.type,
+        tags: item.cls?.tags || '',
+        // Phân loại mới — đính kèm để saveImportedProblems lưu qua saveClassification
+        categoryIds: item.cls?.categoryIds || [],
+        difficultyByHe: item.cls?.difficultyByHe || {},
+        gradeIds: item.cls?.gradeIds || [],
         dateAdded: new Date().toISOString(),
         timesUsed: 0
       };
     });
     onSave(finalProblems);
   };
-
-  const topics = ['Đạo hàm', 'Tích phân', 'Lượng giác', 'Số phức', 'Ma trận', 'Hình học không gian', 'Xác suất', 'Giới hạn', 'Chưa phân loại'];
 
   return (
     <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(15, 23, 42, 0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
@@ -248,22 +255,12 @@ const SmartImportModal = ({ onClose, onSave, genAI }) => {
               {results.map((res, index) => (
                 <div key={res.id} style={{ backgroundColor: '#fff', borderRadius: '12px', padding: '1.5rem', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', gap: '1rem', flex: 1 }}>
-                      <select value={res.topic} onChange={(e) => updateResultItem(res.id, 'topic', e.target.value)} style={{ padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1' }}>
-                        {topics.map(t => <option key={t} value={t}>{t}</option>)}
-                      </select>
-                      <select value={res.level} onChange={(e) => updateResultItem(res.id, 'level', e.target.value)} style={{ padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1' }}>
-                        <option value="1">Level 1 - Cơ bản</option>
-                        <option value="2">Level 2 - Trung bình</option>
-                        <option value="3">Level 3 - Nâng cao</option>
-                      </select>
-                      <select value={res.type} onChange={(e) => updateResultItem(res.id, 'type', e.target.value)} style={{ padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1' }}>
-                        <option value="Tự luận">Tự luận</option>
-                        <option value="Trắc nghiệm">Trắc nghiệm</option>
-                        <option value="Đúng/Sai">Đúng/Sai</option>
-                        <option value="Trả lời ngắn">Trả lời ngắn</option>
-                      </select>
-                    </div>
+                    <select value={res.type} onChange={(e) => updateResultItem(res.id, 'type', e.target.value)} style={{ padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1' }}>
+                      <option value="Tự luận">Tự luận</option>
+                      <option value="Trắc nghiệm">Trắc nghiệm</option>
+                      <option value="Đúng/Sai">Đúng/Sai</option>
+                      <option value="Trả lời ngắn">Trả lời ngắn</option>
+                    </select>
                     <button onClick={() => removeResultItem(res.id)} style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', padding: '0.5rem' }} title="Xóa câu này nếu nhận diện sai"><Trash2 size={20}/></button>
                   </div>
                   
@@ -289,6 +286,12 @@ const SmartImportModal = ({ onClose, onSave, genAI }) => {
                       overflow: 'hidden' // Giấu thanh cuộn thừa
                     }}
                   />
+
+                  {/* Task 17: gắn phân loại cho từng câu trước khi lưu hàng loạt */}
+                  <div style={{ marginTop: '1rem' }}>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: '#334155', fontSize: '0.9rem' }}>Phân loại</label>
+                    <ClassificationPicker value={res.cls} onChange={(newCls) => updateResultItem(res.id, 'cls', newCls)} />
+                  </div>
                 </div>
               ))}
             </div>

@@ -224,6 +224,12 @@ export const useProblems = () => {
         await db.execute(query, bindValues);
       }
 
+      // Task 17: lưu phân loại (cây + độ khó theo hệ + lớp) cho TỪNG bài import,
+      // sau khi đã chèn xong các bài. Phân loại đi kèm trên mỗi object newProblem.
+      for (const prob of newProblems) {
+        await saveClassification(db, prob.id, prob);
+      }
+
       // Gom lại update State 1 lần duy nhất để không giật màn hình
       setProblems(prev => {
         const existingIds = new Set(prev.map(p => p.id));
