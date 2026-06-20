@@ -19,9 +19,8 @@ export const LEVELS = [
 ];
 
 export const PROBLEM_TYPES = [
-  'Tự luận', 
-  'Trắc nghiệm', 
-  'Chứng minh', 
-  'Đúng/Sai', 
+  'Tự luận',
+  'Trắc nghiệm 4 lựa chọn',
+  'Đúng/Sai',
   'Trả lời ngắn'
 ];
