@@ -4,10 +4,29 @@ import { getDb } from '../utils/db';
 // Hàm bọc thép chống crash khi parse JSON
 const safeJSONParse = (str) => {
   if (!str) return [];
-  try { return JSON.parse(str); } 
-  catch (e) { 
+  try { return JSON.parse(str); }
+  catch (e) {
     console.warn("Dữ liệu JSON bị lỗi, tự động reset về mảng rỗng:", e);
-    return []; 
+    return [];
+  }
+};
+
+// Lưu phân loại của một bài vào 3 bảng nối theo kiểu XÓA-RỒI-GHI (dùng được cả khi
+// thêm mới lẫn khi sửa: luôn dọn sạch rồi ghi lại đúng trạng thái hiện tại).
+// cls = { categoryIds: string[], difficultyByHe: {heId: diffId}, gradeIds: string[] }
+const saveClassification = async (db, problemId, cls = {}) => {
+  await db.execute('DELETE FROM problem_categories WHERE problem_id = $1', [problemId]);
+  await db.execute('DELETE FROM problem_difficulties WHERE problem_id = $1', [problemId]);
+  await db.execute('DELETE FROM problem_grades WHERE problem_id = $1', [problemId]);
+
+  for (const cid of (cls.categoryIds || [])) {
+    await db.execute('INSERT INTO problem_categories (problem_id, category_id) VALUES ($1, $2)', [problemId, cid]);
+  }
+  for (const [heId, diffId] of Object.entries(cls.difficultyByHe || {})) {
+    if (diffId) await db.execute('INSERT INTO problem_difficulties (problem_id, he_id, difficulty_id) VALUES ($1, $2, $3)', [problemId, heId, diffId]);
+  }
+  for (const gid of (cls.gradeIds || [])) {
+    await db.execute('INSERT INTO problem_grades (problem_id, grade_id) VALUES ($1, $2)', [problemId, gid]);
   }
 };
 
@@ -93,7 +112,10 @@ export const useProblems = () => {
           "{}" // Cột metadata dự phòng
         ]
       );
-      
+
+      // Lưu phân loại mới (cây + độ khó theo hệ + lớp) đi kèm trên object newProblem.
+      await saveClassification(db, newProblem.id, newProblem);
+
       setProblems(prev => [newProblem, ...prev.filter(p => p.id !== newProblem.id)]);
     } catch (error) { console.error("Lỗi thêm bài:", error); }
   };

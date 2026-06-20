@@ -1,26 +1,28 @@
 import React, { useState } from 'react';
 import { X, Save } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-import { TOPICS, LEVELS, PROBLEM_TYPES } from '../../utils/constants';
+import { PROBLEM_TYPES } from '../../utils/constants';
+import ClassificationPicker from '../ClassificationPicker';
 
 const AddProblemModal = ({ onClose, onSave }) => {
-  
-  // 2. Khai báo hàm tạo dữ liệu gốc
+
+  // 2. Khai báo hàm tạo dữ liệu gốc (LaTeX, loại câu, ghi chú)
   const getInitialFormData = () => ({
     rawLatex: '',
-    topic: 'Chưa phân loại', 
-    level: 1,
     type: 'Tự luận',
-    tags: '',
     notes: ''
   });
+  // Phân loại mới (cây + độ khó theo hệ + lớp + tag) cho ClassificationPicker
+  const getInitialCls = () => ({ categoryIds: [], difficultyByHe: {}, gradeIds: [], tags: '' });
 
   // 3. Nạp dữ liệu gốc vào state (CHỈ KHAI BÁO 1 LẦN DUY NHẤT)
   const [formData, setFormData] = useState(getInitialFormData());
+  const [cls, setCls] = useState(getInitialCls());
 
   // 4. Hàm xử lý đóng Modal an toàn (Dọn rác trước khi đóng)
   const handleSafeClose = () => {
     setFormData(getInitialFormData());
+    setCls(getInitialCls());
     onClose();
   };
 
@@ -73,17 +75,22 @@ const AddProblemModal = ({ onClose, onSave }) => {
       id: crypto.randomUUID(),
       statement: statement,
       solution: solution,
-      topic: formData.topic,
-      level: parseInt(formData.level),
+      topic: 'Chưa phân loại',   // cột cũ (legacy) — giữ mặc định, không dùng nữa
+      level: 1,                  // cột cũ (legacy) — giữ mặc định
       type: formData.type,
-      tags: formData.tags,
+      tags: cls.tags,            // tag giờ lấy từ ClassificationPicker
       notes: formData.notes,
+      // Phân loại mới — đi kèm để addProblem lưu qua saveClassification
+      categoryIds: cls.categoryIds,
+      difficultyByHe: cls.difficultyByHe,
+      gradeIds: cls.gradeIds,
       dateAdded: new Date().toISOString(),
       timesUsed: 0
     };
 
     onSave(newProblem);
     setFormData(getInitialFormData()); // Dọn sạch form
+    setCls(getInitialCls());
   };
 
   return (
@@ -112,41 +119,18 @@ const AddProblemModal = ({ onClose, onSave }) => {
             />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
-            {/* Ô chọn Chủ đề */}
-            <div>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: '#334155', fontSize: '0.9rem' }}>Chủ đề</label>
-              <select value={formData.topic} onChange={(e) => setFormData({...formData, topic: e.target.value})} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#fff', outline: 'none' }}>
-                {TOPICS.map(t => <option key={t} value={t}>{t}</option>)}
-              </select>
-            </div>
-            
-            {/* Ô chọn Độ khó */}
-            <div>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: '#334155', fontSize: '0.9rem' }}>Độ khó</label>
-              <select value={formData.level} onChange={(e) => setFormData({...formData, level: e.target.value})} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#fff', outline: 'none' }}>
-                {LEVELS.map(l => <option key={l.value} value={l.value}>{l.label}</option>)}
-              </select>
-            </div>
-            
-            {/* Ô chọn Loại câu */}
-            <div>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: '#334155', fontSize: '0.9rem' }}>Loại câu</label>
-              <select value={formData.type} onChange={(e) => setFormData({...formData, type: e.target.value})} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#fff', outline: 'none' }}>
-                {PROBLEM_TYPES.map(type => <option key={type} value={type}>{type}</option>)}
-              </select>
-            </div>
+          {/* Ô chọn Loại câu (giữ nguyên) */}
+          <div>
+            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: '#334155', fontSize: '0.9rem' }}>Loại câu</label>
+            <select value={formData.type} onChange={(e) => setFormData({...formData, type: e.target.value})} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#fff', outline: 'none' }}>
+              {PROBLEM_TYPES.map(type => <option key={type} value={type}>{type}</option>)}
+            </select>
           </div>
 
+          {/* Phân loại mới: cây chuyên đề + độ khó theo hệ + lớp + tag (thay 3 ô cũ) */}
           <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: '#334155', fontSize: '0.9rem' }}>Tags (cách nhau bởi dấu phẩy)</label>
-            <input
-              type="text"
-              value={formData.tags}
-              onChange={(e) => setFormData({...formData, tags: e.target.value})}
-              placeholder="ví dụ: cực trị, hình nón, min-max"
-              style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }}
-            />
+            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: '#334155', fontSize: '0.9rem' }}>Phân loại</label>
+            <ClassificationPicker value={cls} onChange={setCls} />
           </div>
 
           {/* Nút lưu */}
