@@ -4,14 +4,14 @@ import { useTaxonomy, getRootHeId } from '../hooks/useTaxonomy';
 
 // =============================================================================
 // ClassificationPicker — bộ điều khiển phân loại DÙNG CHUNG cho form Thêm/Sửa/Import.
-//   value:    { categoryIds: string[], difficultyByHe: {}, gradeIds: string[] }
+//   value:    { categoryIds: string[], difficultyByHe: {}, gradeIds: string[], tags: string }
 //   onChange: (newValue) => void
 //
 // Đã có:
 //   - Task 10: cây có checkbox tick chọn NHIỀU nhánh + ô lọc nhanh (categoryIds).
 //   - Task 11: tick nhánh ở hệ nào thì hiện ô chọn ĐỘ KHÓ của hệ đó (difficultyByHe).
 //     Bỏ hết nhánh của một hệ → tự xóa độ khó của hệ đó.
-//   Còn lại để Task 12 bổ sung: chip Lớp + ô Tag tự do (gradeIds).
+//   - Task 12: chip LỚP (chọn nhiều) + ô TAG tự do (chuỗi ngăn cách dấu phẩy như form cũ).
 // =============================================================================
 
 // Một nút trong cây (đệ quy). Đặt NGOÀI component cha cho gọn & ổn định.
@@ -47,7 +47,7 @@ const PickerNode = ({ node, depth, childrenMap, categoryIds, visibleIds, onToggl
 };
 
 const ClassificationPicker = ({ value, onChange }) => {
-  const { categories, difficulties } = useTaxonomy();
+  const { categories, difficulties, grades } = useTaxonomy();
   const [filter, setFilter] = useState('');
 
   const v = value || {};
@@ -55,6 +55,8 @@ const ClassificationPicker = ({ value, onChange }) => {
   // ổn định — bọc useMemo để không tạo mảng mới mỗi lần render.
   const categoryIds = useMemo(() => v.categoryIds || [], [v.categoryIds]);
   const difficultyByHe = v.difficultyByHe || {};
+  const gradeIds = v.gradeIds || [];
+  const tags = v.tags || '';
 
   // childrenMap (parent_id -> các con, sắp theo position) + danh sách hệ gốc
   const { childrenMap, roots } = useMemo(() => {
@@ -112,6 +114,13 @@ const ClassificationPicker = ({ value, onChange }) => {
     const next = { ...difficultyByHe };
     if (diffId) next[heId] = diffId; else delete next[heId];
     onChange({ ...v, difficultyByHe: next });
+  };
+
+  // Task 12: bật/tắt một Lớp (chip).
+  const toggleGrade = (id) => {
+    const set = new Set(gradeIds);
+    if (set.has(id)) set.delete(id); else set.add(id);
+    onChange({ ...v, gradeIds: [...set] });
   };
 
   return (
@@ -180,6 +189,45 @@ const ClassificationPicker = ({ value, onChange }) => {
           })}
         </div>
       )}
+
+      {/* Task 12: chip LỚP — chọn nhiều, dùng chung cho mọi hệ. */}
+      {grades.length > 0 && (
+        <div style={{ marginTop: '0.7rem' }}>
+          <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#64748b', marginBottom: '0.35rem' }}>Lớp</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
+            {grades.map((g) => {
+              const on = gradeIds.includes(g.id);
+              return (
+                <button
+                  key={g.id}
+                  type="button"
+                  onClick={() => toggleGrade(g.id)}
+                  style={{
+                    padding: '0.25rem 0.7rem', borderRadius: '999px', fontSize: '0.82rem', cursor: 'pointer',
+                    border: on ? '1px solid #3b82f6' : '1px solid #cbd5e1',
+                    backgroundColor: on ? '#3b82f6' : '#fff',
+                    color: on ? '#fff' : '#475569', fontWeight: on ? 600 : 500,
+                  }}
+                >
+                  {g.name}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Task 12: ô TAG tự do — chuỗi ngăn cách dấu phẩy, như form cũ. */}
+      <div style={{ marginTop: '0.7rem' }}>
+        <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#64748b', marginBottom: '0.35rem' }}>Tags (cách nhau bởi dấu phẩy)</div>
+        <input
+          type="text"
+          value={tags}
+          onChange={(e) => onChange({ ...v, tags: e.target.value })}
+          placeholder="ví dụ: cực trị, hình nón, min-max"
+          style={{ width: '100%', padding: '0.55rem 0.6rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.88rem', outline: 'none', boxSizing: 'border-box' }}
+        />
+      </div>
     </div>
   );
 };
