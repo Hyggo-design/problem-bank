@@ -1,16 +1,17 @@
 import React, { useMemo, useState } from 'react';
 import { Search } from 'lucide-react';
-import { useTaxonomy } from '../hooks/useTaxonomy';
+import { useTaxonomy, getRootHeId } from '../hooks/useTaxonomy';
 
 // =============================================================================
 // ClassificationPicker — bộ điều khiển phân loại DÙNG CHUNG cho form Thêm/Sửa/Import.
 //   value:    { categoryIds: string[], difficultyByHe: {}, gradeIds: string[] }
 //   onChange: (newValue) => void
 //
-// Task 10 (bản này): cây có checkbox tick chọn NHIỀU nhánh + ô lọc nhanh — mới xử lý
-//   `categoryIds`; các trường khác được giữ nguyên (spread) để Task 11–12 bổ sung:
-//   - Task 11: ô chọn độ khó theo từng hệ (difficultyByHe)
-//   - Task 12: chip Lớp + ô Tag tự do (gradeIds)
+// Đã có:
+//   - Task 10: cây có checkbox tick chọn NHIỀU nhánh + ô lọc nhanh (categoryIds).
+//   - Task 11: tick nhánh ở hệ nào thì hiện ô chọn ĐỘ KHÓ của hệ đó (difficultyByHe).
+//     Bỏ hết nhánh của một hệ → tự xóa độ khó của hệ đó.
+//   Còn lại để Task 12 bổ sung: chip Lớp + ô Tag tự do (gradeIds).
 // =============================================================================
 
 // Một nút trong cây (đệ quy). Đặt NGOÀI component cha cho gọn & ổn định.
@@ -46,11 +47,14 @@ const PickerNode = ({ node, depth, childrenMap, categoryIds, visibleIds, onToggl
 };
 
 const ClassificationPicker = ({ value, onChange }) => {
-  const { categories } = useTaxonomy();
+  const { categories, difficulties } = useTaxonomy();
   const [filter, setFilter] = useState('');
 
   const v = value || {};
-  const categoryIds = v.categoryIds || [];
+  // categoryIds được dùng trong dependency của useMemo (heIds) nên phải giữ tham chiếu
+  // ổn định — bọc useMemo để không tạo mảng mới mỗi lần render.
+  const categoryIds = useMemo(() => v.categoryIds || [], [v.categoryIds]);
+  const difficultyByHe = v.difficultyByHe || {};
 
   // childrenMap (parent_id -> các con, sắp theo position) + danh sách hệ gốc
   const { childrenMap, roots } = useMemo(() => {
@@ -62,6 +66,17 @@ const ClassificationPicker = ({ value, onChange }) => {
     for (const k in map) map[k].sort((a, b) => a.position - b.position);
     return { childrenMap: map, roots: map['ROOT'] || [] };
   }, [categories]);
+
+  // Tra cứu nhanh theo id + bản đồ cha (để leo ngược tìm hệ gốc của một nhánh).
+  const byId = useMemo(() => Object.fromEntries(categories.map((c) => [c.id, c])), [categories]);
+  const parentMap = useMemo(() => Object.fromEntries(categories.map((c) => [c.id, c.parent_id])), [categories]);
+
+  // Task 11: các HỆ (nút gốc) mà những nhánh đã tick đang chạm tới — riêng biệt,
+  // sắp theo position của hệ cho ổn định.
+  const heIds = useMemo(() => {
+    const ids = [...new Set(categoryIds.map((id) => getRootHeId(id, parentMap)))];
+    return ids.sort((a, b) => (byId[a]?.position ?? 0) - (byId[b]?.position ?? 0));
+  }, [categoryIds, parentMap, byId]);
 
   // Lọc: hiện các nút có tên KHỚP + mọi TỔ TIÊN của chúng (để thấy đường dẫn tới nhánh).
   // Trả về null = không lọc (hiện tất cả).
@@ -82,7 +97,21 @@ const ClassificationPicker = ({ value, onChange }) => {
   const toggle = (id) => {
     const set = new Set(categoryIds);
     if (set.has(id)) set.delete(id); else set.add(id);
-    onChange({ ...v, categoryIds: [...set] });
+    const newCategoryIds = [...set];
+    // Bỏ nhánh có thể khiến một hệ không còn nhánh nào → xóa độ khó của hệ đó.
+    const stillTouched = new Set(newCategoryIds.map((cid) => getRootHeId(cid, parentMap)));
+    const prunedDiff = {};
+    for (const [heId, diffId] of Object.entries(difficultyByHe)) {
+      if (stillTouched.has(heId)) prunedDiff[heId] = diffId;
+    }
+    onChange({ ...v, categoryIds: newCategoryIds, difficultyByHe: prunedDiff });
+  };
+
+  // Task 11: đặt/đổi độ khó cho một hệ ("" = bỏ chọn → xóa khỏi difficultyByHe).
+  const setDifficulty = (heId, diffId) => {
+    const next = { ...difficultyByHe };
+    if (diffId) next[heId] = diffId; else delete next[heId];
+    onChange({ ...v, difficultyByHe: next });
   };
 
   return (
@@ -123,6 +152,33 @@ const ClassificationPicker = ({ value, onChange }) => {
 
       {categoryIds.length > 0 && (
         <div style={{ marginTop: '0.4rem', fontSize: '0.8rem', color: '#2563eb' }}>Đã chọn {categoryIds.length} nhánh</div>
+      )}
+
+      {/* Task 11: mỗi hệ đang được chạm tới hiện một ô chọn độ khó (thang riêng của hệ). */}
+      {heIds.length > 0 && (
+        <div style={{ marginTop: '0.6rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+          <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#64748b' }}>Độ khó theo hệ</div>
+          {heIds.map((heId) => {
+            const levels = difficulties.filter((d) => d.he_id === heId);
+            return (
+              <div key={heId} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ fontSize: '0.85rem', color: '#334155', minWidth: '110px', fontWeight: 600 }}>
+                  {byId[heId]?.name || 'Hệ'}
+                </span>
+                <select
+                  value={difficultyByHe[heId] || ''}
+                  onChange={(e) => setDifficulty(heId, e.target.value)}
+                  style={{ flex: 1, padding: '0.4rem 0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.85rem', outline: 'none', backgroundColor: '#fff', cursor: 'pointer' }}
+                >
+                  <option value="">— Chọn độ khó —</option>
+                  {levels.map((lv) => (
+                    <option key={lv.id} value={lv.id}>{lv.name}</option>
+                  ))}
+                </select>
+              </div>
+            );
+          })}
+        </div>
       )}
     </div>
   );
