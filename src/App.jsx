@@ -137,7 +137,7 @@ function App() {
       
       <Header stats={{
         total: problems.length,
-        unclassified: problems.filter(p => p.topic === 'Chưa phân loại').length,
+        unclassified: problems.filter(p => (p.categoryIds?.length || 0) === 0).length,
         cartCount: cartCount,
         used: problems.reduce((sum, p) => sum + (p.timesUsed || 0), 0)
       }} />

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, FileText, Download, Shuffle, Settings } from 'lucide-react';
+import { X, Download, Shuffle, Settings } from 'lucide-react';
 
 const ExportModal = ({ cartItems, onClose, onExport }) => {
   const [config, setConfig] = useState({
