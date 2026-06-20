@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { Eye, ShoppingCart, Trash2, Edit3 } from 'lucide-react';
 import { TableVirtuoso } from 'react-virtuoso';
+import { useTaxonomy, getDescendantIds } from '../hooks/useTaxonomy';
 
 // ==========================================
 // COMPONENT BẢNG CHÍNH (Cuộn vô hạn với Virtuoso)
@@ -10,13 +11,37 @@ const DataGrid = ({
   onSelectChange, onSelectAll, onPreviewClick, onAddToCart, onDelete, onEdit
 }) => {
   
+  // Task 15: tra cứu phân loại để (1) lọc theo nhánh + nhánh con, (2) hiển thị tên
+  // chuyên đề & độ khó theo hệ ở các cột.
+  const { categories, difficulties } = useTaxonomy();
+  const catById = useMemo(() => Object.fromEntries(categories.map((c) => [c.id, c])), [categories]);
+  const diffById = useMemo(() => Object.fromEntries(difficulties.map((d) => [d.id, d])), [difficulties]);
+
+  // childrenMap: parent_id -> [child id], để getDescendantIds lấy cả nhánh con khi lọc.
+  const childrenMap = useMemo(() => {
+    const m = {};
+    for (const c of categories) {
+      if (!c.parent_id) continue;
+      (m[c.parent_id] = m[c.parent_id] || []).push(c.id);
+    }
+    return m;
+  }, [categories]);
+
+  // Tập nhánh hợp lệ khi lọc theo một chuyên đề = nhánh đó + mọi nhánh con.
+  // null = không lọc theo chuyên đề (hiện tất cả).
+  const validBranchIds = useMemo(() => {
+    if (filterTopic === 'all') return null;
+    return new Set(getDescendantIds(filterTopic, childrenMap));
+  }, [filterTopic, childrenMap]);
+
   const filteredAndSorted = useMemo(() => {
     let filtered = problems.filter(p => {
       if (searchTerm) {
         const search = searchTerm.toLowerCase();
         if (!p.statement.toLowerCase().includes(search) && !(p.tags && p.tags.toLowerCase().includes(search))) return false;
       }
-      if (filterTopic !== 'all' && p.topic !== filterTopic) return false;
+      // Khớp nếu bài có ÍT NHẤT một nhánh nằm trong tập nhánh hợp lệ (gồm nhánh con).
+      if (validBranchIds && !(p.categoryIds || []).some((id) => validBranchIds.has(id))) return false;
       if (filterLevel !== 'all' && p.level !== parseInt(filterLevel)) return false;
       return true;
     });
@@ -30,7 +55,7 @@ const DataGrid = ({
         default: return 0;
       }
     });
-  }, [problems, sortBy, filterTopic, filterLevel, searchTerm]);
+  }, [problems, sortBy, validBranchIds, filterLevel, searchTerm]);
 
   const isAllSelected = filteredAndSorted.length > 0 && filteredAndSorted.every(p => selectedIds.includes(p.id));
 
@@ -60,7 +85,11 @@ const DataGrid = ({
         itemContent={(index, problem) => {
           const isSelected = selectedIds.includes(problem.id);
           const tdStyle = { padding: '1rem', backgroundColor: isSelected ? '#f1f8ff' : 'transparent', borderBottom: '1px solid #e2e8f0', transition: 'background-color 0.2s' };
-          
+
+          // Task 15: tên nhánh đã gắn + độ khó theo hệ (bỏ qua id mồ côi).
+          const catNames = (problem.categoryIds || []).map((id) => catById[id]).filter(Boolean);
+          const diffList = Object.values(problem.difficultyByHe || {}).map((did) => diffById[did]).filter(Boolean);
+
           return (
             <>
               <td style={{ ...tdStyle, textAlign: 'center' }}>
@@ -77,12 +106,26 @@ const DataGrid = ({
                 )}
               </td>
               <td style={tdStyle}>
-                <span style={{ padding: '0.25rem 0.5rem', backgroundColor: '#dbeafe', color: '#1e40af', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 500 }}>{problem.topic}</span>
+                {catNames.length > 0 ? (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem' }}>
+                    {catNames.map((c) => (
+                      <span key={c.id} style={{ padding: '0.25rem 0.5rem', backgroundColor: '#dbeafe', color: '#1e40af', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 500 }}>{c.name}</span>
+                    ))}
+                  </div>
+                ) : (
+                  <span style={{ color: '#94a3b8', fontSize: '0.8rem', fontStyle: 'italic' }}>Chưa phân loại</span>
+                )}
               </td>
               <td style={tdStyle}>
-                <span style={{ padding: '0.25rem 0.5rem', backgroundColor: problem.level === 3 ? '#fee2e2' : problem.level === 2 ? '#fef08a' : '#dcfce3', color: problem.level === 3 ? '#991b1b' : problem.level === 2 ? '#9a3412' : '#166534', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 500 }}>
-                  Level {problem.level}
-                </span>
+                {diffList.length > 0 ? (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem' }}>
+                    {diffList.map((d) => (
+                      <span key={d.id} title={catById[d.he_id]?.name || ''} style={{ padding: '0.25rem 0.5rem', backgroundColor: '#fef3c7', color: '#92400e', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 500 }}>{d.name}</span>
+                    ))}
+                  </div>
+                ) : (
+                  <span style={{ color: '#94a3b8', fontSize: '0.8rem' }}>—</span>
+                )}
               </td>
               <td style={{ ...tdStyle, textAlign: 'center' }}>
                 <button onClick={() => onPreviewClick(problem)} title="Xem chi tiết" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', marginRight: '0.75rem' }}><Eye size={18} /></button>

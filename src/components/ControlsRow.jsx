@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Search } from 'lucide-react';
+import { useTaxonomy } from '../hooks/useTaxonomy';
 
 const ControlsRow = ({
   searchTerm,
@@ -12,15 +13,35 @@ const ControlsRow = ({
   onSortChange,
   searchInputRef
 }) => {
-  // Danh sách chủ đề (Thầy có thể tùy chỉnh thêm bớt ở đây sau này)
-  const topics = [
-    'Đạo hàm', 'Tích phân', 'Lượng giác', 'Số phức', 
-    'Ma trận', 'Hình học không gian', 'Xác suất', 'Giới hạn'
-  ];
+  // Task 15: danh sách chuyên đề lấy từ cây phân loại (useTaxonomy), làm phẳng theo
+  // thứ tự cây + ghi độ sâu để thụt lề — Thầy chọn đúng nhánh muốn lọc.
+  const { categories } = useTaxonomy();
+  const flatTopics = useMemo(() => {
+    const childrenMap = {};
+    for (const c of categories) {
+      const key = c.parent_id || 'ROOT';
+      (childrenMap[key] = childrenMap[key] || []).push(c);
+    }
+    for (const k in childrenMap) childrenMap[k].sort((a, b) => a.position - b.position);
+    const out = [];
+    const walk = (nodes, depth) => {
+      for (const n of nodes) {
+        out.push({ id: n.id, name: n.name, depth });
+        walk(childrenMap[n.id] || [], depth + 1);
+      }
+    };
+    walk(childrenMap['ROOT'] || [], 0);
+    return out;
+  }, [categories]);
+
+  // Thụt lề tên nhánh trong dropdown. Dùng nbsp ( ) vì trình duyệt nuốt khoảng
+  // trắng thường ở đầu <option>.
+  const indentLabel = (t) =>
+    t.depth > 0 ? '  '.repeat(t.depth - 1) + '└ ' + t.name : t.name;
 
   return (
     <div style={{ display: 'flex', gap: '1rem', padding: '1rem 2rem', backgroundColor: '#fff', borderBottom: '1px solid #e2e8f0', flexWrap: 'wrap' }}>
-      
+
       {/* Ô Tìm kiếm (Kết nối với phím tắt Ctrl+F qua searchInputRef) */}
       <div style={{ display: 'flex', alignItems: 'center', background: '#f1f5f9', padding: '0.5rem 1rem', borderRadius: '8px', flex: 1, minWidth: '250px' }}>
         <Search size={18} color="#64748b" />
@@ -34,21 +55,21 @@ const ControlsRow = ({
         />
       </div>
 
-      {/* Lọc theo Chủ đề */}
-      <select 
-        value={filterTopic} 
+      {/* Lọc theo Chuyên đề (cây phân loại) */}
+      <select
+        value={filterTopic}
         onChange={(e) => onFilterTopicChange(e.target.value)}
         style={{ padding: '0.5rem 1rem', border: '1px solid #e2e8f0', borderRadius: '8px', outline: 'none', color: '#334155', backgroundColor: '#fff', cursor: 'pointer' }}
       >
-        <option value="all">Tất cả chủ đề</option>
-        {topics.map(t => (
-          <option key={t} value={t}>{t}</option>
+        <option value="all">Tất cả chuyên đề</option>
+        {flatTopics.map(t => (
+          <option key={t.id} value={t.id}>{indentLabel(t)}</option>
         ))}
       </select>
 
       {/* Lọc theo Độ khó */}
-      <select 
-        value={filterLevel} 
+      <select
+        value={filterLevel}
         onChange={(e) => onFilterLevelChange(e.target.value)}
         style={{ padding: '0.5rem 1rem', border: '1px solid #e2e8f0', borderRadius: '8px', outline: 'none', color: '#334155', backgroundColor: '#fff', cursor: 'pointer' }}
       >
@@ -59,8 +80,8 @@ const ControlsRow = ({
       </select>
 
       {/* Sắp xếp dữ liệu */}
-      <select 
-        value={sortBy} 
+      <select
+        value={sortBy}
         onChange={(e) => onSortChange(e.target.value)}
         style={{ padding: '0.5rem 1rem', border: '1px solid #e2e8f0', borderRadius: '8px', outline: 'none', color: '#334155', backgroundColor: '#fff', cursor: 'pointer' }}
       >
