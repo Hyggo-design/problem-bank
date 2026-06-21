@@ -69,6 +69,17 @@ const DataGrid = ({
       <TableVirtuoso
         style={{ flex: 1 }}
         data={filteredAndSorted}
+        components={{
+          EmptyPlaceholder: () => (
+            <tbody>
+              <tr><td colSpan={5} style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--color-text-muted)' }}>
+                {problems.length === 0
+                  ? 'Chưa có bài nào. Bấm "+ Thêm bài tập" để bắt đầu.'
+                  : 'Không có bài nào khớp bộ lọc. Thử nới bộ lọc hoặc xoá ô tìm kiếm.'}
+              </td></tr>
+            </tbody>
+          )
+        }}
         fixedHeaderContent={() => (
           <tr style={{ backgroundColor: '#f8fafc', boxShadow: '0 1px 2px 0 rgba(0,0,0,0.05)' }}>
             <th style={{ padding: '1rem', borderBottom: '1px solid #e2e8f0', width: '5%', textAlign: 'center' }}>
