@@ -75,7 +75,7 @@ const DataGrid = ({
               <tr><td colSpan={5} style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--color-text-muted)' }}>
                 {problems.length === 0
                   ? 'Chưa có bài nào. Bấm "+ Thêm bài tập" để bắt đầu.'
-                  : 'Không có bài nào khớp bộ lọc. Thử nới bộ lọc hoặc xoá ô tìm kiếm.'}
+                  : 'Không có bài nào khớp bộ lọc'}
               </td></tr>
             </tbody>
           )
