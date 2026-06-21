@@ -4,6 +4,8 @@
   "description": "Problem Bank Management System for Math Teachers",
   "private": true,
   "dependencies": {
+    "@fontsource/inter": "^5.2.8",
+    "@fontsource/jetbrains-mono": "^5.2.8",
     "@google/generative-ai": "^0.24.1",
     "@tauri-apps/plugin-sql": "^2.4.0",
     "axios": "^1.4.0",
