@@ -3,14 +3,14 @@ import { BookOpen, AlertCircle, ShoppingCart, Activity } from 'lucide-react';
 
 const Header = ({ stats }) => {
   const statCards = [
-    { label: 'Tổng bài tập', value: stats.total, icon: <BookOpen size={22} color="#2563eb" />, bg: '#eff6ff', textColor: '#1e3a8a' },
-    { label: 'Chưa phân loại', value: stats.unclassified, icon: <AlertCircle size={22} color="#d97706" />, bg: '#fffbeb', textColor: '#92400e' },
-    { label: 'Giỏ đề thi', value: stats.cartCount, icon: <ShoppingCart size={22} color="#059669" />, bg: '#ecfdf5', textColor: '#064e3b' },
-    { label: 'Lượt sử dụng', value: stats.used, icon: <Activity size={22} color="#7c3aed" />, bg: '#faf5ff', textColor: '#4c1d95' },
+    { label: 'Tổng bài tập', value: stats.total, icon: <BookOpen size={22} color="#2563eb" />, bg: 'var(--color-surface)', textColor: 'var(--color-text)' },
+    { label: 'Chưa phân loại', value: stats.unclassified, icon: <AlertCircle size={22} color="#d97706" />, bg: 'var(--color-surface)', textColor: 'var(--color-text)' },
+    { label: 'Giỏ đề thi', value: stats.cartCount, icon: <ShoppingCart size={22} color="#059669" />, bg: 'var(--color-surface)', textColor: 'var(--color-text)' },
+    { label: 'Lượt sử dụng', value: stats.used, icon: <Activity size={22} color="#7c3aed" />, bg: 'var(--color-surface)', textColor: 'var(--color-text)' },
   ];
 
   return (
-    <div style={{ backgroundColor: '#fff', borderBottom: '1px solid #e2e8f0', padding: '1rem 2rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}>
+    <div style={{ backgroundColor: '#fff', borderBottom: '1px solid var(--color-border)', padding: '1rem 2rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}>
       
       {/* Tên App và User */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
@@ -18,7 +18,7 @@ const Header = ({ stats }) => {
           Problem Bank <span style={{ color: '#2563eb' }}>Pro</span>
         </h1>
         <div style={{ padding: '0.35rem 0.85rem', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '999px', fontSize: '0.875rem', fontWeight: 600, color: '#475569' }}>
-          👨‍🏫 Thầy Sơn
+          Thầy Sơn
         </div>
       </div>
 
