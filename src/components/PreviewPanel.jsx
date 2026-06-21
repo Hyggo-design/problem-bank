@@ -1,9 +1,20 @@
 import React from 'react';
 import { X, BookOpen, CheckCircle, HelpCircle } from 'lucide-react';
-import LatexBlockRenderer from './LatexBlockRenderer'; 
+import LatexBlockRenderer from './LatexBlockRenderer';
+import { useTaxonomy } from '../hooks/useTaxonomy'; 
 
 const PreviewPanel = ({ problem, onClose }) => {
+  // Gọi hook TRƯỚC mọi return sớm (luật Hooks: phải gọi cùng thứ tự mỗi lần render).
+  const { categories, difficulties, grades } = useTaxonomy();
   if (!problem) return null;
+
+  // Map id -> bản ghi để tra tên nhanh; bỏ qua id mồ côi (filter Boolean).
+  const catById = Object.fromEntries(categories.map(c => [c.id, c]));
+  const diffById = Object.fromEntries(difficulties.map(d => [d.id, d]));
+  const gradeById = Object.fromEntries(grades.map(g => [g.id, g]));
+  const catNames = (problem.categoryIds || []).map(id => catById[id]?.name).filter(Boolean);
+  const diffNames = Object.values(problem.difficultyByHe || {}).map(id => diffById[id]?.name).filter(Boolean);
+  const gradeNames = (problem.gradeIds || []).map(id => gradeById[id]?.name).filter(Boolean);
 
   const parseLatex = (raw) => {
     let text = raw || '';
@@ -79,7 +90,10 @@ const PreviewPanel = ({ problem, onClose }) => {
             <BookOpen size={18} color="#2563eb" /> Chi tiết bài tập
           </h3>
           <span style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '4px', display: 'inline-block', fontFamily: 'sans-serif' }}>
-            {problem.topic} • Độ khó: Mức {problem.level} • Loại: {parsed.type}
+            {catNames.length ? catNames.join(', ') : 'Chưa phân loại'}
+            {diffNames.length ? ` • ${diffNames.join(' / ')}` : ''}
+            {gradeNames.length ? ` • Lớp ${gradeNames.join(', ')}` : ''}
+            {` • ${parsed.type}`}
           </span>
         </div>
         <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', padding: '0.5rem' }}>
