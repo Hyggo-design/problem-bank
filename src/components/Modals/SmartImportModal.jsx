@@ -279,8 +279,7 @@ const SmartImportModal = ({ onClose, onSave, genAI }) => {
                       borderRadius: '8px', 
                       border: '1px solid #cbd5e1', 
                       fontFamily: 'monospace', 
-                      fontSize: '14px', 
-                      outline: 'none', 
+                      fontSize: '14px',
                       resize: 'none', // Tắt thanh kéo gạch chéo ở góc
                       backgroundColor: '#f8fafc',
                       overflow: 'hidden' // Giấu thanh cuộn thừa

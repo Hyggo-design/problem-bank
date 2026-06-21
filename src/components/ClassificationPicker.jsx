@@ -132,7 +132,7 @@ const ClassificationPicker = ({ value, onChange }) => {
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
           placeholder="Lọc nhanh chuyên đề…"
-          style={{ width: '100%', padding: '0.5rem 0.5rem 0.5rem 2rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem', outline: 'none', boxSizing: 'border-box' }}
+          style={{ width: '100%', padding: '0.5rem 0.5rem 0.5rem 2rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem', boxSizing: 'border-box' }}
         />
       </div>
 
@@ -177,7 +177,7 @@ const ClassificationPicker = ({ value, onChange }) => {
                 <select
                   value={difficultyByHe[heId] || ''}
                   onChange={(e) => setDifficulty(heId, e.target.value)}
-                  style={{ flex: 1, padding: '0.4rem 0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.85rem', outline: 'none', backgroundColor: '#fff', cursor: 'pointer' }}
+                  style={{ flex: 1, padding: '0.4rem 0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.85rem', backgroundColor: '#fff', cursor: 'pointer' }}
                 >
                   <option value="">— Chọn độ khó —</option>
                   {levels.map((lv) => (
@@ -225,7 +225,7 @@ const ClassificationPicker = ({ value, onChange }) => {
           value={tags}
           onChange={(e) => onChange({ ...v, tags: e.target.value })}
           placeholder="ví dụ: cực trị, hình nón, min-max"
-          style={{ width: '100%', padding: '0.55rem 0.6rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.88rem', outline: 'none', boxSizing: 'border-box' }}
+          style={{ width: '100%', padding: '0.55rem 0.6rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.88rem', boxSizing: 'border-box' }}
         />
       </div>
     </div>

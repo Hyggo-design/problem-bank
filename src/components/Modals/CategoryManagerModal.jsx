@@ -15,7 +15,7 @@ const iconBtn = {
 };
 const inputStyle = {
   padding: '0.35rem 0.5rem', borderRadius: '6px', border: '1px solid #93c5fd',
-  fontSize: '0.9rem', outline: 'none', flex: 1, minWidth: 0,
+  fontSize: '0.9rem', flex: 1, minWidth: 0,
 };
 
 // Ô nhập inline dùng chung cho "thêm" và "đổi tên".

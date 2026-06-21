@@ -115,14 +115,14 @@ const AddProblemModal = ({ onClose, onSave }) => {
               onChange={(e) => setFormData({...formData, rawLatex: e.target.value})}
               placeholder="\begin{bt}&#10;Nội dung đề bài...&#10;\loigiai{ Lời giải... }&#10;\end{bt}"
               rows="8"
-              style={{ width: '100%', padding: '1rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontFamily: 'monospace', fontSize: '14px', outline: 'none', resize: 'vertical' }}
+              style={{ width: '100%', padding: '1rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontFamily: 'monospace', fontSize: '14px', resize: 'vertical' }}
             />
           </div>
 
           {/* Ô chọn Loại câu (giữ nguyên) */}
           <div>
             <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: '#334155', fontSize: '0.9rem' }}>Loại câu</label>
-            <select value={formData.type} onChange={(e) => setFormData({...formData, type: e.target.value})} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#fff', outline: 'none' }}>
+            <select value={formData.type} onChange={(e) => setFormData({...formData, type: e.target.value})} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#fff' }}>
               {PROBLEM_TYPES.map(type => <option key={type} value={type}>{type}</option>)}
             </select>
           </div>
