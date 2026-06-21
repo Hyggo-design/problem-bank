@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { Eye, ShoppingCart, Trash2, Edit3 } from 'lucide-react';
 import { TableVirtuoso } from 'react-virtuoso';
 import { useTaxonomy, getDescendantIds } from '../hooks/useTaxonomy';
+import LatexBlockRenderer from './LatexBlockRenderer';
 
 // ==========================================
 // COMPONENT BẢNG CHÍNH (Cuộn vô hạn với Virtuoso)
@@ -99,8 +100,8 @@ const DataGrid = ({
                 <input type="checkbox" checked={isSelected} onChange={() => onSelectChange(problem.id)} style={{ cursor: 'pointer', width: '16px', height: '16px' }} />
               </td>
               <td style={{ ...tdStyle, cursor: 'pointer' }} onClick={() => onPreviewClick(problem)}>
-                <div style={{ fontWeight: 500, color: '#334155', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: '1.5' }}>
-                  {problem.statement}
+                <div style={{ color: 'var(--color-text)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: '1.5' }}>
+                  <LatexBlockRenderer text={problem.statement} />
                 </div>
                 {problem.tags && (
                   <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.25rem' }}>
