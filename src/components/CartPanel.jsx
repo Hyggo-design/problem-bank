@@ -46,7 +46,7 @@ const CartPanel = ({ items, onRemove, onClear, onExport, onClose }) => {
       {/* Danh sách các câu đã chọn */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '1rem' }}>
         {items.length === 0 ? (
-          <div style={{ textAlign: 'center', color: '#94a3b8', marginTop: '2rem', fontSize: '0.9rem' }}>
+          <div style={{ textAlign: 'center', color: 'var(--color-text-muted)', marginTop: '2rem', fontSize: '0.9rem' }}>
             Giỏ trống. Hãy chọn bài tập (biểu tượng 🛒) từ danh sách!
           </div>
         ) : (

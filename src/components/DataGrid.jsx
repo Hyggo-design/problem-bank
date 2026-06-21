@@ -115,7 +115,7 @@ const DataGrid = ({
                   <LatexBlockRenderer text={problem.statement} />
                 </div>
                 {problem.tags && (
-                  <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.25rem' }}>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '0.25rem' }}>
                     {problem.tags.split(',').map(t => `#${t.trim()}`).join(' ')}
                   </div>
                 )}
@@ -128,7 +128,7 @@ const DataGrid = ({
                     ))}
                   </div>
                 ) : (
-                  <span style={{ color: '#94a3b8', fontSize: '0.8rem', fontStyle: 'italic' }}>Chưa phân loại</span>
+                  <span style={{ color: 'var(--color-text-muted)', fontSize: '0.8rem', fontStyle: 'italic' }}>Chưa phân loại</span>
                 )}
               </td>
               <td style={tdStyle}>
