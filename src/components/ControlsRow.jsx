@@ -60,7 +60,7 @@ const ControlsRow = ({
           placeholder="Tìm kiếm theo ID, từ khóa, tag... (Ctrl + F)"
           value={searchTerm}
           onChange={(e) => onSearchChange(e.target.value)}
-          style={{ border: 'none', background: 'transparent', outline: 'none', marginLeft: '0.5rem', width: '100%', color: '#334155' }}
+          style={{ border: 'none', background: 'transparent', marginLeft: '0.5rem', width: '100%', color: '#334155' }}
         />
       </div>
 
@@ -68,7 +68,7 @@ const ControlsRow = ({
       <select
         value={filterTopic}
         onChange={(e) => onFilterTopicChange(e.target.value)}
-        style={{ padding: '0.5rem 1rem', border: '1px solid #e2e8f0', borderRadius: '8px', outline: 'none', color: '#334155', backgroundColor: '#fff', cursor: 'pointer' }}
+        style={{ padding: '0.5rem 1rem', border: '1px solid #e2e8f0', borderRadius: '8px', color: '#334155', backgroundColor: '#fff', cursor: 'pointer' }}
       >
         <option value="all">Tất cả chuyên đề</option>
         {flatTopics.map(t => (
@@ -80,7 +80,7 @@ const ControlsRow = ({
       <select
         value={filterGrade}
         onChange={(e) => onFilterGradeChange(e.target.value)}
-        style={{ padding: '0.5rem 1rem', border: '1px solid #e2e8f0', borderRadius: '8px', outline: 'none', color: '#334155', backgroundColor: '#fff', cursor: 'pointer' }}
+        style={{ padding: '0.5rem 1rem', border: '1px solid #e2e8f0', borderRadius: '8px', color: '#334155', backgroundColor: '#fff', cursor: 'pointer' }}
       >
         <option value="all">Tất cả lớp</option>
         {grades.map(g => (
@@ -92,7 +92,7 @@ const ControlsRow = ({
       <select
         value={filterDifficulty}
         onChange={(e) => onFilterDifficultyChange(e.target.value)}
-        style={{ padding: '0.5rem 1rem', border: '1px solid #e2e8f0', borderRadius: '8px', outline: 'none', color: '#334155', backgroundColor: '#fff', cursor: 'pointer' }}
+        style={{ padding: '0.5rem 1rem', border: '1px solid #e2e8f0', borderRadius: '8px', color: '#334155', backgroundColor: '#fff', cursor: 'pointer' }}
       >
         <option value="all">Tất cả độ khó</option>
         {roots.map(he => {
@@ -112,7 +112,7 @@ const ControlsRow = ({
       <select
         value={sortBy}
         onChange={(e) => onSortChange(e.target.value)}
-        style={{ padding: '0.5rem 1rem', border: '1px solid #e2e8f0', borderRadius: '8px', outline: 'none', color: '#334155', backgroundColor: '#fff', cursor: 'pointer' }}
+        style={{ padding: '0.5rem 1rem', border: '1px solid #e2e8f0', borderRadius: '8px', color: '#334155', backgroundColor: '#fff', cursor: 'pointer' }}
       >
         <option value="date-new">Mới nhất trước</option>
         <option value="date-old">Cũ nhất trước</option>
