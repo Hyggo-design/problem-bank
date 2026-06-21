@@ -166,7 +166,7 @@ const DifficultyPanel = ({ he, levels, onAdd, onRename, onDelete, onReorder }) =
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
         {levels.length === 0 && (
-          <div style={{ color: '#94a3b8', fontSize: '0.85rem', fontStyle: 'italic' }}>Chưa có mức độ khó nào.</div>
+          <div style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem', fontStyle: 'italic' }}>Chưa có mức độ khó nào.</div>
         )}
         {levels.map((lv, i) => {
           const isRen = renaming && renaming.id === lv.id;
@@ -216,12 +216,12 @@ const GradesPanel = ({ grades, onAdd, onDelete, onReorder }) => {
     <div>
       <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
         <GraduationCap size={15} /> Danh sách Lớp
-        <span style={{ fontWeight: 500, textTransform: 'none', letterSpacing: 0, color: '#94a3b8' }}>(dùng chung mọi hệ)</span>
+        <span style={{ fontWeight: 500, textTransform: 'none', letterSpacing: 0, color: 'var(--color-text-muted)' }}>(dùng chung mọi hệ)</span>
       </div>
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
         {grades.length === 0 && (
-          <div style={{ color: '#94a3b8', fontSize: '0.85rem', fontStyle: 'italic' }}>Chưa có lớp nào.</div>
+          <div style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem', fontStyle: 'italic' }}>Chưa có lớp nào.</div>
         )}
         {grades.map((g, i) => (
           <span key={g.id}
@@ -350,7 +350,7 @@ const CategoryManagerModal = ({ onClose }) => {
                 </div>
               )}
               {roots.length === 0 && !adding ? (
-                <div style={{ color: '#94a3b8', fontSize: '0.9rem', padding: '1rem', textAlign: 'center' }}>
+                <div style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem', padding: '1rem', textAlign: 'center' }}>
                   Chưa có hệ nào. Bấm “Thêm hệ” để bắt đầu.
                 </div>
               ) : (
@@ -375,7 +375,7 @@ const CategoryManagerModal = ({ onClose }) => {
                 onReorder={tax.reorderDifficulty}
               />
             ) : (
-              <div style={{ color: '#94a3b8', fontSize: '0.9rem' }}>
+              <div style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
                 Bấm vào một <b>hệ</b> (dòng chữ xanh đậm bên trái) để xem và sửa thang độ khó của hệ đó.
               </div>
             )}

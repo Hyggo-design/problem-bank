@@ -139,7 +139,7 @@ const DataGrid = ({
                     ))}
                   </div>
                 ) : (
-                  <span style={{ color: '#94a3b8', fontSize: '0.8rem' }}>—</span>
+                  <span style={{ color: 'var(--color-text-muted)', fontSize: '0.8rem' }}>—</span>
                 )}
               </td>
               <td style={{ ...tdStyle, textAlign: 'center' }}>

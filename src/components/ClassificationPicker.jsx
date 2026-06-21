@@ -139,7 +139,7 @@ const ClassificationPicker = ({ value, onChange }) => {
       {/* Cây có checkbox */}
       <div style={{ maxHeight: '240px', overflowY: 'auto', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '0.5rem' }}>
         {roots.length === 0 ? (
-          <div style={{ color: '#94a3b8', fontSize: '0.88rem', padding: '0.75rem', textAlign: 'center' }}>
+          <div style={{ color: 'var(--color-text-muted)', fontSize: '0.88rem', padding: '0.75rem', textAlign: 'center' }}>
             Chưa có chuyên đề nào. Thầy tạo ở “Quản lý phân loại”.
           </div>
         ) : (
@@ -151,7 +151,7 @@ const ClassificationPicker = ({ value, onChange }) => {
               />
             ))}
             {visibleIds && visibleIds.size === 0 && (
-              <div style={{ color: '#94a3b8', fontSize: '0.85rem', padding: '0.5rem', fontStyle: 'italic' }}>
+              <div style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem', padding: '0.5rem', fontStyle: 'italic' }}>
                 Không có nhánh nào khớp “{filter}”.
               </div>
             )}

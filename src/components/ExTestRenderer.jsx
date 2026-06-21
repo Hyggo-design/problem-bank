@@ -53,7 +53,7 @@ const MathText = ({ text }) => {
 // 2. BỘ THÔNG DỊCH EX_TEST (Trùm cuối)
 // ==========================================
 const ExTestRenderer = ({ content }) => {
-  if (!content) return <div style={{ color: '#94a3b8', fontStyle: 'italic' }}>Chưa có nội dung...</div>;
+  if (!content) return <div style={{ color: 'var(--color-text-muted)', fontStyle: 'italic' }}>Chưa có nội dung...</div>;
 
   // --- BƯỚC A: BÓC TÁCH LỜI GIẢI ---
   let statement = content;
