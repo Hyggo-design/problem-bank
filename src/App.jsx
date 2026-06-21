@@ -133,7 +133,7 @@ function App() {
 
 // 4. RÁP GIAO DIỆN (UI)
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', backgroundColor: '#f1f5f9', fontFamily: 'Inter, sans-serif' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', backgroundColor: 'var(--color-bg)', fontFamily: 'Inter, sans-serif' }}>
       
       <Header stats={{
         total: problems.length,

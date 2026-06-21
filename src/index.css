@@ -1,3 +1,20 @@
+:root {
+  --color-bg: #FAFAF9;
+  --color-surface: #FFFFFF;
+  --color-border: #E2E8F0;
+  --color-text: #1E293B;
+  --color-text-muted: #64748B;
+  --color-accent: #3B82F6;
+  --color-accent-hover: #2563EB;
+  --color-tag-bg: #EFF6FF;
+  --color-tag-text: #1D4ED8;
+  --color-danger: #EF4444;
+  --color-success: #22C55E;
+  --radius-md: 8px;
+  --radius-pill: 999px;
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-6: 24px;
+}
+
 body {
   margin: 0;
   font-family: 'Inter', system-ui, sans-serif;
@@ -5,3 +22,4 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 code, pre { font-family: 'JetBrains Mono', monospace; }
+body { background: var(--color-bg); color: var(--color-text); }
