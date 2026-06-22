@@ -127,3 +127,11 @@ button { cursor: pointer; }
 .card-btn-danger:hover { background: var(--color-danger-bg); }
 .card-btn:disabled { opacity: .4; cursor: default; }
 .card-btn:disabled:hover { background: var(--color-surface); }
+
+/* === GĐ2: công tắc chuyển trang (Danh sách | Giỏ) === */
+.view-tab { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; font-size: 0.9rem;
+  border: 1px solid var(--color-border); background: transparent; color: var(--color-text-muted); border-radius: var(--radius-md); }
+.view-tab:hover { background: var(--color-surface-muted); }
+.view-tab.on { background: var(--color-cobalt-bg); color: var(--color-cobalt-text); border-color: var(--color-cobalt-border); }
+.view-badge { background: var(--color-amber); color: var(--color-on-amber); font-size: 0.7rem; min-width: 18px; height: 18px;
+  border-radius: var(--radius-pill); display: inline-flex; align-items: center; justify-content: center; padding: 0 5px; margin-left: 2px; }

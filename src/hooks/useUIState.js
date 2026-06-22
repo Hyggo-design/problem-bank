@@ -20,7 +20,7 @@ export const useUIState = () => {
   const [selectedPreview, setSelectedPreview] = useState(null);
   const [editingProblem, setEditingProblem] = useState(null);
   const [isImporting, setIsImporting] = useState(false);
-  const [isCartOpen, setIsCartOpen] = useState(true);
+  const [currentView, setCurrentView] = useState('feed'); // 'feed' | 'cart' (mầm nav rail GĐ3)
 
   // Hàm tiện ích xoá bộ lọc
   const clearFilters = () => {
@@ -47,6 +47,6 @@ export const useUIState = () => {
     selectedPreview, setSelectedPreview,
     editingProblem, setEditingProblem,
     isImporting, setIsImporting,
-    isCartOpen, setIsCartOpen
+    currentView, setCurrentView
   };
 };
