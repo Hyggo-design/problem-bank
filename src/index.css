@@ -13,6 +13,18 @@
   --radius-md: 8px;
   --radius-pill: 999px;
   --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-6: 24px;
+
+  /* === GĐ2: bề mặt phụ & badge thẻ === */
+  --color-surface-sunken: #F8FAFC;   /* slate-50  — "khay" thẻ + nền vùng phân loại */
+  --color-surface-muted:  #F1F5F9;   /* slate-100 — footer nút */
+  --color-text-subtle:    #475569;   /* slate-600 — nhánh con trong đường cây */
+  --color-text-faint:     #94A3B8;   /* slate-400 — dấu › phân cách */
+  --color-diff-bg:        #FEF3C7;   /* amber-100 — badge độ khó */
+  --color-diff-text:      #92400E;   /* amber-800 */
+  --color-diff-border:    #FDE68A;   /* amber-200 */
+  --color-solution-bg:    #F0FDF4;   /* green-50  — khung lời giải bung */
+  --color-solution-border:#BBF7D0;   /* green-200 */
+  --color-solution-text:  #15803D;   /* green-700 */
 }
 
 body {
