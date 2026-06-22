@@ -3,7 +3,7 @@ import Header from './components/Header';
 import Toolbar from './components/Toolbar';
 import ControlsRow from './components/ControlsRow';
 import DataGrid from './components/DataGrid';
-import PreviewPanel from './components/PreviewPanel';
+import PreviewModal from './components/PreviewModal';
 import CartPanel from './components/CartPanel';
 import AddProblemModal from './components/Modals/AddProblemModal';
 import EditProblemModal from './components/Modals/EditProblemModal';
@@ -204,12 +204,6 @@ function App() {
           )}
         </div>
 
-        {/* PREVIEW tạm ở panel phải — Task 8 sẽ đổi thành hộp thoại giữa màn */}
-        {ui.selectedPreview && (
-          <div style={{ flex: '0 0 460px', minWidth: 0, display: 'flex', flexDirection: 'column', backgroundColor: 'var(--color-surface)', borderLeft: '1px solid var(--color-border)' }}>
-            <PreviewPanel problem={ui.selectedPreview} onClose={() => ui.setSelectedPreview(null)} />
-          </div>
-        )}
       </div>
 
       {/* CÁC CỬA SỔ MODAL */}
@@ -278,6 +272,14 @@ function App() {
 
       {ui.showCategoryManager && (
         <CategoryManagerModal onClose={() => ui.setShowCategoryManager(false)} />
+      )}
+
+      {ui.selectedPreview && (
+        <PreviewModal
+          problem={ui.selectedPreview}
+          onClose={() => ui.setSelectedPreview(null)}
+          onCopied={() => success('Đã chép mã LaTeX')}
+        />
       )}
 
       <Toaster />

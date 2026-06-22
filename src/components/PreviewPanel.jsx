@@ -1,11 +1,13 @@
-import React from 'react';
-import { X, BookOpen, CheckCircle, HelpCircle } from 'lucide-react';
+import React, { useState } from 'react';
+import { X, BookOpen, CheckCircle, HelpCircle, Code, Lightbulb } from 'lucide-react';
 import LatexBlockRenderer from './LatexBlockRenderer';
-import { useTaxonomy } from '../hooks/useTaxonomy'; 
+import { buildProblemTex } from '../utils/buildProblemTex';
+import { useTaxonomy } from '../hooks/useTaxonomy';
 
-const PreviewPanel = ({ problem, onClose }) => {
+const PreviewPanel = ({ problem, onClose, onCopied }) => {
   // Gọi hook TRƯỚC mọi return sớm (luật Hooks: phải gọi cùng thứ tự mỗi lần render).
   const { categories, difficulties, grades } = useTaxonomy();
+  const [hideSolution, setHideSolution] = useState(false);
   if (!problem) return null;
 
   // Map id -> bản ghi để tra tên nhanh; bỏ qua id mồ côi (filter Boolean).
@@ -71,6 +73,11 @@ const PreviewPanel = ({ problem, onClose }) => {
   const parsed = parseLatex(rawContent);
   const labels = ['A', 'B', 'C', 'D'];
 
+  const copyTex = () => {
+    navigator.clipboard.writeText(buildProblemTex(problem, { includeSolution: true }));
+    onCopied && onCopied();
+  };
+
   // === THUẬT TOÁN ĐỒNG HÓA FONT & CỠ CHỮ ===
   const latexPrintStyle = {
     fontFamily: '"KaTeX_Main", "Times New Roman", Times, serif', // Dùng chung font với Toán
@@ -82,23 +89,31 @@ const PreviewPanel = ({ problem, onClose }) => {
   };
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden', backgroundColor: '#fff', borderLeft: '1px solid #e2e8f0' }}>
-      
-      <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#f8fafc' }}>
-        <div>
-          <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '0.5rem', fontFamily: 'sans-serif' }}>
-            <BookOpen size={18} color="#2563eb" /> Chi tiết bài tập
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden', backgroundColor: 'var(--color-surface)' }}>
+
+      <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', backgroundColor: 'var(--color-surface-muted)' }}>
+        <div style={{ minWidth: 0 }}>
+          <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <BookOpen size={18} color="var(--color-cobalt)" /> Chi tiết bài tập
           </h3>
-          <span style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '4px', display: 'inline-block', fontFamily: 'sans-serif' }}>
+          <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginTop: '4px', display: 'inline-block' }}>
             {catNames.length ? catNames.join(', ') : 'Chưa phân loại'}
             {diffNames.length ? ` • ${diffNames.join(' / ')}` : ''}
             {gradeNames.length ? ` • Lớp ${gradeNames.join(', ')}` : ''}
             {` • ${parsed.type}`}
           </span>
         </div>
-        <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', padding: '0.5rem' }}>
-          <X size={20} />
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
+          <button onClick={copyTex} className="card-btn"><Code size={16} /> Chép Mã LaTeX</button>
+          {parsed.solution && (
+            <button onClick={() => setHideSolution(s => !s)} className={`card-btn${hideSolution ? '' : ' card-btn-primary'}`}>
+              <Lightbulb size={16} /> {hideSolution ? 'Hiện lời giải' : 'Ẩn lời giải'}
+            </button>
+          )}
+          <button onClick={onClose} title="Đóng" className="card-btn" style={{ padding: '0.4rem' }}>
+            <X size={18} />
+          </button>
+        </div>
       </div>
 
       <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '1.5rem', backgroundColor: '#fff' }}>
@@ -148,7 +163,7 @@ const PreviewPanel = ({ problem, onClose }) => {
           </div>
         )}
 
-        {parsed.solution && (
+        {parsed.solution && !hideSolution && (
           <div>
             <div style={{ fontWeight: 700, color: '#334155', marginBottom: '0.75rem', fontSize: '1.05rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontFamily: 'sans-serif' }}>
               <CheckCircle size={20} color="#10b981" /> Hướng dẫn giải:
