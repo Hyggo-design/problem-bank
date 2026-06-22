@@ -23,7 +23,7 @@ const ProblemCard = ({
       onClick={onToggleSelect}
       style={{
         cursor: 'pointer', margin: '0 0 12px', borderRadius: 'var(--radius-md)', overflow: 'hidden',
-        background: 'var(--color-surface-sunken)', position: 'relative',
+        background: 'var(--color-surface)', position: 'relative',
         border: selected ? '1px solid var(--color-accent)' : '1px solid var(--color-border)',
         boxShadow: selected ? '0 0 0 1px var(--color-accent)' : 'none',
       }}
@@ -32,10 +32,9 @@ const ProblemCard = ({
         <CheckCircle2 size={20} color="var(--color-accent)" style={{ position: 'absolute', top: 10, right: 12 }} />
       )}
 
-      {/* VÙNG 1 — ĐỀ (khung trắng nổi trên khay, cuộn khi dài) */}
+      {/* VÙNG 1 — ĐỀ (trên nền trắng của thẻ, cuộn khi dài) */}
       <div style={{
-        margin: 14, marginRight: 40, background: 'var(--color-surface)', border: '1px solid var(--color-border)',
-        borderRadius: 'var(--radius-md)', padding: '12px 14px', maxHeight: '7.8em', overflowY: 'auto',
+        padding: '13px 16px', paddingRight: 42, maxHeight: '7.8em', overflowY: 'auto',
         color: 'var(--color-text)', lineHeight: 1.55,
       }}>
         <LatexBlockRenderer text={problem.statement} />
@@ -44,7 +43,7 @@ const ProblemCard = ({
       {/* VÙNG 2 — LỜI GIẢI bung tại chỗ (tùy chọn) */}
       {showSol && problem.solution && (
         <div style={{
-          margin: '0 14px 12px', background: 'var(--color-solution-bg)', border: '1px solid var(--color-solution-border)',
+          margin: '0 16px 12px', background: 'var(--color-solution-bg)', border: '1px solid var(--color-solution-border)',
           borderRadius: 'var(--radius-md)', padding: '11px 14px', lineHeight: 1.5,
         }}>
           <span style={{ color: 'var(--color-solution-text)', fontWeight: 500 }}>Lời giải. </span>
@@ -52,8 +51,8 @@ const ProblemCard = ({
         </div>
       )}
 
-      {/* VÙNG 3a — PHÂN LOẠI + TAG (trên khay) */}
-      <div style={{ padding: '6px 16px 10px' }}>
+      {/* VÙNG 3a — PHÂN LOẠI + TAG (trên nền trắng, kẻ chia với đề) */}
+      <div style={{ padding: '10px 16px', borderTop: '1px solid var(--color-border-subtle)' }}>
         {classification.length === 0 && (
           <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', fontStyle: 'italic' }}>Chưa phân loại</div>
         )}
@@ -89,7 +88,7 @@ const ProblemCard = ({
 
       {/* VÙNG 3b — NÚT (footer) */}
       <div style={{
-        padding: '9px 16px', background: 'var(--color-surface-muted)', borderTop: '1px solid var(--color-border)',
+        padding: '9px 16px', background: 'var(--color-surface-muted)', borderTop: '1px solid var(--color-border-subtle)',
         display: 'flex', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap',
       }}>
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>

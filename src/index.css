@@ -1,30 +1,106 @@
 :root {
-  --color-bg: #FAFAF9;
-  --color-surface: #FFFFFF;
-  --color-border: #E2E8F0;
-  --color-text: #1E293B;
-  --color-text-muted: #64748B;
-  --color-accent: #3B82F6;
-  --color-accent-hover: #2563EB;
-  --color-tag-bg: #EFF6FF;
-  --color-tag-text: #1D4ED8;
-  --color-danger: #EF4444;
-  --color-success: #22C55E;
+  /* ============================================================
+     Problem Bank — Ocean Tint (Cobalt & Amber), LIGHT mode.
+     Dùng hex để chạy chắc trên WebView2 (ưu tiên tin cậy);
+     OKLCH ghi chú bên cạnh làm nguồn-sự-thật khi cần dẫn xuất/dark.
+     Đổi giá trị ở MỘT nơi, cả app đổi theo.
+     ============================================================ */
+
+  /* --- Nền / bề mặt --- */
+  --color-bg:              #EEF4FB; /* oklch(96% .018 232) — canvas ice-blue */
+  --color-surface:         #FFFFFF; /* thẻ, đề, header, modal */
+  --color-surface-raised:  #FFFFFF; /* dropdown nổi (đồng nghĩa surface) */
+  --color-surface-muted:   #F1F6FC; /* footer nút — tint rất nhạt */
+  --color-surface-sunken:  #DDEAF7; /* oklch(92% .025 232) — tint sâu (dự phòng) */
+
+  /* --- Viền --- */
+  --color-border:          #B8CEE8; /* viền thẻ — rõ mà dịu */
+  --color-border-subtle:   #CCDFF0; /* kẻ chia trong thẻ / divider */
+
+  /* --- Chữ --- */
+  --color-text:            #0F2D52; /* navy — ~12.5:1 trên bg (AAA) */
+  --color-text-primary:    #0F2D52;
+  --color-text-muted:      #3D5A7A; /* phụ — ~6.5:1 (AA) */
+  --color-text-subtle:     #6A8FAD; /* meta, timestamp */
+  --color-text-faint:      #93AEC9; /* dấu › phân cách, marker */
+
+  /* --- Cobalt: điều hướng / link / active / tag --- */
+  --color-accent:          #1D4ED8;
+  --color-accent-hover:    #1E40AF;
+  --color-cobalt:          #1D4ED8;
+  --color-cobalt-hover:    #1E40AF;
+  --color-cobalt-bg:       #DBEAFE;
+  --color-cobalt-text:     #1E40AF;
+  --color-cobalt-border:   #BFD4F5;
+  --color-tag-bg:          #DBEAFE;
+  --color-tag-text:        #1E40AF;
+
+  /* --- Amber: CTA lớn (Xuất đề) + badge độ khó --- */
+  --color-amber:           #B45309;
+  --color-amber-hover:     #92400E;
+  --color-amber-bg:        #FEF3C7;
+  --color-amber-text:      #92400E;
+  --color-on-amber:        #FFFFFF;
+  --color-diff-bg:         #FEF3C7;
+  --color-diff-text:       #92400E;
+  --color-diff-border:     #FDE68A;
+
+  /* --- Ngữ nghĩa --- */
+  --color-danger:          #DC2626;
+  --color-danger-bg:       #FEF2F2;
+  --color-success:         #059669;
+  --color-success-bg:      #ECFDF5;
+  --color-solution-bg:     #ECFDF5;
+  --color-solution-border: #A7F3D0;
+  --color-solution-text:   #047857;
+
+  /* --- Bo góc & khoảng cách (giữ từ GĐ1) --- */
   --radius-md: 8px;
   --radius-pill: 999px;
   --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-6: 24px;
+}
 
-  /* === GĐ2: bề mặt phụ & badge thẻ === */
-  --color-surface-sunken: #F8FAFC;   /* slate-50  — "khay" thẻ + nền vùng phân loại */
-  --color-surface-muted:  #F1F5F9;   /* slate-100 — footer nút */
-  --color-text-subtle:    #475569;   /* slate-600 — nhánh con trong đường cây */
-  --color-text-faint:     #94A3B8;   /* slate-400 — dấu › phân cách */
-  --color-diff-bg:        #FEF3C7;   /* amber-100 — badge độ khó */
-  --color-diff-text:      #92400E;   /* amber-800 */
-  --color-diff-border:    #FDE68A;   /* amber-200 */
-  --color-solution-bg:    #F0FDF4;   /* green-50  — khung lời giải bung */
-  --color-solution-border:#BBF7D0;   /* green-200 */
-  --color-solution-text:  #15803D;   /* green-700 */
+/* ============================================================
+   DARK MODE — SẴN SÀNG, CHƯA BẬT. Thêm data-theme="dark" trên
+   <html> (hoặc class .dark) để dùng. Cùng họ hue, đảo độ sáng.
+   ============================================================ */
+[data-theme="dark"], .dark {
+  --color-bg:              #0A1929;
+  --color-surface:         #0F2540;
+  --color-surface-raised:  #152E4D;
+  --color-surface-muted:   #0F2540;
+  --color-surface-sunken:  #0F2540;
+  --color-border:          #1A3A5C;
+  --color-border-subtle:   #142F4A;
+  --color-text:            #E2EDF8;
+  --color-text-primary:    #E2EDF8;
+  --color-text-muted:      #7DA5C5;
+  --color-text-subtle:     #5A84A5;
+  --color-text-faint:      #5A84A5;
+  --color-accent:          #60A5FA;
+  --color-accent-hover:    #93C5FD;
+  --color-cobalt:          #60A5FA;
+  --color-cobalt-hover:    #93C5FD;
+  --color-cobalt-bg:       #1E3A60;
+  --color-cobalt-text:     #93C5FD;
+  --color-cobalt-border:   #2A4D78;
+  --color-tag-bg:          #1E3A60;
+  --color-tag-text:        #93C5FD;
+  --color-amber:           #F59E0B;
+  --color-amber-hover:     #FBBF24;
+  --color-amber-bg:        #2D1A00;
+  --color-amber-text:      #FDE68A;
+  --color-on-amber:        #0A1929;
+  --color-diff-bg:         #2D1A00;
+  --color-diff-text:       #FDE68A;
+  --color-diff-border:     #5A3A00;
+  --color-danger:          #F87171;
+  --color-danger-bg:       #2D0A0A;
+  --color-success:         #34D399;
+  --color-success-bg:      #022C1E;
+  --color-solution-bg:     #022C1E;
+  --color-solution-border: #0B5E45;
+  --color-solution-text:   #34D399;
 }
 
 body {
@@ -43,9 +119,11 @@ button { cursor: pointer; }
 
 /* === GĐ2: nút trên thẻ === */
 .card-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; font-size: 0.8rem;
-  border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-text-subtle);
+  border: 1px solid var(--color-border-subtle); background: var(--color-surface); color: var(--color-text-muted);
   border-radius: var(--radius-md); }
 .card-btn:hover { background: var(--color-surface-muted); }
-.card-btn-primary { color: var(--color-accent); border-color: #BFDBFE; background: var(--color-tag-bg); }
+.card-btn-primary { color: var(--color-cobalt-text); border-color: var(--color-cobalt-border); background: var(--color-cobalt-bg); }
 .card-btn-danger { color: var(--color-danger); }
-.card-btn-danger:hover { background: #FEF2F2; }
+.card-btn-danger:hover { background: var(--color-danger-bg); }
+.card-btn:disabled { opacity: .4; cursor: default; }
+.card-btn:disabled:hover { background: var(--color-surface); }
