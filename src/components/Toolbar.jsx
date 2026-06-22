@@ -1,7 +1,7 @@
 import React from 'react';
-import { PlusSquare, Upload, Trash2, ShoppingCart, FolderTree } from 'lucide-react';
+import { PlusSquare, Upload, FolderTree } from 'lucide-react';
 
-const Toolbar = ({ onAdd, onSmartImport, isImporting, selectedCount, onBulkDelete, onBulkAddToCart, onManageCategories }) => {
+const Toolbar = ({ onAdd, onSmartImport, onManageCategories }) => {
   return (
     <div style={{ display: 'flex', gap: '1rem', padding: '1.5rem 2rem 0.5rem', backgroundColor: '#fff', alignItems: 'center' }}>
       
@@ -19,21 +19,6 @@ const Toolbar = ({ onAdd, onSmartImport, isImporting, selectedCount, onBulkDelet
       <button onClick={onManageCategories} style={{ padding: '0.6rem 1.2rem', borderRadius: '8px', backgroundColor: '#f5f3ff', color: '#6d28d9', border: '1px solid #ddd6fe', display: 'flex', gap: '0.5rem', alignItems: 'center', cursor: 'pointer', fontWeight: 600, fontSize: '0.95rem' }}>
         <FolderTree size={18} /> Quản lý phân loại
       </button>
-
-      {/* Cụm Nút Thao tác hàng loạt (CHỈ HIỆN KHI CÓ BÀI ĐƯỢC CHỌN) */}
-      {selectedCount > 0 && (
-        <div style={{ marginLeft: 'auto', display: 'flex', gap: '0.75rem', animation: 'fadeIn 0.2s ease-in-out' }}>
-          
-          <button onClick={onBulkAddToCart} style={{ padding: '0.6rem 1.2rem', borderRadius: '8px', backgroundColor: '#ecfdf5', color: '#059669', border: '1px solid #a7f3d0', display: 'flex', gap: '0.5rem', alignItems: 'center', cursor: 'pointer', fontWeight: 600, fontSize: '0.95rem' }}>
-            <ShoppingCart size={18} /> Thêm {selectedCount} bài vào giỏ
-          </button>
-          
-          <button onClick={onBulkDelete} style={{ padding: '0.6rem 1.2rem', borderRadius: '8px', backgroundColor: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca', display: 'flex', gap: '0.5rem', alignItems: 'center', cursor: 'pointer', fontWeight: 600, fontSize: '0.95rem' }}>
-            <Trash2 size={18} /> Xóa {selectedCount} bài
-          </button>
-
-        </div>
-      )}
 
     </div>
   );

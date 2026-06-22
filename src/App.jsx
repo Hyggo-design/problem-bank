@@ -147,9 +147,6 @@ function App() {
             onSmartImport={() => ui.setShowImportModal(true)}
             onManageCategories={() => ui.setShowCategoryManager(true)}
             isImporting={ui.isImporting}
-            selectedCount={ui.selectedIds.length}
-            onBulkDelete={handleBulkDelete}
-            onBulkAddToCart={handleBulkAddToCart}
           />
           
           <ControlsRow 
@@ -166,7 +163,9 @@ function App() {
             sortBy={ui.sortBy} filterTopic={ui.filterTopic} filterGrade={ui.filterGrade} filterDifficulty={ui.filterDifficulty} searchTerm={ui.searchTerm}
             selectedIds={ui.selectedIds}
             onSelectChange={(id) => ui.setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])}
-            onSelectAll={(isChecked, allIds) => ui.setSelectedIds(isChecked ? allIds : [])}
+            onBulkAddToCart={handleBulkAddToCart}
+            onBulkDelete={handleBulkDelete}
+            onClearSelection={() => ui.setSelectedIds([])}
             onPreviewClick={(prob) => ui.setSelectedPreview(prob)}
             onAddToCart={(prob) => { 
               addToCart(prob);             

@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { Virtuoso } from 'react-virtuoso';
+import { ShoppingCart, Trash2 } from 'lucide-react';
 import { useTaxonomy, getDescendantIds } from '../hooks/useTaxonomy';
 import { groupClassificationByHe } from '../utils/classification';
 import { useToast } from '../hooks/useToast';
@@ -11,6 +12,7 @@ import ProblemCard from './ProblemCard';
 const DataGrid = ({
   problems, sortBy, filterTopic, filterGrade, filterDifficulty, searchTerm, selectedIds,
   onSelectChange, onPreviewClick, onAddToCart, onDelete, onEdit,
+  onBulkAddToCart, onBulkDelete, onClearSelection,
 }) => {
 
   // Tra cứu phân loại để (1) lọc theo nhánh + nhánh con, (2) dựng đường cây/độ khó/lớp trên thẻ.
@@ -62,6 +64,25 @@ const DataGrid = ({
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', backgroundColor: 'var(--color-bg)', overflow: 'hidden' }}>
+
+      {/* Thanh hành động hàng loạt — sáng lên khi có bài được chọn */}
+      <div style={{
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, margin: '12px 16px',
+        padding: '8px 12px', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', background: 'var(--color-surface)',
+      }}>
+        <span style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
+          {selectedIds.length > 0 ? `Đã chọn ${selectedIds.length} bài` : 'Bấm vào thẻ để chọn — nút hàng loạt sẽ sáng lên'}
+        </span>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button className="card-btn card-btn-primary" disabled={selectedIds.length === 0} onClick={onBulkAddToCart}>
+            <ShoppingCart size={16} /> Thêm {selectedIds.length || ''} vào giỏ
+          </button>
+          <button className="card-btn card-btn-danger" disabled={selectedIds.length === 0} onClick={onBulkDelete}>
+            <Trash2 size={16} /> Xoá {selectedIds.length || ''}
+          </button>
+          <button className="card-btn" disabled={selectedIds.length === 0} onClick={onClearSelection}>Bỏ chọn</button>
+        </div>
+      </div>
 
       <Virtuoso
         style={{ flex: 1 }}
