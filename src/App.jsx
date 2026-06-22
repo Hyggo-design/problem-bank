@@ -12,6 +12,7 @@ import ExportModal from './components/Modals/ExportModal';
 import DuplicateWarningModal from './components/Modals/DuplicateWarningModal';
 import CategoryManagerModal from './components/Modals/CategoryManagerModal';
 
+import { buildProblemTex } from './utils/buildProblemTex';
 import { Toaster } from 'react-hot-toast';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { useCart } from './hooks/useCart';
@@ -92,13 +93,7 @@ function App() {
     tex += `\\begin{center}\n  {\\bf ${config.schoolName.toUpperCase()}} \\\\ \n  {\\bf ${config.examTitle}} \\\\ \n  ${config.subject} --- Thời gian: ${config.time} \n\\end{center}\n\n\\hrule \\vskip 0.5cm\n\n`;
 
     exportItems.forEach((item, index) => {
-      tex += `% Câu ${index + 1}\n\\begin{bt}\n${item.statement.trim()}\n`;
-      if (item.options && item.options.length > 0) {
-        tex += `\\choice\n`;
-        item.options.forEach(opt => { tex += `  {${opt.isTrue ? '\\True ' : ''}${opt.text}}\n`; });
-      }
-      if (config.includeSolutions && item.solution) tex += `\\loigiai{\n${item.solution.trim()}\n}\n`;
-      tex += `\\end{bt}\n\n`;
+      tex += `% Câu ${index + 1}\n${buildProblemTex(item, { includeSolution: config.includeSolutions })}\n\n`;
     });
     tex += `\\end{document}`;
 
