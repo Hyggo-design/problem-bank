@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { Virtuoso } from 'react-virtuoso';
 import { ShoppingCart, Trash2 } from 'lucide-react';
-import { useTaxonomy, getDescendantIds } from '../hooks/useTaxonomy';
+import { useTaxonomy, getDescendantIds, getRootHeId } from '../hooks/useTaxonomy';
 import { groupClassificationByHe } from '../utils/classification';
 import { useToast } from '../hooks/useToast';
 import ProblemCard from './ProblemCard';
@@ -10,7 +10,7 @@ import ProblemCard from './ProblemCard';
 // FEED THẺ CHÍNH (cuộn vô tận với Virtuoso)
 // ==========================================
 const DataGrid = ({
-  problems, sortBy, filterTopic, filterGrade, filterDifficulty, searchTerm, selectedIds,
+  problems, sortBy, filterTopic, filterGrade, filterDifficulty, searchTerm, selectedHe, unclassifiedMode, selectedIds,
   onSelectChange, onPreviewClick, onAddToCart, onDelete, onEdit,
   onBulkAddToCart, onBulkDelete, onClearSelection,
 }) => {
@@ -45,6 +45,9 @@ const DataGrid = ({
         const search = searchTerm.toLowerCase();
         if (!p.statement.toLowerCase().includes(search) && !(p.tags && p.tags.toLowerCase().includes(search))) return false;
       }
+      // GĐ3 — khoá 1 hệ: chỉ giữ bài có nhánh leo về gốc đúng hệ đang chọn.
+      if (!unclassifiedMode && selectedHe &&
+          !(p.categoryIds || []).some((cid) => getRootHeId(cid, parentMap) === selectedHe)) return false;
       if (validBranchIds && !(p.categoryIds || []).some((id) => validBranchIds.has(id))) return false;
       if (filterGrade !== 'all' && !(p.gradeIds || []).includes(filterGrade)) return false;
       if (filterDifficulty !== 'all' && !Object.values(p.difficultyByHe || {}).includes(filterDifficulty)) return false;
@@ -60,7 +63,7 @@ const DataGrid = ({
         default: return 0;
       }
     });
-  }, [problems, sortBy, validBranchIds, filterGrade, filterDifficulty, searchTerm]);
+  }, [problems, sortBy, validBranchIds, filterGrade, filterDifficulty, searchTerm, selectedHe, unclassifiedMode, parentMap]);
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', backgroundColor: 'var(--color-bg)', overflow: 'hidden' }}>

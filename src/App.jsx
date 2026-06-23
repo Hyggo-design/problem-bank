@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import Header from './components/Header';
-import Toolbar from './components/Toolbar';
 import ControlsRow from './components/ControlsRow';
+import FilterSidebar from './components/FilterSidebar';
 import DataGrid from './components/DataGrid';
 import PreviewModal from './components/PreviewModal';
 import CartPanel from './components/CartPanel';
@@ -21,6 +21,7 @@ import { useCart } from './hooks/useCart';
 import { useToast } from './hooks/useToast';
 import { useProblems } from './hooks/useProblems';
 import { useUIState } from './hooks/useUIState';
+import { useTaxonomy } from './hooks/useTaxonomy';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 const GEMINI_API_KEY = process.env.REACT_APP_GEMINI_API_KEY; 
@@ -41,6 +42,15 @@ function App() {
   const { cartItems, addToCart, removeFromCart, clearCart, cartCount } = useCart();
   const { success, info } = useToast();
   const [pendingSave, setPendingSave] = useState(null); // { type: 'add' | 'edit', problem, duplicateInfo }
+
+  // GĐ3 — đặt hệ mặc định = hệ đầu (theo position) khi taxonomy tải xong.
+  const { categories } = useTaxonomy();
+  const { selectedHe, setSelectedHe } = ui;
+  useEffect(() => {
+    if (selectedHe) return;
+    const firstHe = categories.filter((c) => !c.parent_id).sort((a, b) => a.position - b.position)[0];
+    if (firstHe) setSelectedHe(firstHe.id);
+  }, [categories, selectedHe, setSelectedHe]);
 
   // 2. ĐĂNG KÝ PHÍM TẮT
   useKeyboardShortcuts({
@@ -156,41 +166,53 @@ function App() {
         <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', backgroundColor: 'var(--color-surface)', zIndex: 1 }}>
 
           {ui.currentView === 'feed' && (
-            <>
-              <Toolbar
-                onAdd={() => ui.setShowAddModal(true)}
-                onSmartImport={() => ui.setShowImportModal(true)}
-              />
+            <div style={{ display: 'flex', flex: 1, minWidth: 0, overflow: 'hidden' }}>
+              {!ui.sidebarCollapsed && (
+                <FilterSidebar
+                  selectedHe={ui.selectedHe} onSelectHe={ui.selectHe}
+                  filterTopic={ui.filterTopic} onSelectBranch={ui.setFilterTopic}
+                  filterDifficulty={ui.filterDifficulty} onDifficulty={ui.setFilterDifficulty}
+                  filterGrade={ui.filterGrade} onGrade={ui.setFilterGrade}
+                  onClear={ui.clearFilters}
+                  onCollapse={() => ui.setSidebarCollapsed(true)}
+                />
+              )}
 
-              <ControlsRow
-                searchTerm={ui.searchTerm} onSearchChange={ui.setSearchTerm}
-                filterTopic={ui.filterTopic} onFilterTopicChange={ui.setFilterTopic}
-                filterGrade={ui.filterGrade} onFilterGradeChange={ui.setFilterGrade}
-                filterDifficulty={ui.filterDifficulty} onFilterDifficultyChange={ui.setFilterDifficulty}
-                sortBy={ui.sortBy} onSortChange={ui.setSortBy}
-                searchInputRef={ui.searchInputRef}
-              />
+              <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+                {ui.sidebarCollapsed && (
+                  <button className="card-btn" style={{ margin: 8, alignSelf: 'flex-start' }} onClick={() => ui.setSidebarCollapsed(false)}>
+                    Hiện bộ lọc
+                  </button>
+                )}
 
-              <DataGrid
-                problems={problems}
-                sortBy={ui.sortBy} filterTopic={ui.filterTopic} filterGrade={ui.filterGrade} filterDifficulty={ui.filterDifficulty} searchTerm={ui.searchTerm}
-                selectedIds={ui.selectedIds}
-                onSelectChange={(id) => ui.setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])}
-                onBulkAddToCart={handleBulkAddToCart}
-                onBulkDelete={handleBulkDelete}
-                onClearSelection={() => ui.setSelectedIds([])}
-                onPreviewClick={(prob) => ui.setSelectedPreview(prob)}
-                onAddToCart={(prob) => { addToCart(prob); success('Đã thêm vào giỏ!'); }}
-                onDelete={(id) => {
-                  if (window.confirm('Thầy chắc chắn muốn xóa bài này?')) {
-                    deleteProblem(id);
-                    if (ui.selectedPreview?.id === id) ui.setSelectedPreview(null);
-                    success('Đã xóa bài tập');
-                  }
-                }}
-                onEdit={(prob) => ui.setEditingProblem(prob)}
-              />
-            </>
+                <ControlsRow
+                  searchTerm={ui.searchTerm} onSearchChange={ui.setSearchTerm}
+                  sortBy={ui.sortBy} onSortChange={ui.setSortBy}
+                  searchInputRef={ui.searchInputRef}
+                />
+
+                <DataGrid
+                  problems={problems}
+                  sortBy={ui.sortBy} filterTopic={ui.filterTopic} filterGrade={ui.filterGrade} filterDifficulty={ui.filterDifficulty} searchTerm={ui.searchTerm}
+                  selectedHe={ui.selectedHe} unclassifiedMode={ui.unclassifiedMode}
+                  selectedIds={ui.selectedIds}
+                  onSelectChange={(id) => ui.setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])}
+                  onBulkAddToCart={handleBulkAddToCart}
+                  onBulkDelete={handleBulkDelete}
+                  onClearSelection={() => ui.setSelectedIds([])}
+                  onPreviewClick={(prob) => ui.setSelectedPreview(prob)}
+                  onAddToCart={(prob) => { addToCart(prob); success('Đã thêm vào giỏ!'); }}
+                  onDelete={(id) => {
+                    if (window.confirm('Thầy chắc chắn muốn xóa bài này?')) {
+                      deleteProblem(id);
+                      if (ui.selectedPreview?.id === id) ui.setSelectedPreview(null);
+                      success('Đã xóa bài tập');
+                    }
+                  }}
+                  onEdit={(prob) => ui.setEditingProblem(prob)}
+                />
+              </div>
+            </div>
           )}
 
           {ui.currentView === 'cart' && (
