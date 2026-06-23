@@ -11,9 +11,9 @@ import SmartImportModal from './components/Modals/SmartImportModal';
 import ExportModal from './components/Modals/ExportModal';
 import DuplicateWarningModal from './components/Modals/DuplicateWarningModal';
 import CategoryManagerModal from './components/Modals/CategoryManagerModal';
+import NavRail from './components/NavRail';
 
 import { buildProblemTex } from './utils/buildProblemTex';
-import { List, ShoppingCart } from 'lucide-react';
 import { Toaster } from 'react-hot-toast';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { useCart } from './hooks/useCart';
@@ -138,30 +138,27 @@ function App() {
         used: problems.reduce((sum, p) => sum + (p.timesUsed || 0), 0)
       }} />
 
-      {/* KHU VỰC CHÍNH */}
+      {/* KHU VỰC CHÍNH — 3 cột: nav rail | (cột lọc Task 5) | cột phải */}
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
 
-        {/* CỘT CHÍNH (full-width) — feed hoặc trang Giỏ theo currentView */}
+        <NavRail
+          currentView={ui.currentView}
+          onNavigate={ui.setCurrentView}
+          onAdd={() => ui.setShowAddModal(true)}
+          onImport={() => ui.setShowImportModal(true)}
+          cartCount={cartCount}
+          collapsed={ui.railCollapsed}
+          onToggleCollapse={() => ui.setRailCollapsed(v => !v)}
+        />
+
+        {/* CỘT PHẢI — feed / Giỏ / Cài đặt theo currentView */}
         <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', backgroundColor: 'var(--color-surface)', zIndex: 1 }}>
 
-          {/* Công tắc trang (mầm nav rail GĐ3) */}
-          <div style={{ display: 'flex', gap: 8, padding: '12px 2rem 0', backgroundColor: 'var(--color-surface)' }}>
-            <button className={`view-tab ${ui.currentView === 'feed' ? 'on' : ''}`} onClick={() => ui.setCurrentView('feed')}>
-              <List size={16} /> Danh sách bài
-            </button>
-            <button className={`view-tab ${ui.currentView === 'cart' ? 'on' : ''}`} onClick={() => ui.setCurrentView('cart')}>
-              <ShoppingCart size={16} /> Giỏ đề
-              {cartCount > 0 && <span className="view-badge">{cartCount}</span>}
-            </button>
-          </div>
-
-          {ui.currentView === 'feed' ? (
+          {ui.currentView === 'feed' && (
             <>
               <Toolbar
                 onAdd={() => ui.setShowAddModal(true)}
                 onSmartImport={() => ui.setShowImportModal(true)}
-                onManageCategories={() => ui.setShowCategoryManager(true)}
-                isImporting={ui.isImporting}
               />
 
               <ControlsRow
@@ -193,7 +190,9 @@ function App() {
                 onEdit={(prob) => ui.setEditingProblem(prob)}
               />
             </>
-          ) : (
+          )}
+
+          {ui.currentView === 'cart' && (
             <CartPanel
               items={cartItems}
               onRemove={removeFromCart}
@@ -201,6 +200,10 @@ function App() {
               onExport={() => ui.setShowExportModal(true)}
               onClose={() => ui.setCurrentView('feed')}
             />
+          )}
+
+          {ui.currentView === 'settings' && (
+            <div style={{ padding: '2rem', color: 'var(--color-text-muted)' }}>Trang Cài đặt đang được dựng (Task 4).</div>
           )}
         </div>
 

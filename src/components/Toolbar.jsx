@@ -1,7 +1,7 @@
 import React from 'react';
-import { PlusSquare, Upload, FolderTree } from 'lucide-react';
+import { PlusSquare, Upload } from 'lucide-react';
 
-const Toolbar = ({ onAdd, onSmartImport, onManageCategories }) => {
+const Toolbar = ({ onAdd, onSmartImport }) => {
   const ghost = {
     padding: '0.6rem 1.2rem', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--color-surface)',
     color: 'var(--color-text-muted)', border: '1px solid var(--color-border)', display: 'flex', gap: '0.5rem',
@@ -19,11 +19,6 @@ const Toolbar = ({ onAdd, onSmartImport, onManageCategories }) => {
       {/* Import (mở modal) */}
       <button onClick={onSmartImport} style={ghost}>
         <Upload size={18} /> Import
-      </button>
-
-      {/* Quản lý phân loại (mở modal) */}
-      <button onClick={onManageCategories} style={ghost}>
-        <FolderTree size={18} /> Quản lý phân loại
       </button>
 
     </div>
