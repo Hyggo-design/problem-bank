@@ -49,18 +49,18 @@ const ControlsRow = ({
     t.depth > 0 ? '  '.repeat(t.depth - 1) + '└ ' + t.name : t.name;
 
   return (
-    <div style={{ display: 'flex', gap: '1rem', padding: '1rem 2rem', backgroundColor: '#fff', borderBottom: '1px solid #e2e8f0', flexWrap: 'wrap' }}>
+    <div style={{ display: 'flex', gap: '1rem', padding: '1rem 2rem', backgroundColor: 'var(--color-surface)', borderBottom: '1px solid var(--color-border)', flexWrap: 'wrap' }}>
 
       {/* Ô Tìm kiếm (Kết nối với phím tắt Ctrl+F qua searchInputRef) */}
-      <div style={{ display: 'flex', alignItems: 'center', background: '#f1f5f9', padding: '0.5rem 1rem', borderRadius: '8px', flex: 1, minWidth: '250px' }}>
-        <Search size={18} color="#64748b" />
+      <div style={{ display: 'flex', alignItems: 'center', background: 'var(--color-surface-muted)', padding: '0.5rem 1rem', borderRadius: '8px', flex: 1, minWidth: '250px' }}>
+        <Search size={18} color="var(--color-text-muted)" />
         <input
           ref={searchInputRef}
           type="text"
           placeholder="Tìm kiếm theo ID, từ khóa, tag... (Ctrl + F)"
           value={searchTerm}
           onChange={(e) => onSearchChange(e.target.value)}
-          style={{ border: 'none', background: 'transparent', marginLeft: '0.5rem', width: '100%', color: '#334155' }}
+          style={{ border: 'none', background: 'transparent', marginLeft: '0.5rem', width: '100%', color: 'var(--color-text)' }}
         />
       </div>
 
@@ -68,7 +68,7 @@ const ControlsRow = ({
       <select
         value={filterTopic}
         onChange={(e) => onFilterTopicChange(e.target.value)}
-        style={{ padding: '0.5rem 1rem', border: '1px solid #e2e8f0', borderRadius: '8px', color: '#334155', backgroundColor: '#fff', cursor: 'pointer' }}
+        style={{ padding: '0.5rem 1rem', border: '1px solid var(--color-border)', borderRadius: '8px', color: 'var(--color-text)', backgroundColor: 'var(--color-surface)', cursor: 'pointer' }}
       >
         <option value="all">Tất cả chuyên đề</option>
         {flatTopics.map(t => (
@@ -80,7 +80,7 @@ const ControlsRow = ({
       <select
         value={filterGrade}
         onChange={(e) => onFilterGradeChange(e.target.value)}
-        style={{ padding: '0.5rem 1rem', border: '1px solid #e2e8f0', borderRadius: '8px', color: '#334155', backgroundColor: '#fff', cursor: 'pointer' }}
+        style={{ padding: '0.5rem 1rem', border: '1px solid var(--color-border)', borderRadius: '8px', color: 'var(--color-text)', backgroundColor: 'var(--color-surface)', cursor: 'pointer' }}
       >
         <option value="all">Tất cả lớp</option>
         {grades.map(g => (
@@ -92,7 +92,7 @@ const ControlsRow = ({
       <select
         value={filterDifficulty}
         onChange={(e) => onFilterDifficultyChange(e.target.value)}
-        style={{ padding: '0.5rem 1rem', border: '1px solid #e2e8f0', borderRadius: '8px', color: '#334155', backgroundColor: '#fff', cursor: 'pointer' }}
+        style={{ padding: '0.5rem 1rem', border: '1px solid var(--color-border)', borderRadius: '8px', color: 'var(--color-text)', backgroundColor: 'var(--color-surface)', cursor: 'pointer' }}
       >
         <option value="all">Tất cả độ khó</option>
         {roots.map(he => {
@@ -112,7 +112,7 @@ const ControlsRow = ({
       <select
         value={sortBy}
         onChange={(e) => onSortChange(e.target.value)}
-        style={{ padding: '0.5rem 1rem', border: '1px solid #e2e8f0', borderRadius: '8px', color: '#334155', backgroundColor: '#fff', cursor: 'pointer' }}
+        style={{ padding: '0.5rem 1rem', border: '1px solid var(--color-border)', borderRadius: '8px', color: 'var(--color-text)', backgroundColor: 'var(--color-surface)', cursor: 'pointer' }}
       >
         <option value="date-new">Mới nhất trước</option>
         <option value="date-old">Cũ nhất trước</option>

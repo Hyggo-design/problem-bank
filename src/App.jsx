@@ -3,7 +3,7 @@ import Header from './components/Header';
 import Toolbar from './components/Toolbar';
 import ControlsRow from './components/ControlsRow';
 import DataGrid from './components/DataGrid';
-import PreviewPanel from './components/PreviewPanel';
+import PreviewModal from './components/PreviewModal';
 import CartPanel from './components/CartPanel';
 import AddProblemModal from './components/Modals/AddProblemModal';
 import EditProblemModal from './components/Modals/EditProblemModal';
@@ -12,6 +12,8 @@ import ExportModal from './components/Modals/ExportModal';
 import DuplicateWarningModal from './components/Modals/DuplicateWarningModal';
 import CategoryManagerModal from './components/Modals/CategoryManagerModal';
 
+import { buildProblemTex } from './utils/buildProblemTex';
+import { List, ShoppingCart } from 'lucide-react';
 import { Toaster } from 'react-hot-toast';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { useCart } from './hooks/useCart';
@@ -92,13 +94,7 @@ function App() {
     tex += `\\begin{center}\n  {\\bf ${config.schoolName.toUpperCase()}} \\\\ \n  {\\bf ${config.examTitle}} \\\\ \n  ${config.subject} --- Thời gian: ${config.time} \n\\end{center}\n\n\\hrule \\vskip 0.5cm\n\n`;
 
     exportItems.forEach((item, index) => {
-      tex += `% Câu ${index + 1}\n\\begin{bt}\n${item.statement.trim()}\n`;
-      if (item.options && item.options.length > 0) {
-        tex += `\\choice\n`;
-        item.options.forEach(opt => { tex += `  {${opt.isTrue ? '\\True ' : ''}${opt.text}}\n`; });
-      }
-      if (config.includeSolutions && item.solution) tex += `\\loigiai{\n${item.solution.trim()}\n}\n`;
-      tex += `\\end{bt}\n\n`;
+      tex += `% Câu ${index + 1}\n${buildProblemTex(item, { includeSolution: config.includeSolutions })}\n\n`;
     });
     tex += `\\end{document}`;
 
@@ -142,81 +138,72 @@ function App() {
         used: problems.reduce((sum, p) => sum + (p.timesUsed || 0), 0)
       }} />
 
-      {/* THẺ BỌC CẢ TRÁI VÀ PHẢI */}
+      {/* KHU VỰC CHÍNH */}
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-        
-        {/* NỬA TRÁI: Dữ liệu & Bộ lọc */}
-        <div style={{ flex: '1 1 60%', display: 'flex', flexDirection: 'column', borderRight: '1px solid #e2e8f0', backgroundColor: '#fff', zIndex: 1 }}>
-          <Toolbar
-            onAdd={() => ui.setShowAddModal(true)}
-            onSmartImport={() => ui.setShowImportModal(true)}
-            onManageCategories={() => ui.setShowCategoryManager(true)}
-            isImporting={ui.isImporting}
-            selectedCount={ui.selectedIds.length}
-            onBulkDelete={handleBulkDelete}
-            onBulkAddToCart={handleBulkAddToCart}
-          />
-          
-          <ControlsRow 
-            searchTerm={ui.searchTerm} onSearchChange={ui.setSearchTerm}
-            filterTopic={ui.filterTopic} onFilterTopicChange={ui.setFilterTopic}
-            filterGrade={ui.filterGrade} onFilterGradeChange={ui.setFilterGrade}
-            filterDifficulty={ui.filterDifficulty} onFilterDifficultyChange={ui.setFilterDifficulty}
-            sortBy={ui.sortBy} onSortChange={ui.setSortBy}
-            searchInputRef={ui.searchInputRef}
-          />
-          
-          <DataGrid 
-            problems={problems}
-            sortBy={ui.sortBy} filterTopic={ui.filterTopic} filterGrade={ui.filterGrade} filterDifficulty={ui.filterDifficulty} searchTerm={ui.searchTerm}
-            selectedIds={ui.selectedIds}
-            onSelectChange={(id) => ui.setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])}
-            onSelectAll={(isChecked, allIds) => ui.setSelectedIds(isChecked ? allIds : [])}
-            onPreviewClick={(prob) => ui.setSelectedPreview(prob)}
-            onAddToCart={(prob) => { 
-              addToCart(prob);             
-              ui.setIsCartOpen(true);      
-              success('Đã thêm vào giỏ!'); 
-            }}
-            onDelete={(id) => {
-              if (window.confirm('Thầy chắc chắn muốn xóa bài này?')) {
-                deleteProblem(id);
-                if (ui.selectedPreview?.id === id) ui.setSelectedPreview(null);
-                success('Đã xóa bài tập');
-              }
-            }}
-            onEdit={(prob) => ui.setEditingProblem(prob)}
-          />
+
+        {/* CỘT CHÍNH (full-width) — feed hoặc trang Giỏ theo currentView */}
+        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', backgroundColor: 'var(--color-surface)', zIndex: 1 }}>
+
+          {/* Công tắc trang (mầm nav rail GĐ3) */}
+          <div style={{ display: 'flex', gap: 8, padding: '12px 2rem 0', backgroundColor: 'var(--color-surface)' }}>
+            <button className={`view-tab ${ui.currentView === 'feed' ? 'on' : ''}`} onClick={() => ui.setCurrentView('feed')}>
+              <List size={16} /> Danh sách bài
+            </button>
+            <button className={`view-tab ${ui.currentView === 'cart' ? 'on' : ''}`} onClick={() => ui.setCurrentView('cart')}>
+              <ShoppingCart size={16} /> Giỏ đề
+              {cartCount > 0 && <span className="view-badge">{cartCount}</span>}
+            </button>
+          </div>
+
+          {ui.currentView === 'feed' ? (
+            <>
+              <Toolbar
+                onAdd={() => ui.setShowAddModal(true)}
+                onSmartImport={() => ui.setShowImportModal(true)}
+                onManageCategories={() => ui.setShowCategoryManager(true)}
+                isImporting={ui.isImporting}
+              />
+
+              <ControlsRow
+                searchTerm={ui.searchTerm} onSearchChange={ui.setSearchTerm}
+                filterTopic={ui.filterTopic} onFilterTopicChange={ui.setFilterTopic}
+                filterGrade={ui.filterGrade} onFilterGradeChange={ui.setFilterGrade}
+                filterDifficulty={ui.filterDifficulty} onFilterDifficultyChange={ui.setFilterDifficulty}
+                sortBy={ui.sortBy} onSortChange={ui.setSortBy}
+                searchInputRef={ui.searchInputRef}
+              />
+
+              <DataGrid
+                problems={problems}
+                sortBy={ui.sortBy} filterTopic={ui.filterTopic} filterGrade={ui.filterGrade} filterDifficulty={ui.filterDifficulty} searchTerm={ui.searchTerm}
+                selectedIds={ui.selectedIds}
+                onSelectChange={(id) => ui.setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])}
+                onBulkAddToCart={handleBulkAddToCart}
+                onBulkDelete={handleBulkDelete}
+                onClearSelection={() => ui.setSelectedIds([])}
+                onPreviewClick={(prob) => ui.setSelectedPreview(prob)}
+                onAddToCart={(prob) => { addToCart(prob); success('Đã thêm vào giỏ!'); }}
+                onDelete={(id) => {
+                  if (window.confirm('Thầy chắc chắn muốn xóa bài này?')) {
+                    deleteProblem(id);
+                    if (ui.selectedPreview?.id === id) ui.setSelectedPreview(null);
+                    success('Đã xóa bài tập');
+                  }
+                }}
+                onEdit={(prob) => ui.setEditingProblem(prob)}
+              />
+            </>
+          ) : (
+            <CartPanel
+              items={cartItems}
+              onRemove={removeFromCart}
+              onClear={clearCart}
+              onExport={() => ui.setShowExportModal(true)}
+              onClose={() => ui.setCurrentView('feed')}
+            />
+          )}
         </div>
 
-        {/* NỬA PHẢI: Chỉ hiện khi có Preview hoặc Giỏ hàng đang mở */}
-        {(ui.selectedPreview || ui.isCartOpen) && (
-          <div style={{ flex: '0 0 450px', minWidth: 0, display: 'flex', flexDirection: 'column', backgroundColor: '#f8fafc', borderLeft: '1px solid #e2e8f0' }}>
-              
-            {/* 1. Khu vực Preview */}
-            {ui.selectedPreview && (
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-                <PreviewPanel problem={ui.selectedPreview} onClose={() => ui.setSelectedPreview(null)} />
-              </div>
-            )}
-
-            {/* Vạch kẻ ngăn cách nếu mở cả hai bảng cùng lúc */}
-            {ui.selectedPreview && ui.isCartOpen && <div style={{ height: '4px', backgroundColor: '#cbd5e1', flexShrink: 0 }}></div>}
-
-            {/* 2. Khu vực Giỏ hàng */}
-            {ui.isCartOpen && (
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-                <CartPanel 
-                  items={cartItems} 
-                  onRemove={removeFromCart} 
-                  onClear={clearCart}       
-                  onExport={() => ui.setShowExportModal(true)} 
-                  onClose={() => ui.setIsCartOpen(false)} 
-                />
-              </div>
-            )}
-          </div>
-        )}
       </div>
 
       {/* CÁC CỬA SỔ MODAL */}
@@ -285,6 +272,14 @@ function App() {
 
       {ui.showCategoryManager && (
         <CategoryManagerModal onClose={() => ui.setShowCategoryManager(false)} />
+      )}
+
+      {ui.selectedPreview && (
+        <PreviewModal
+          problem={ui.selectedPreview}
+          onClose={() => ui.setSelectedPreview(null)}
+          onCopied={() => success('Đã chép mã LaTeX')}
+        />
       )}
 
       <Toaster />
