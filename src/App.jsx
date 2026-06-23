@@ -12,6 +12,7 @@ import ExportModal from './components/Modals/ExportModal';
 import DuplicateWarningModal from './components/Modals/DuplicateWarningModal';
 import CategoryManagerModal from './components/Modals/CategoryManagerModal';
 import NavRail from './components/NavRail';
+import SettingsPage from './components/SettingsPage';
 
 import { buildProblemTex } from './utils/buildProblemTex';
 import { Toaster } from 'react-hot-toast';
@@ -203,7 +204,7 @@ function App() {
           )}
 
           {ui.currentView === 'settings' && (
-            <div style={{ padding: '2rem', color: 'var(--color-text-muted)' }}>Trang Cài đặt đang được dựng (Task 4).</div>
+            <SettingsPage onManageCategories={() => ui.setShowCategoryManager(true)} />
           )}
         </div>
 
