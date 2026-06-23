@@ -12,7 +12,7 @@ import ProblemCard from './ProblemCard';
 const DataGrid = ({
   problems, sortBy, filterTopic, filterGrade, filterDifficulty, searchTerm, selectedHe, unclassifiedMode, selectedIds,
   onSelectChange, onPreviewClick, onAddToCart, onDelete, onEdit,
-  onBulkAddToCart, onBulkDelete, onClearSelection,
+  onBulkAddToCart, onBulkDelete, onClearSelection, onExitUnclassified,
 }) => {
 
   // Tra cứu phân loại để (1) lọc theo nhánh + nhánh con, (2) dựng đường cây/độ khó/lớp trên thẻ.
@@ -45,6 +45,8 @@ const DataGrid = ({
         const search = searchTerm.toLowerCase();
         if (!p.statement.toLowerCase().includes(search) && !(p.tags && p.tags.toLowerCase().includes(search))) return false;
       }
+      // GĐ3 — chế độ "chưa phân loại" đè mọi lọc khác: chỉ bài có 0 phân loại.
+      if (unclassifiedMode) return (p.categoryIds || []).length === 0;
       // GĐ3 — khoá 1 hệ: chỉ giữ bài có nhánh leo về gốc đúng hệ đang chọn.
       if (!unclassifiedMode && selectedHe &&
           !(p.categoryIds || []).some((cid) => getRootHeId(cid, parentMap) === selectedHe)) return false;
@@ -86,6 +88,14 @@ const DataGrid = ({
           <button className="card-btn" disabled={selectedIds.length === 0} onClick={onClearSelection}>Bỏ chọn</button>
         </div>
       </div>
+
+      {unclassifiedMode && (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '0 16px 8px',
+          padding: '8px 12px', borderRadius: 'var(--radius-md)', background: 'var(--color-amber-bg)', color: 'var(--color-amber-text)' }}>
+          <span>Đang xem: Bài chưa phân loại</span>
+          <button className="card-btn" onClick={onExitUnclassified}>✕ Thoát</button>
+        </div>
+      )}
 
       <Virtuoso
         style={{ flex: 1 }}

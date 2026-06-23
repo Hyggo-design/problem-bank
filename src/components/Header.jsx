@@ -1,7 +1,7 @@
 import React from 'react';
 import { BookOpen, AlertCircle, ShoppingCart, Activity } from 'lucide-react';
 
-const Header = ({ stats }) => {
+const Header = ({ stats, onUnclassifiedClick, unclassifiedActive }) => {
   const statCards = [
     { label: 'Tổng bài tập', value: stats.total, icon: <BookOpen size={22} color="var(--color-cobalt)" /> },
     { label: 'Chưa phân loại', value: stats.unclassified, icon: <AlertCircle size={22} color="var(--color-amber)" /> },
@@ -24,17 +24,32 @@ const Header = ({ stats }) => {
 
       {/* Cụm thẻ thống kê */}
       <div style={{ display: 'flex', gap: '1rem' }}>
-        {statCards.map((stat, idx) => (
-          <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', backgroundColor: 'var(--color-surface)', padding: '0.5rem 1.25rem', borderRadius: '10px', minWidth: '140px' }}>
-            <div style={{ padding: '0.5rem', backgroundColor: 'var(--color-surface-muted)', borderRadius: '8px', display: 'flex' }}>
-              {stat.icon}
+        {statCards.map((stat, idx) => {
+          const clickable = stat.label === 'Chưa phân loại';
+          const active = clickable && unclassifiedActive;
+          return (
+            <div
+              key={idx}
+              onClick={clickable ? onUnclassifiedClick : undefined}
+              title={clickable ? 'Bấm để xem bài chưa phân loại' : undefined}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '0.75rem',
+                backgroundColor: active ? 'var(--color-amber-bg)' : 'var(--color-surface)',
+                padding: '0.5rem 1.25rem', borderRadius: '10px', minWidth: '140px',
+                cursor: clickable ? 'pointer' : 'default',
+                outline: active ? '2px solid var(--color-amber)' : 'none',
+              }}
+            >
+              <div style={{ padding: '0.5rem', backgroundColor: 'var(--color-surface-muted)', borderRadius: '8px', display: 'flex' }}>
+                {stat.icon}
+              </div>
+              <div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{stat.label}</div>
+                <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--color-text)', lineHeight: 1.2 }}>{stat.value}</div>
+              </div>
             </div>
-            <div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{stat.label}</div>
-              <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--color-text)', lineHeight: 1.2 }}>{stat.value}</div>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
     </div>

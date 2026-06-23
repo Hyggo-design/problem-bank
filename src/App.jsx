@@ -142,12 +142,19 @@ function App() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', backgroundColor: 'var(--color-bg)', fontFamily: 'Inter, sans-serif' }}>
       
-      <Header stats={{
-        total: problems.length,
-        unclassified: problems.filter(p => (p.categoryIds?.length || 0) === 0).length,
-        cartCount: cartCount,
-        used: problems.reduce((sum, p) => sum + (p.timesUsed || 0), 0)
-      }} />
+      <Header
+        stats={{
+          total: problems.length,
+          unclassified: problems.filter(p => (p.categoryIds?.length || 0) === 0).length,
+          cartCount: cartCount,
+          used: problems.reduce((sum, p) => sum + (p.timesUsed || 0), 0)
+        }}
+        unclassifiedActive={ui.unclassifiedMode}
+        onUnclassifiedClick={() => {
+          if (ui.currentView !== 'feed') ui.setCurrentView('feed');
+          ui.showUnclassified();
+        }}
+      />
 
       {/* KHU VỰC CHÍNH — 3 cột: nav rail | (cột lọc Task 5) | cột phải */}
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
@@ -195,6 +202,7 @@ function App() {
                   problems={problems}
                   sortBy={ui.sortBy} filterTopic={ui.filterTopic} filterGrade={ui.filterGrade} filterDifficulty={ui.filterDifficulty} searchTerm={ui.searchTerm}
                   selectedHe={ui.selectedHe} unclassifiedMode={ui.unclassifiedMode}
+                  onExitUnclassified={() => ui.setUnclassifiedMode(false)}
                   selectedIds={ui.selectedIds}
                   onSelectChange={(id) => ui.setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])}
                   onBulkAddToCart={handleBulkAddToCart}
