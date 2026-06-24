@@ -1,11 +1,11 @@
 import React from 'react';
-import { PlusSquare, Upload, List, ShoppingCart, Settings, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { PlusSquare, Upload, List, ShoppingCart, Settings, Trash2, ChevronsLeft, ChevronsRight } from 'lucide-react';
 
 // ==========================================
 // NAV RAIL (cột 1) — điều hướng dọc kiểu Gmail, gập được.
 // Trên: nút nhanh Thêm/Import. Giữa: Bài/Giỏ. Dưới: Cài đặt.
 // ==========================================
-const NavRail = ({ currentView, onNavigate, onAdd, onImport, cartCount, collapsed, onToggleCollapse }) => {
+const NavRail = ({ currentView, onNavigate, onAdd, onImport, cartCount, trashCount, collapsed, onToggleCollapse }) => {
   const lbl = (text) => (collapsed ? null : <span>{text}</span>);
   const align = collapsed ? 'center' : 'flex-start';
 
@@ -36,6 +36,12 @@ const NavRail = ({ currentView, onNavigate, onAdd, onImport, cartCount, collapse
       </button>
 
       <div style={{ flex: 1 }} />
+
+      <button className={`rail-item ${currentView === 'trash' ? 'on' : ''}`} onClick={() => onNavigate('trash')}
+        style={{ justifyContent: align }}>
+        <Trash2 size={18} /> {lbl('Thùng rác')}
+        {trashCount > 0 && <span className="view-badge" style={{ marginLeft: 'auto' }}>{trashCount}</span>}
+      </button>
 
       <button className={`rail-item ${currentView === 'settings' ? 'on' : ''}`} onClick={() => onNavigate('settings')}
         style={{ justifyContent: align }}>

@@ -13,6 +13,7 @@ import DuplicateWarningModal from './components/Modals/DuplicateWarningModal';
 import CategoryManagerModal from './components/Modals/CategoryManagerModal';
 import NavRail from './components/NavRail';
 import SettingsPage from './components/SettingsPage';
+import TrashPage from './components/TrashPage';
 
 import { buildProblemTex } from './utils/buildProblemTex';
 import { Toaster } from 'react-hot-toast';
@@ -29,14 +30,19 @@ const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 
 function App() {
   // 1. GỌI CÁC THƯ KÝ (Hooks) ĐỂ LẤY DỮ LIỆU
-  const { 
-    problems, 
-    addProblem, 
-    updateProblem, 
-    deleteProblem, 
-    bulkDeleteProblems, 
+  const {
+    problems,
+    trashedProblems,
+    trashCount,
+    addProblem,
+    updateProblem,
+    deleteProblem,
+    bulkDeleteProblems,
+    restoreProblem,
+    purgeProblem,
+    emptyTrash,
     saveImportedProblems,
-    checkDuplicate 
+    checkDuplicate
   } = useProblems();
   const ui = useUIState(); 
   const { cartItems, addToCart, removeFromCart, clearCart, cartCount } = useCart();
@@ -165,6 +171,7 @@ function App() {
           onAdd={() => ui.setShowAddModal(true)}
           onImport={() => ui.setShowImportModal(true)}
           cartCount={cartCount}
+          trashCount={trashCount}
           collapsed={ui.railCollapsed}
           onToggleCollapse={() => ui.setRailCollapsed(v => !v)}
         />
@@ -235,6 +242,15 @@ function App() {
 
           {ui.currentView === 'settings' && (
             <SettingsPage onManageCategories={() => ui.setShowCategoryManager(true)} />
+          )}
+
+          {ui.currentView === 'trash' && (
+            <TrashPage
+              items={trashedProblems}
+              onRestore={(id) => { restoreProblem(id); success('Đã khôi phục bài'); }}
+              onPurge={(id) => { purgeProblem(id); success('Đã xoá hẳn'); }}
+              onEmptyAll={() => { emptyTrash(); success('Đã dọn sạch thùng rác'); }}
+            />
           )}
         </div>
 
