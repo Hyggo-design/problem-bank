@@ -1,18 +1,23 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { X, Upload, FileText, CheckCircle, Trash2, Loader } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import ClassificationPicker from '../ClassificationPicker';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // Phân loại rỗng khởi tạo cho mỗi câu rà soát (giống form Thêm/Sửa).
 const makeEmptyCls = () => ({ categoryIds: [], difficultyByHe: {}, gradeIds: [], tags: '' });
 
-const SmartImportModal = ({ onClose, onSave, genAI }) => {
+const SmartImportModal = ({ onClose, onSave }) => {
   const [files, setFiles] = useState([]);
   const [step, setStep] = useState('upload'); // 'upload' | 'processing' | 'review'
   const [results, setResults] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
   
   const fileInputRef = useRef(null);
+
+  // API key đọc lúc chạy: ưu tiên key đã lưu trong Cài đặt, fallback biến môi trường (lúc dev).
+  const apiKey = (localStorage.getItem('pb-gemini-key') || process.env.REACT_APP_GEMINI_API_KEY || '').trim();
+  const genAI = useMemo(() => (apiKey ? new GoogleGenerativeAI(apiKey) : null), [apiKey]);
 
   // --- XỬ LÝ KÉO THẢ & PASTE ẢNH ---
   useEffect(() => {
@@ -44,6 +49,7 @@ const SmartImportModal = ({ onClose, onSave, genAI }) => {
   // --- XỬ LÝ AI & BÓC TÁCH (CÓ XỬ LÝ LỖI CHUẨN DOANH NGHIỆP) ---
   const handleProcess = async () => {
     if (files.length === 0) return;
+    if (!genAI) { toast.error('Chưa có API key Gemini — vào Cài đặt để nhập.'); return; }
     setStep('processing');
     let tempResults = [];
     let hasError = false;
@@ -203,7 +209,12 @@ const SmartImportModal = ({ onClose, onSave, genAI }) => {
         {step === 'upload' && (
           <div style={{ flex: 1, padding: '2rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             
-            <div 
+            {!genAI && (
+              <div style={{ padding: '0.8rem 1rem', borderRadius: 8, background: '#fef3c7', color: '#92400e', fontSize: '0.9rem' }}>
+                Chưa có API key Gemini. Vào <b>Cài đặt → Khoá API Gemini</b> để nhập, rồi mở lại cửa sổ này.
+              </div>
+            )}
+            <div
               onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop}
               style={{ border: `2px dashed ${isDragging ? '#0ea5e9' : '#cbd5e1'}`, backgroundColor: isDragging ? '#f0f9ff' : '#fff', borderRadius: '12px', padding: '3rem 2rem', textAlign: 'center', cursor: 'pointer', transition: 'all 0.2s' }}
               onClick={() => fileInputRef.current.click()}
@@ -302,7 +313,7 @@ const SmartImportModal = ({ onClose, onSave, genAI }) => {
           <button onClick={onClose} style={{ padding: '0.75rem 1.5rem', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#fff', color: '#475569', fontWeight: 600, cursor: 'pointer' }}>Hủy</button>
           
           {step === 'upload' && (
-            <button onClick={handleProcess} disabled={files.length === 0} style={{ padding: '0.75rem 2rem', borderRadius: '8px', border: 'none', backgroundColor: files.length > 0 ? '#0ea5e9' : '#94a3b8', color: '#fff', fontWeight: 600, cursor: files.length > 0 ? 'pointer' : 'not-allowed' }}>
+            <button onClick={handleProcess} disabled={files.length === 0 || !genAI} style={{ padding: '0.75rem 2rem', borderRadius: '8px', border: 'none', backgroundColor: (files.length > 0 && genAI) ? '#0ea5e9' : '#94a3b8', color: '#fff', fontWeight: 600, cursor: (files.length > 0 && genAI) ? 'pointer' : 'not-allowed' }}>
               Bắt đầu chuyển hóa
             </button>
           )}
