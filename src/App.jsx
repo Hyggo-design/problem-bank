@@ -46,7 +46,7 @@ function App() {
   } = useProblems();
   const ui = useUIState(); 
   const { cartItems, addToCart, removeFromCart, clearCart, cartCount } = useCart();
-  const { success, info } = useToast();
+  const { success, info, undoToast } = useToast();
   const [pendingSave, setPendingSave] = useState(null); // { type: 'add' | 'edit', problem, duplicateInfo }
 
   // GĐ3 — đặt hệ mặc định = hệ đầu (theo position) khi taxonomy tải xong.
@@ -81,11 +81,13 @@ function App() {
 
   const handleBulkDelete = () => {
     if (ui.selectedIds.length === 0) return;
-    if (window.confirm(`Thầy có chắc chắn muốn xóa ${ui.selectedIds.length} bài tập đã chọn?`)) {
-      bulkDeleteProblems(ui.selectedIds);
+    const ids = ui.selectedIds;
+    if (window.confirm(`Thầy có chắc chắn muốn xóa ${ids.length} bài tập đã chọn? (Sẽ chuyển vào Thùng rác)`)) {
+      bulkDeleteProblems(ids);
+      ids.forEach((id) => removeFromCart(id));
       ui.setSelectedIds([]);
       ui.setSelectedPreview(null);
-      success('Đã xóa thành công!');
+      success(`Đã chuyển ${ids.length} bài vào Thùng rác`);
     }
   };
 
@@ -218,11 +220,10 @@ function App() {
                   onPreviewClick={(prob) => ui.setSelectedPreview(prob)}
                   onAddToCart={(prob) => { addToCart(prob); success('Đã thêm vào giỏ!'); }}
                   onDelete={(id) => {
-                    if (window.confirm('Thầy chắc chắn muốn xóa bài này?')) {
-                      deleteProblem(id);
-                      if (ui.selectedPreview?.id === id) ui.setSelectedPreview(null);
-                      success('Đã xóa bài tập');
-                    }
+                    deleteProblem(id);
+                    removeFromCart(id);
+                    if (ui.selectedPreview?.id === id) ui.setSelectedPreview(null);
+                    undoToast('Đã chuyển vào thùng rác', () => restoreProblem(id));
                   }}
                   onEdit={(prob) => ui.setEditingProblem(prob)}
                 />
