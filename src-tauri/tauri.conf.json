@@ -1,8 +1,8 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "Problems Bank",
-  "version": "0.1.0",
-  "identifier": "com.tauri.dev",
+  "version": "1.0.0",
+  "identifier": "com.hyggo.problembank",
   "build": {
     "frontendDist": "../build",
     "devUrl": "http://localhost:3000",
@@ -13,8 +13,8 @@
     "windows": [
       {
         "title": "Ngân hàng câu hỏi",
-        "width": 800,
-        "height": 600,
+        "width": 1200,
+        "height": 800,
         "resizable": true,
         "fullscreen": false
       }
