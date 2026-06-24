@@ -67,6 +67,7 @@ const calculateSimilarity = (str1, str2) => {
 
 export const useProblems = () => {
   const [problems, setProblems] = useState([]);
+  const [trashedProblems, setTrashedProblems] = useState([]);
 
   // 1. TẢI DỮ LIỆU
   const loadProblems = useCallback(async () => {
@@ -102,7 +103,13 @@ export const useProblems = () => {
         gradeIds: gradesByProblem[p.id] || []
       }));
 
-      setProblems(parsedProblems);
+      // Tách: deletedAt rỗng = đang dùng (feed); có giá trị = trong Thùng rác (sắp theo lúc xoá mới nhất).
+      setProblems(parsedProblems.filter((p) => !p.deletedAt));
+      setTrashedProblems(
+        parsedProblems
+          .filter((p) => p.deletedAt)
+          .sort((a, b) => new Date(b.deletedAt) - new Date(a.deletedAt))
+      );
     } catch (error) { console.error("Lỗi tải dữ liệu:", error); }
   }, []);
 
@@ -165,28 +172,63 @@ export const useProblems = () => {
     } catch (error) { console.error("Lỗi cập nhật:", error); }
   };
 
-  // 4. XÓA 1 BÀI
+  // 4. XÓA MỀM 1 BÀI -> chuyển vào Thùng rác (đánh dấu deletedAt, nạp lại để 2 danh sách khớp DB)
   const deleteProblem = async (id) => {
     try {
       const db = await getDb();
-      await db.execute('DELETE FROM problems WHERE id = $1', [id]);
-      setProblems(prev => prev.filter(p => p.id !== id));
-    } catch (error) { console.error("Lỗi xóa:", error); }
+      await db.execute('UPDATE problems SET deletedAt = $1 WHERE id = $2', [new Date().toISOString(), id]);
+      await loadProblems();
+    } catch (error) { console.error("Lỗi xoá mềm:", error); }
   };
 
-  // 5. XÓA HÀNG LOẠT (Tối ưu hiệu năng: Không dùng vòng lặp)
+  // 5. XÓA MỀM HÀNG LOẠT -> chuyển nhiều bài vào Thùng rác bằng 1 câu lệnh
   const bulkDeleteProblems = async (idsToDelete) => {
     if (!idsToDelete || idsToDelete.length === 0) return;
     try {
       const db = await getDb();
-      // Tạo chuỗi dấu hỏi tương ứng với số lượng ID (VD: ?, ?, ?)
-      const placeholders = idsToDelete.map((_, i) => `$${i + 1}`).join(', ');
-      
-      // Xóa 1000 bài chỉ bằng 1 câu lệnh SQL duy nhất
-      await db.execute(`DELETE FROM problems WHERE id IN (${placeholders})`, idsToDelete);
-      
-      setProblems(prev => prev.filter(p => !idsToDelete.includes(p.id)));
-    } catch (error) { console.error("Lỗi xóa hàng loạt:", error); }
+      const now = new Date().toISOString();
+      // $1 = thời điểm xoá; các id bắt đầu từ $2
+      const placeholders = idsToDelete.map((_, i) => `$${i + 2}`).join(', ');
+      await db.execute(`UPDATE problems SET deletedAt = $1 WHERE id IN (${placeholders})`, [now, ...idsToDelete]);
+      await loadProblems();
+    } catch (error) { console.error("Lỗi xoá mềm hàng loạt:", error); }
+  };
+
+  // 5b. KHÔI PHỤC: bỏ dấu xoá -> bài về lại feed nguyên phân loại
+  const restoreProblem = async (id) => {
+    try {
+      const db = await getDb();
+      await db.execute('UPDATE problems SET deletedAt = NULL WHERE id = $1', [id]);
+      await loadProblems();
+    } catch (error) { console.error("Lỗi khôi phục:", error); }
+  };
+
+  // 5c. XÓA HẲN 1 BÀI: xoá bản ghi + dọn 3 bảng nối phân loại (vá luôn rác mồ côi)
+  const purgeProblem = async (id) => {
+    try {
+      const db = await getDb();
+      await db.execute('DELETE FROM problems WHERE id = $1', [id]);
+      await db.execute('DELETE FROM problem_categories WHERE problem_id = $1', [id]);
+      await db.execute('DELETE FROM problem_difficulties WHERE problem_id = $1', [id]);
+      await db.execute('DELETE FROM problem_grades WHERE problem_id = $1', [id]);
+      await loadProblems();
+    } catch (error) { console.error("Lỗi xoá hẳn:", error); }
+  };
+
+  // 5d. XÓA SẠCH THÙNG RÁC: xoá hẳn mọi bài đã đánh dấu xoá + dọn bảng nối của chúng
+  const emptyTrash = async () => {
+    try {
+      const db = await getDb();
+      const rows = await db.select('SELECT id FROM problems WHERE deletedAt IS NOT NULL');
+      const ids = rows.map((r) => r.id);
+      if (ids.length === 0) return;
+      const ph = ids.map((_, i) => `$${i + 1}`).join(', ');
+      await db.execute(`DELETE FROM problem_categories WHERE problem_id IN (${ph})`, ids);
+      await db.execute(`DELETE FROM problem_difficulties WHERE problem_id IN (${ph})`, ids);
+      await db.execute(`DELETE FROM problem_grades WHERE problem_id IN (${ph})`, ids);
+      await db.execute('DELETE FROM problems WHERE deletedAt IS NOT NULL');
+      await loadProblems();
+    } catch (error) { console.error("Lỗi dọn thùng rác:", error); }
   };
 
   // 6. LƯU IMPORT HÀNG LOẠT (Tối ưu bằng Transaction/Batch)
@@ -276,13 +318,18 @@ export const useProblems = () => {
     return null;
   }, [problems]);
 
-  return { 
-    problems, 
-    addProblem, 
-    updateProblem, 
-    deleteProblem, 
-    bulkDeleteProblems, 
+  return {
+    problems,
+    trashedProblems,
+    trashCount: trashedProblems.length,
+    addProblem,
+    updateProblem,
+    deleteProblem,
+    bulkDeleteProblems,
+    restoreProblem,
+    purgeProblem,
+    emptyTrash,
     saveImportedProblems,
-    checkDuplicate 
+    checkDuplicate
   };
 };
