@@ -25,7 +25,7 @@ const ProblemCard = ({
         cursor: 'pointer', margin: '0 0 12px', borderRadius: 'var(--radius-md)', overflow: 'hidden',
         background: 'var(--color-surface)', position: 'relative',
         border: selected ? '1px solid var(--color-accent)' : '1px solid var(--color-border)',
-        boxShadow: selected ? '0 0 0 1px var(--color-accent)' : 'none',
+        boxShadow: selected ? '0 0 0 1px var(--color-accent)' : '0 1px 3px var(--shadow)',
       }}
     >
       {selected && (

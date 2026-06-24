@@ -14,13 +14,19 @@ export const useUIState = () => {
   const [showExportModal, setShowExportModal] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showCategoryManager, setShowCategoryManager] = useState(false);
-  
+
   // 3. Quản lý trạng thái đang chọn/Xem trước/Sửa
   const [selectedIds, setSelectedIds] = useState([]);
   const [selectedPreview, setSelectedPreview] = useState(null);
   const [editingProblem, setEditingProblem] = useState(null);
   const [isImporting, setIsImporting] = useState(false);
-  const [currentView, setCurrentView] = useState('feed'); // 'feed' | 'cart' (mầm nav rail GĐ3)
+  const [currentView, setCurrentView] = useState('feed'); // 'feed' | 'cart' | 'settings'
+
+  // 4. GĐ3 — state khung 3 cột (nav rail + lọc hệ-first)
+  const [selectedHe, setSelectedHe] = useState(null);              // id hệ đang khoá (null = chưa đặt)
+  const [unclassifiedMode, setUnclassifiedMode] = useState(false); // đang xem bài chưa phân loại?
+  const [railCollapsed, setRailCollapsed] = useState(false);       // nav rail thu còn icon?
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false); // cột lọc gập?
 
   // Hàm tiện ích xoá bộ lọc
   const clearFilters = () => {
@@ -30,6 +36,16 @@ export const useUIState = () => {
     setFilterDifficulty('all');
   };
 
+  // GĐ3 — đổi hệ: xoá lựa chọn nhánh + độ khó cũ (thuộc hệ cũ); thoát chế độ chưa-phân-loại.
+  const selectHe = (heId) => {
+    setSelectedHe(heId);
+    setFilterTopic('all');
+    setFilterDifficulty('all');
+    setUnclassifiedMode(false);
+  };
+  // GĐ3 — xem bài chưa phân loại (bật từ Header).
+  const showUnclassified = () => setUnclassifiedMode(true);
+
   return {
     searchTerm, setSearchTerm,
     filterTopic, setFilterTopic,
@@ -37,16 +53,22 @@ export const useUIState = () => {
     filterDifficulty, setFilterDifficulty,
     sortBy, setSortBy,
     searchInputRef, clearFilters,
-    
+
     showImportModal, setShowImportModal,
     showExportModal, setShowExportModal,
     showAddModal, setShowAddModal,
     showCategoryManager, setShowCategoryManager,
-    
+
     selectedIds, setSelectedIds,
     selectedPreview, setSelectedPreview,
     editingProblem, setEditingProblem,
     isImporting, setIsImporting,
-    currentView, setCurrentView
+    currentView, setCurrentView,
+
+    // GĐ3 — khung 3 cột
+    selectedHe, setSelectedHe, selectHe,
+    unclassifiedMode, setUnclassifiedMode, showUnclassified,
+    railCollapsed, setRailCollapsed,
+    sidebarCollapsed, setSidebarCollapsed,
   };
 };
