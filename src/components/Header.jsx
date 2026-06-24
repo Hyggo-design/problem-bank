@@ -10,7 +10,7 @@ const Header = ({ stats, onUnclassifiedClick, unclassifiedActive }) => {
   ];
 
   return (
-    <div style={{ backgroundColor: 'var(--color-surface)', borderBottom: '1px solid var(--color-border)', padding: '1rem 2rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 1px 2px 0 rgba(15,23,42,0.05)' }}>
+    <div style={{ backgroundColor: 'var(--color-chrome)', borderBottom: '1px solid var(--color-border)', padding: '1rem 2rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 1px 2px var(--shadow)' }}>
 
       {/* Tên App + người dùng */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
