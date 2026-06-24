@@ -30,6 +30,13 @@ const SettingsPage = ({ onManageCategories }) => {
       setTemplateFolder(dir);
     }
   };
+  const [dark, setDark] = useState((localStorage.getItem('pb-theme') || 'light') === 'dark');
+  const toggleDark = () => {
+    const next = dark ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('pb-theme', next);
+    setDark(!dark);
+  };
   return (
   <div style={{ flex: 1, overflowY: 'auto', padding: '1.5rem 2rem', background: 'var(--color-bg)' }}>
     <h2 style={{ marginTop: 0, color: 'var(--color-text)' }}>Cài đặt</h2>
@@ -40,7 +47,12 @@ const SettingsPage = ({ onManageCategories }) => {
         desc="Thiết lập hệ, cây chuyên đề, độ khó, lớp."
         action={<button className="card-btn card-btn-primary" onClick={onManageCategories}>Mở</button>}
       />
-      <Row icon={<Moon size={20} />} title="Giao diện tối" desc="Bật/tắt dark mode." soon />
+      <Row
+        icon={<Moon size={20} />}
+        title="Giao diện tối"
+        desc={dark ? 'Đang bật (Tối).' : 'Đang tắt (Sáng).'}
+        action={<button className="card-btn card-btn-primary" onClick={toggleDark}>{dark ? 'Chuyển Sáng' : 'Chuyển Tối'}</button>}
+      />
       <Row icon={<Type size={20} />} title="Cỡ chữ" desc="Phóng to/thu nhỏ chữ toàn app." soon />
       <Row
         icon={<FileDown size={20} />}
