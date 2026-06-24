@@ -70,10 +70,18 @@ export const getDb = () => {
           // Nếu cột đã có sẵn, SQLite ném lỗi -> Bắt lỗi và bỏ qua an toàn
         }
 
+        // 🛠️ MIGRATION: cột xoá mềm. NULL = đang dùng; có mốc thời gian ISO = đang trong Thùng rác.
+        try {
+          await db.execute(`ALTER TABLE problems ADD COLUMN deletedAt TEXT DEFAULT NULL`);
+        } catch (e) {
+          // Cột đã có sẵn -> SQLite ném lỗi -> bỏ qua an toàn (idempotent)
+        }
+
         // 2. TẠO INDEX (Đánh mục lục giúp tìm kiếm 10.000 bài trong chớp mắt)
         await db.execute(`CREATE INDEX IF NOT EXISTS idx_topic ON problems(topic);`);
         await db.execute(`CREATE INDEX IF NOT EXISTS idx_level ON problems(level);`);
         await db.execute(`CREATE INDEX IF NOT EXISTS idx_date ON problems(dateAdded);`);
+        await db.execute(`CREATE INDEX IF NOT EXISTS idx_deleted ON problems(deletedAt);`);
 
         // 🛠️ MIGRATION NGÀY THÁNG: Chuẩn hóa các bản ghi cũ lưu sai định dạng địa phương
         // (ví dụ "19/6/2026") về chuẩn ISO 8601 để việc sắp xếp "Mới nhất trước" hoạt động chính xác.
