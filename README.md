@@ -1,101 +1,30 @@
-# 🎓 Problem Bank Management System
+# Problem Bank — Ngân hàng câu hỏi
 
-Ứng dụng quản lý ngân hàng bài tập Toán chuyên cho giáo viên.
+Ứng dụng **desktop** (Tauri v2 + React + SQLite) giúp giáo viên Toán **lưu trữ, phân loại và xuất** bài tập LaTeX. Dùng cá nhân, chạy offline (chỉ Smart Import cần mạng).
 
-## ✨ Tính Năng
+## Tính năng chính
+- **Ngân hàng bài**: thêm/sửa/xoá bài LaTeX (đề + lời giải + đáp án trắc nghiệm); render công thức ngay trong danh sách (KaTeX); danh sách kiểu thẻ, cuộn vô tận (react-virtuoso).
+- **Phân loại đa hệ**: cây chuyên đề theo từng hệ (THCS / THPT / Chuyên / Olympic) + độ khó theo hệ + lớp + tag. Lọc **hệ-first** (nav rail + cột lọc 3 cột).
+- **Smart Import (AI)**: bóc tách bài từ ảnh/PDF/.tex bằng Gemini (nhập API key trong Cài đặt).
+- **Xuất `.tex` theo template**: chọn file template nội dung của bạn → app điền header + chèn các bài trong giỏ → lưu file để `\input` vào `main.tex` của bạn.
+- **Thùng rác** (xoá mềm, khôi phục/xoá hẳn) · **Dark mode** · **Sao lưu DB**.
+- **Dữ liệu** mặc định ở `D:\0. Problems Bank\app-data\problem_bank.db` (tự về ổ C nếu không có ổ D).
 
-- ✅ **Thêm bài tập** với LaTeX support
-- ✅ **Tìm kiếm & lọc** nhanh chóng
-- ✅ **Sắp xếp** theo cấp độ, ngày thêm, ...
-- ✅ **Export** bộ đề thành file
-- ✅ **Backup** dữ liệu dễ dàng
-- ✅ **Không cần internet** - toàn bộ lưu local
-
-## 🚀 Quick Start
-
-### 1. Cài Đặt
+## Chạy & đóng gói
 ```bash
-# Clone repo
-git clone https://github.com/[your-repo]/problem-bank.git
-cd problem-bank
-
-# Cài dependencies
 npm install
-
-# Chạy app
-npm start
+npx tauri dev       # chạy app (dev) — có DB + cửa sổ thật
+npm run build       # build frontend (kiểm biên dịch)
+npx tauri build     # đóng gói installer (.exe/.msi) -> src-tauri/target/release/bundle/
+CI=true npm test    # chạy test (golden-file cho xuất .tex)
 ```
+> ⚠️ App **chỉ chạy đúng với `npx tauri dev`** (KHÔNG phải `npm start`) vì dùng `@tauri-apps/plugin-sql`.
 
-App sẽ mở ở http://localhost:3000
+## Công nghệ
+React 18 · Tauri v2 (Rust) · SQLite (`@tauri-apps/plugin-sql`) · KaTeX · react-virtuoso · lucide-react · react-hot-toast.
 
-### 2. Thêm Bài Tập
-- Click **[+ Thêm Bài Tập]**
-- Điền form (statement, solution, topic, level, ...)
-- Click **[Lưu Bài Tập]**
-
-### 3. Tìm Bài
-- Dùng thanh search
-- Lọc theo topic, level
-- Click export nếu cần
-
-## 📚 Hướng Dẫn Chi Tiết
-
-- **Hướng dẫn setup:** Xem `SETUP_GUIDE.md`
-- **Quick reference:** Xem `QUICK_REFERENCE.md`
-
-## 🛠️ Công Nghệ
-
-- **Frontend:** React 18
-- **Styling:** CSS3
-- **Database:** LocalStorage (sẽ upgrade lên SQLite)
-- **Icons:** Lucide React
-
-## 📦 Project Structure
-
-```
-problem-bank/
-├── src/
-│   ├── App.jsx              # Main component
-│   ├── App.css              # Styling
-│   ├── index.js             # Entry point
-│   └── index.css
-├── public/
-│   └── index.html           # HTML template
-├── data/
-│   └── problems.db          # Database (khi upgrade)
-├── package.json
-├── SETUP_GUIDE.md
-├── QUICK_REFERENCE.md
-└── README.md
-```
-
-## 💾 Backup & Data
-
-Dữ liệu hiện được lưu ở browser localStorage.
-
-**Backup:**
-```bash
-# Copy file problems.db (khi upgrade)
-problem-bank/data/problems.db → Google Drive
-```
-
-## 🔜 Roadmap
-
-- [ ] SQLite database (thay localStorage)
-- [ ] PDF export
-- [ ] Import CSV
-- [ ] Dark mode
-- [ ] Student analytics
-- [ ] Desktop app (Electron)
-
-## 📞 Support
-
-Gặp vấn đề? Xem `SETUP_GUIDE.md` phần troubleshooting hoặc liên hệ tôi.
-
-## 📝 License
-
-MIT License - Tự do sử dụng cho mục đích giáo dục.
+## Tài liệu
+Nhật ký phát triển + spec + build plan ở thư mục [`.docs/`](.docs/) (đánh số theo phiên).
 
 ---
-
-**Happy teaching! 🎓**
+*Dự án cá nhân cho giáo viên Toán.*
