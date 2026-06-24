@@ -21,15 +21,15 @@ class ErrorBoundary extends React.Component {
     if (this.state.hasError) {
       // Giao diện dự phòng khi có lỗi xảy ra
       return (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', backgroundColor: '#f8fafc', fontFamily: 'sans-serif', padding: '2rem', textAlign: 'center' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', backgroundColor: 'var(--color-bg)', fontFamily: 'sans-serif', padding: '2rem', textAlign: 'center' }}>
           <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🛡️</div>
-          <h1 style={{ color: '#ef4444', marginBottom: '1rem' }}>Oái! Giao diện vừa gặp sự cố nhỏ.</h1>
-          <p style={{ color: '#475569', maxWidth: '600px', marginBottom: '2rem', lineHeight: '1.6' }}>
+          <h1 style={{ color: 'var(--color-danger)', marginBottom: '1rem' }}>Oái! Giao diện vừa gặp sự cố nhỏ.</h1>
+          <p style={{ color: 'var(--color-text-muted)', maxWidth: '600px', marginBottom: '2rem', lineHeight: '1.6' }}>
             Thầy đừng lo, dữ liệu bài tập của Thầy vẫn an toàn. Có thể một đoạn mã LaTeX nào đó bị lỗi cú pháp khiến trình duyệt không thể hiển thị được.
           </p>
           <button 
             onClick={() => window.location.reload()}
-            style={{ padding: '0.75rem 1.5rem', backgroundColor: '#3b82f6', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, fontSize: '1rem', boxShadow: '0 4px 6px -1px rgba(59, 130, 246, 0.5)' }}
+            style={{ padding: '0.75rem 1.5rem', backgroundColor: 'var(--color-cobalt)', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, fontSize: '1rem', boxShadow: '0 4px 6px -1px rgba(59, 130, 246, 0.5)' }}
           >
             Tải Lại Ứng Dụng (F5)
           </button>
