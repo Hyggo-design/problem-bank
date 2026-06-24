@@ -44,7 +44,10 @@ const SettingsPage = ({ onManageCategories }) => {
   const [showKey, setShowKey] = useState(false);
   const saveKey = () => { localStorage.setItem('pb-gemini-key', apiKey.trim()); success('Đã lưu API key'); };
   const [dbPath, setDbPath] = useState('');
-  useEffect(() => { invoke('get_db_path').then(setDbPath).catch(() => {}); }, []);
+  useEffect(() => {
+    const folder = localStorage.getItem('pb-db-folder') || 'D:\\0. Problems Bank\\app-data';
+    setDbPath(localStorage.getItem('pb-db-path-active') || `${folder}\\problem_bank.db`);
+  }, []);
   const backupNow = async () => {
     if (!dbPath) return;
     const today = new Date().toISOString().slice(0, 10);

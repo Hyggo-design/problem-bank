@@ -1,4 +1,5 @@
 import Database from '@tauri-apps/plugin-sql';
+import { invoke } from '@tauri-apps/api/core';
 
 let dbPromise = null;
 
@@ -39,7 +40,18 @@ export const getDb = () => {
   if (!dbPromise) {
     dbPromise = (async () => {
       try {
-        const db = await Database.load('sqlite:problem_bank.db');
+        // Nạp DB từ ổ D (Thầy yêu cầu — ổ C đầy). Tạo thư mục trước; lỗi (không có ổ D) -> quay về thư mục app trên C.
+        const folder = localStorage.getItem('pb-db-folder') || 'D:\\0. Problems Bank\\app-data';
+        let db;
+        try {
+          await invoke('ensure_dir', { path: folder });
+          db = await Database.load(`sqlite:${folder}\\problem_bank.db`);
+          localStorage.setItem('pb-db-path-active', `${folder}\\problem_bank.db`);
+        } catch (e) {
+          console.warn('Không dùng được thư mục DB trên ổ D, quay về mặc định (ổ C):', e);
+          db = await Database.load('sqlite:problem_bank.db');
+          localStorage.removeItem('pb-db-path-active');
+        }
         
         // =========================================================================
         // 🛠️ CHẾ ĐỘ TESTING: Bỏ comment dòng dưới để XÓA SẠCH dữ liệu và cấu trúc cũ
