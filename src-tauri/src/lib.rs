@@ -1,5 +1,4 @@
 use std::fs;
-use tauri::Manager;
 
 // Liệt kê các file .tex là "file nội dung" (loại bỏ file có \documentclass như main.tex).
 #[tauri::command]
@@ -28,11 +27,10 @@ fn write_text_file(path: String, contents: String) -> Result<(), String> {
     fs::write(&path, contents).map_err(|e| e.to_string())
 }
 
-// Đường dẫn file DB (để hiển thị + làm nguồn sao lưu).
+// Tạo thư mục (đệ quy) nếu chưa có — dùng cho thư mục DB trên ổ D.
 #[tauri::command]
-fn get_db_path(app: tauri::AppHandle) -> Result<String, String> {
-    let dir = app.path().app_data_dir().map_err(|e| e.to_string())?;
-    Ok(dir.join("problem_bank.db").to_string_lossy().to_string())
+fn ensure_dir(path: String) -> Result<(), String> {
+    std::fs::create_dir_all(&path).map_err(|e| e.to_string())
 }
 
 // Copy file (nhị phân an toàn) — dùng cho sao lưu DB.
@@ -57,7 +55,7 @@ pub fn run() {
             list_content_templates,
             read_text_file,
             write_text_file,
-            get_db_path,
+            ensure_dir,
             copy_file,
             open_path
         ])
