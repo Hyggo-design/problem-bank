@@ -41,7 +41,7 @@ export const getDb = () => {
     dbPromise = (async () => {
       try {
         // Nạp DB từ ổ D (Thầy yêu cầu — ổ C đầy). Tạo thư mục trước; lỗi (không có ổ D) -> quay về thư mục app trên C.
-        const folder = localStorage.getItem('pb-db-folder') || 'D:\\ProblemBank';
+        const folder = localStorage.getItem('pb-db-folder') || 'D:\\0. Problems Bank\\app-data';
         let db;
         try {
           await invoke('ensure_dir', { path: folder });
