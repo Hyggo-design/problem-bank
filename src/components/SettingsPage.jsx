@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FolderTree, Moon, Type, FileDown, KeyRound, Database } from 'lucide-react';
-import { open } from '@tauri-apps/plugin-dialog';
+import { open, save } from '@tauri-apps/plugin-dialog';
+import { invoke } from '@tauri-apps/api/core';
 import { useToast } from '../hooks/useToast';
 
 // ==========================================
@@ -38,10 +39,24 @@ const SettingsPage = ({ onManageCategories }) => {
     localStorage.setItem('pb-theme', next);
     setDark(!dark);
   };
-  const { success } = useToast();
+  const { success, error } = useToast();
   const [apiKey, setApiKey] = useState(localStorage.getItem('pb-gemini-key') || '');
   const [showKey, setShowKey] = useState(false);
   const saveKey = () => { localStorage.setItem('pb-gemini-key', apiKey.trim()); success('Đã lưu API key'); };
+  const [dbPath, setDbPath] = useState('');
+  useEffect(() => { invoke('get_db_path').then(setDbPath).catch(() => {}); }, []);
+  const backupNow = async () => {
+    if (!dbPath) return;
+    const today = new Date().toISOString().slice(0, 10);
+    const dst = await save({ defaultPath: `problem_bank-backup-${today}.db`, filters: [{ name: 'SQLite DB', extensions: ['db'] }] });
+    if (!dst) return;
+    try { await invoke('copy_file', { src: dbPath, dst }); success('Đã sao lưu cơ sở dữ liệu'); }
+    catch (e) { error('Lỗi sao lưu: ' + e); }
+  };
+  const openDbFolder = () => {
+    const folder = dbPath.replace(/[\\/][^\\/]+$/, '');
+    invoke('open_path', { path: folder }).catch(() => {});
+  };
   return (
   <div style={{ flex: 1, overflowY: 'auto', padding: '1.5rem 2rem', background: 'var(--color-bg)' }}>
     <h2 style={{ marginTop: 0, color: 'var(--color-text)' }}>Cài đặt</h2>
@@ -80,7 +95,19 @@ const SettingsPage = ({ onManageCategories }) => {
           <button className="card-btn card-btn-primary" onClick={saveKey}>Lưu</button>
         </div>
       </div>
-      <Row icon={<Database size={20} />} title="Vị trí dữ liệu & sao lưu" desc="Đường dẫn CSDL, backup." soon />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: '14px 16px', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', background: 'var(--color-surface)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          <div style={{ color: 'var(--color-cobalt)', display: 'flex' }}><Database size={20} /></div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontWeight: 600, color: 'var(--color-text)' }}>Vị trí dữ liệu & sao lưu</div>
+            <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', wordBreak: 'break-all' }}>{dbPath || 'Đang lấy đường dẫn…'}</div>
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button className="card-btn card-btn-primary" onClick={backupNow} disabled={!dbPath}>Sao lưu ngay</button>
+          <button className="card-btn" onClick={openDbFolder} disabled={!dbPath}>Mở thư mục</button>
+        </div>
+      </div>
     </div>
   </div>
   );
