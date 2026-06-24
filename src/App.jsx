@@ -22,11 +22,6 @@ import { useToast } from './hooks/useToast';
 import { useProblems } from './hooks/useProblems';
 import { useUIState } from './hooks/useUIState';
 import { useTaxonomy } from './hooks/useTaxonomy';
-import { GoogleGenerativeAI } from '@google/generative-ai';
-
-const GEMINI_API_KEY = process.env.REACT_APP_GEMINI_API_KEY; 
-const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-
 function App() {
   // 1. GỌI CÁC THƯ KÝ (Hooks) ĐỂ LẤY DỮ LIỆU
   const {
@@ -275,7 +270,6 @@ function App() {
             success(`Cập nhật ${newProbs.length} bài thành công!`);
             ui.setShowImportModal(false);
           }}
-          genAI={genAI} 
         />
       )}
 

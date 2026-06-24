@@ -9,6 +9,9 @@ import '@fontsource/inter/600.css';
 import '@fontsource/jetbrains-mono/400.css';
 import '@fontsource/jetbrains-mono/500.css';
 
+// Áp theme đã lưu TRƯỚC khi React vẽ (tránh nháy màu khi mở app)
+document.documentElement.setAttribute('data-theme', localStorage.getItem('pb-theme') || 'light');
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
