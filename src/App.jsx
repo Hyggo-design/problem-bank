@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Header from './components/Header';
 import ControlsRow from './components/ControlsRow';
 import FilterSidebar from './components/FilterSidebar';
@@ -15,7 +15,6 @@ import NavRail from './components/NavRail';
 import SettingsPage from './components/SettingsPage';
 import TrashPage from './components/TrashPage';
 
-import { buildProblemTex } from './utils/buildProblemTex';
 import { Toaster } from 'react-hot-toast';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { useCart } from './hooks/useCart';
@@ -73,12 +72,6 @@ function App() {
 
   // 3. CÁC HÀM XỬ LÝ SỰ KIỆN LIÊN KẾT (Business Logic)
 
-  const cartRef = useRef(cartItems);
-
-  useEffect(() => {
-    cartRef.current = cartItems;
-  }, [cartItems]);
-
   const handleBulkDelete = () => {
     if (ui.selectedIds.length === 0) return;
     const ids = ui.selectedIds;
@@ -103,25 +96,6 @@ function App() {
     if (addedCount > 0) success(`Đã thêm ${addedCount} bài vào giỏ đề thi!`);
     else info('Các bài Thầy chọn đều đã có sẵn trong giỏ rồi ạ.');
     ui.setSelectedIds([]); 
-  };
-
-  const handleFinalExport = (config) => {
-    let exportItems = [...cartRef.current];
-    if (config.shuffle) exportItems = exportItems.sort(() => Math.random() - 0.5);
-
-    let tex = `\\documentclass[12pt,a4paper,oneside]{article}\n\\usepackage{ex_test}\n\\usepackage[utf8]{vietnam}\n\\begin{document}\n\n`;
-    tex += `\\begin{center}\n  {\\bf ${config.schoolName.toUpperCase()}} \\\\ \n  {\\bf ${config.examTitle}} \\\\ \n  ${config.subject} --- Thời gian: ${config.time} \n\\end{center}\n\n\\hrule \\vskip 0.5cm\n\n`;
-
-    exportItems.forEach((item, index) => {
-      tex += `% Câu ${index + 1}\n${buildProblemTex(item, { includeSolution: config.includeSolutions })}\n\n`;
-    });
-    tex += `\\end{document}`;
-
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(new Blob([tex], { type: 'text/plain' }));
-    link.download = `${config.fileName}.tex`;
-    link.click();
-    success('Đề thi đã được đóng gói và tải về!');
   };
 
   const handleConfirmDuplicateSave = () => {
@@ -306,10 +280,9 @@ function App() {
       )}
 
       {ui.showExportModal && (
-        <ExportModal 
-          cartItems={cartItems} 
-          onClose={() => ui.setShowExportModal(false)} 
-          onExport={handleFinalExport} 
+        <ExportModal
+          cartItems={cartItems}
+          onClose={() => ui.setShowExportModal(false)}
         />
       )}
 

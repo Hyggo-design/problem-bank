@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { FolderTree, Moon, Type, FileDown, KeyRound, Database } from 'lucide-react';
+import { open } from '@tauri-apps/plugin-dialog';
 
 // ==========================================
 // TRANG CÀI ĐẶT (cột phải khi currentView === 'settings').
@@ -20,7 +21,16 @@ const Row = ({ icon, title, desc, action, soon }) => (
   </div>
 );
 
-const SettingsPage = ({ onManageCategories }) => (
+const SettingsPage = ({ onManageCategories }) => {
+  const [templateFolder, setTemplateFolder] = useState(localStorage.getItem('pb-template-folder') || '');
+  const pickFolder = async () => {
+    const dir = await open({ directory: true, title: 'Chọn thư mục chứa file template (.tex)' });
+    if (typeof dir === 'string') {
+      localStorage.setItem('pb-template-folder', dir);
+      setTemplateFolder(dir);
+    }
+  };
+  return (
   <div style={{ flex: 1, overflowY: 'auto', padding: '1.5rem 2rem', background: 'var(--color-bg)' }}>
     <h2 style={{ marginTop: 0, color: 'var(--color-text)' }}>Cài đặt</h2>
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 720 }}>
@@ -32,11 +42,17 @@ const SettingsPage = ({ onManageCategories }) => (
       />
       <Row icon={<Moon size={20} />} title="Giao diện tối" desc="Bật/tắt dark mode." soon />
       <Row icon={<Type size={20} />} title="Cỡ chữ" desc="Phóng to/thu nhỏ chữ toàn app." soon />
-      <Row icon={<FileDown size={20} />} title="Mặc định xuất đề" desc="Khung, cỡ chữ, kèm lời giải mặc định." soon />
+      <Row
+        icon={<FileDown size={20} />}
+        title="Thư mục template xuất"
+        desc={templateFolder || 'Chưa chọn — nơi app tìm các file template .tex để xuất.'}
+        action={<button className="card-btn card-btn-primary" onClick={pickFolder}>Chọn thư mục…</button>}
+      />
       <Row icon={<KeyRound size={20} />} title="Khoá API Gemini" desc="Dùng cho Smart Import." soon />
       <Row icon={<Database size={20} />} title="Vị trí dữ liệu & sao lưu" desc="Đường dẫn CSDL, backup." soon />
     </div>
   </div>
-);
+  );
+};
 
 export default SettingsPage;
