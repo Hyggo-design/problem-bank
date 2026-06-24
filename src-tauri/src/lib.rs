@@ -1,4 +1,5 @@
 use std::fs;
+use tauri::Manager;
 
 // Liệt kê các file .tex là "file nội dung" (loại bỏ file có \documentclass như main.tex).
 #[tauri::command]
@@ -27,6 +28,26 @@ fn write_text_file(path: String, contents: String) -> Result<(), String> {
     fs::write(&path, contents).map_err(|e| e.to_string())
 }
 
+// Đường dẫn file DB (để hiển thị + làm nguồn sao lưu).
+#[tauri::command]
+fn get_db_path(app: tauri::AppHandle) -> Result<String, String> {
+    let dir = app.path().app_data_dir().map_err(|e| e.to_string())?;
+    Ok(dir.join("problem_bank.db").to_string_lossy().to_string())
+}
+
+// Copy file (nhị phân an toàn) — dùng cho sao lưu DB.
+#[tauri::command]
+fn copy_file(src: String, dst: String) -> Result<(), String> {
+    std::fs::copy(&src, &dst).map(|_| ()).map_err(|e| e.to_string())
+}
+
+// Mở một thư mục trong Windows Explorer.
+#[tauri::command]
+fn open_path(path: String) -> Result<(), String> {
+    std::process::Command::new("explorer").arg(&path).spawn().map_err(|e| e.to_string())?;
+    Ok(())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -35,7 +56,10 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             list_content_templates,
             read_text_file,
-            write_text_file
+            write_text_file,
+            get_db_path,
+            copy_file,
+            open_path
         ])
         .setup(|app| {
             if cfg!(debug_assertions) {
