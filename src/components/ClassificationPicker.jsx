@@ -26,13 +26,13 @@ const PickerNode = ({ node, depth, childrenMap, categoryIds, visibleIds, onToggl
           display: 'flex', alignItems: 'center', gap: '0.5rem',
           padding: '0.3rem 0.5rem', paddingLeft: `${0.5 + depth * 1.4}rem`,
           borderRadius: '6px', cursor: 'pointer', fontSize: '0.9rem',
-          backgroundColor: checked ? '#eff6ff' : 'transparent',
+          backgroundColor: checked ? 'var(--color-cobalt-bg)' : 'transparent',
         }}
-        onMouseEnter={(e) => { if (!checked) e.currentTarget.style.backgroundColor = '#f8fafc'; }}
+        onMouseEnter={(e) => { if (!checked) e.currentTarget.style.backgroundColor = 'var(--color-surface-muted)'; }}
         onMouseLeave={(e) => { if (!checked) e.currentTarget.style.backgroundColor = 'transparent'; }}
       >
         <input type="checkbox" checked={checked} onChange={() => onToggle(node.id)} style={{ cursor: 'pointer' }} />
-        <span style={{ fontWeight: depth === 0 ? 700 : 500, color: depth === 0 ? '#1d4ed8' : '#334155' }}>
+        <span style={{ fontWeight: depth === 0 ? 700 : 500, color: depth === 0 ? 'var(--color-cobalt-text)' : 'var(--color-text)' }}>
           {node.name}
         </span>
       </label>
@@ -127,17 +127,17 @@ const ClassificationPicker = ({ value, onChange }) => {
     <div>
       {/* Ô lọc nhanh */}
       <div style={{ position: 'relative', marginBottom: '0.5rem' }}>
-        <Search size={15} style={{ position: 'absolute', left: '0.6rem', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+        <Search size={15} style={{ position: 'absolute', left: '0.6rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-subtle)' }} />
         <input
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
           placeholder="Lọc nhanh chuyên đề…"
-          style={{ width: '100%', padding: '0.5rem 0.5rem 0.5rem 2rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem', boxSizing: 'border-box' }}
+          style={{ width: '100%', padding: '0.5rem 0.5rem 0.5rem 2rem', borderRadius: '8px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)', fontSize: '0.9rem', boxSizing: 'border-box' }}
         />
       </div>
 
       {/* Cây có checkbox */}
-      <div style={{ maxHeight: '240px', overflowY: 'auto', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '0.5rem' }}>
+      <div style={{ maxHeight: '240px', overflowY: 'auto', border: '1px solid var(--color-border)', borderRadius: '8px', padding: '0.5rem' }}>
         {roots.length === 0 ? (
           <div style={{ color: 'var(--color-text-muted)', fontSize: '0.88rem', padding: '0.75rem', textAlign: 'center' }}>
             Chưa có chuyên đề nào. Thầy tạo ở “Quản lý phân loại”.
@@ -160,24 +160,24 @@ const ClassificationPicker = ({ value, onChange }) => {
       </div>
 
       {categoryIds.length > 0 && (
-        <div style={{ marginTop: '0.4rem', fontSize: '0.8rem', color: '#2563eb' }}>Đã chọn {categoryIds.length} nhánh</div>
+        <div style={{ marginTop: '0.4rem', fontSize: '0.8rem', color: 'var(--color-cobalt)' }}>Đã chọn {categoryIds.length} nhánh</div>
       )}
 
       {/* Task 11: mỗi hệ đang được chạm tới hiện một ô chọn độ khó (thang riêng của hệ). */}
       {heIds.length > 0 && (
         <div style={{ marginTop: '0.6rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-          <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#64748b' }}>Độ khó theo hệ</div>
+          <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>Độ khó theo hệ</div>
           {heIds.map((heId) => {
             const levels = difficulties.filter((d) => d.he_id === heId);
             return (
               <div key={heId} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span style={{ fontSize: '0.85rem', color: '#334155', minWidth: '110px', fontWeight: 600 }}>
+                <span style={{ fontSize: '0.85rem', color: 'var(--color-text)', minWidth: '110px', fontWeight: 600 }}>
                   {byId[heId]?.name || 'Hệ'}
                 </span>
                 <select
                   value={difficultyByHe[heId] || ''}
                   onChange={(e) => setDifficulty(heId, e.target.value)}
-                  style={{ flex: 1, padding: '0.4rem 0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.85rem', backgroundColor: '#fff', cursor: 'pointer' }}
+                  style={{ flex: 1, padding: '0.4rem 0.5rem', borderRadius: '6px', border: '1px solid var(--color-border)', fontSize: '0.85rem', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)', cursor: 'pointer' }}
                 >
                   <option value="">— Chọn độ khó —</option>
                   {levels.map((lv) => (
@@ -193,7 +193,7 @@ const ClassificationPicker = ({ value, onChange }) => {
       {/* Task 12: chip LỚP — chọn nhiều, dùng chung cho mọi hệ. */}
       {grades.length > 0 && (
         <div style={{ marginTop: '0.7rem' }}>
-          <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#64748b', marginBottom: '0.35rem' }}>Lớp</div>
+          <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-text-muted)', marginBottom: '0.35rem' }}>Lớp</div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
             {grades.map((g) => {
               const on = gradeIds.includes(g.id);
@@ -204,9 +204,9 @@ const ClassificationPicker = ({ value, onChange }) => {
                   onClick={() => toggleGrade(g.id)}
                   style={{
                     padding: '0.25rem 0.7rem', borderRadius: '999px', fontSize: '0.82rem', cursor: 'pointer',
-                    border: on ? '1px solid #3b82f6' : '1px solid #cbd5e1',
-                    backgroundColor: on ? '#3b82f6' : '#fff',
-                    color: on ? '#fff' : '#475569', fontWeight: on ? 600 : 500,
+                    border: on ? '1px solid var(--color-cobalt)' : '1px solid var(--color-border)',
+                    backgroundColor: on ? 'var(--color-cobalt)' : 'var(--color-surface)',
+                    color: on ? '#fff' : 'var(--color-text-muted)', fontWeight: on ? 600 : 500,
                   }}
                 >
                   {g.name}
@@ -219,13 +219,13 @@ const ClassificationPicker = ({ value, onChange }) => {
 
       {/* Task 12: ô TAG tự do — chuỗi ngăn cách dấu phẩy, như form cũ. */}
       <div style={{ marginTop: '0.7rem' }}>
-        <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#64748b', marginBottom: '0.35rem' }}>Tags (cách nhau bởi dấu phẩy)</div>
+        <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-text-muted)', marginBottom: '0.35rem' }}>Tags (cách nhau bởi dấu phẩy)</div>
         <input
           type="text"
           value={tags}
           onChange={(e) => onChange({ ...v, tags: e.target.value })}
           placeholder="ví dụ: cực trị, hình nón, min-max"
-          style={{ width: '100%', padding: '0.55rem 0.6rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.88rem', boxSizing: 'border-box' }}
+          style={{ width: '100%', padding: '0.55rem 0.6rem', borderRadius: '8px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)', fontSize: '0.88rem', boxSizing: 'border-box' }}
         />
       </div>
     </div>
