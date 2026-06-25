@@ -52,7 +52,7 @@ const LatexBlockRenderer = ({ text }) => {
       <div key={`tasks-${startIndex}`} style={{ display: 'grid', gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`, gap: '1rem', margin: '0.5rem 0' }}>
         {items.map((item, i) => (
           <div key={i} style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
-            <span style={{ fontWeight: 'bold', color: '#334155', marginTop: '2px' }}>{String.fromCharCode(97 + i)})</span>
+            <span style={{ fontWeight: 'bold', color: 'var(--color-text)', marginTop: '2px' }}>{String.fromCharCode(97 + i)})</span>
             <div style={{ flex: 1, minWidth: 0 }}><LatexBlockRenderer text={item.trim()} /></div>
           </div>
         ))}
@@ -73,7 +73,7 @@ const LatexBlockRenderer = ({ text }) => {
           }
           return (
             <div key={i} style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
-              <span style={{ fontWeight: 'bold', color: '#334155', minWidth: '1.5rem', marginTop: '2px' }}>{label}</span>
+              <span style={{ fontWeight: 'bold', color: 'var(--color-text)', minWidth: '1.5rem', marginTop: '2px' }}>{label}</span>
               <div style={{ flex: 1, minWidth: 0 }}><LatexBlockRenderer text={content} /></div>
             </div>
           );
@@ -86,7 +86,7 @@ const LatexBlockRenderer = ({ text }) => {
       <div key={`item-${startIndex}`} style={{ margin: '0.5rem 0', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
         {items.map((item, i) => (
           <div key={i} style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
-            <span style={{ color: '#334155', minWidth: '1rem', fontWeight: 'bold', marginTop: '2px' }}>•</span>
+            <span style={{ color: 'var(--color-text)', minWidth: '1rem', fontWeight: 'bold', marginTop: '2px' }}>•</span>
             <div style={{ flex: 1, minWidth: 0 }}><LatexBlockRenderer text={item.trim()} /></div>
           </div>
         ))}

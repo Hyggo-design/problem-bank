@@ -192,17 +192,17 @@ const SmartImportModal = ({ onClose, onSave }) => {
 
   return (
     <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(15, 23, 42, 0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
-      <div style={{ backgroundColor: '#f8fafc', borderRadius: '16px', width: '100%', maxWidth: '800px', maxHeight: '90vh', display: 'flex', flexDirection: 'column', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)' }}>
+      <div style={{ backgroundColor: 'var(--color-surface-muted)', borderRadius: '16px', width: '100%', maxWidth: '800px', maxHeight: '90vh', display: 'flex', flexDirection: 'column', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)' }}>
         
         {/* Header Modal */}
-        <div style={{ padding: '1.5rem', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#fff', borderRadius: '16px 16px 0 0' }}>
+        <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'var(--color-surface)', borderRadius: '16px 16px 0 0' }}>
           <div>
-            <h2 style={{ margin: 0, fontSize: '1.5rem', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Upload size={24} color="#0ea5e9" /> Chuyển đổi LaTeX (AI)
+            <h2 style={{ margin: 0, fontSize: '1.5rem', color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Upload size={24} style={{ color: 'var(--color-cobalt)' }} /> Chuyển đổi LaTeX (AI)
             </h2>
-            <p style={{ margin: '0.25rem 0 0 0', color: '#64748b', fontSize: '0.9rem' }}>Hỗ trợ Kéo thả & Ctrl+V ảnh trực tiếp vào cửa sổ này.</p>
+            <p style={{ margin: '0.25rem 0 0 0', color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>Hỗ trợ Kéo thả & Ctrl+V ảnh trực tiếp vào cửa sổ này.</p>
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}><X size={28} /></button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)' }}><X size={28} /></button>
         </div>
 
         {/* --- STEP 1: UPLOAD & DRAG DROP --- */}
@@ -210,31 +210,31 @@ const SmartImportModal = ({ onClose, onSave }) => {
           <div style={{ flex: 1, padding: '2rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             
             {!genAI && (
-              <div style={{ padding: '0.8rem 1rem', borderRadius: 8, background: '#fef3c7', color: '#92400e', fontSize: '0.9rem' }}>
+              <div style={{ padding: '0.8rem 1rem', borderRadius: 8, background: 'var(--color-amber-bg)', color: 'var(--color-amber-text)', fontSize: '0.9rem' }}>
                 Chưa có API key Gemini. Vào <b>Cài đặt → Khoá API Gemini</b> để nhập, rồi mở lại cửa sổ này.
               </div>
             )}
             <div
               onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop}
-              style={{ border: `2px dashed ${isDragging ? '#0ea5e9' : '#cbd5e1'}`, backgroundColor: isDragging ? '#f0f9ff' : '#fff', borderRadius: '12px', padding: '3rem 2rem', textAlign: 'center', cursor: 'pointer', transition: 'all 0.2s' }}
+              style={{ border: `2px dashed ${isDragging ? 'var(--color-cobalt)' : 'var(--color-border)'}`, backgroundColor: isDragging ? 'var(--color-cobalt-bg)' : 'var(--color-surface)', borderRadius: '12px', padding: '3rem 2rem', textAlign: 'center', cursor: 'pointer', transition: 'all 0.2s' }}
               onClick={() => fileInputRef.current.click()}
             >
               <input type="file" ref={fileInputRef} multiple accept=".tex,.txt,image/png,image/jpeg,application/pdf" style={{ display: 'none' }} onChange={(e) => setFiles(prev => [...prev, ...Array.from(e.target.files)])} />
-              <div style={{ width: '64px', height: '64px', backgroundColor: '#e0f2fe', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem' }}>
-                <Upload size={32} color="#0284c7" />
+              <div style={{ width: '64px', height: '64px', backgroundColor: 'var(--color-cobalt-bg)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem' }}>
+                <Upload size={32} style={{ color: 'var(--color-cobalt)' }} />
               </div>
-              <h3 style={{ margin: '0 0 0.5rem', color: '#0f172a', fontSize: '1.25rem' }}>Kéo thả hoặc Nhấp để chọn file</h3>
-              <p style={{ margin: 0, color: '#64748b' }}>Hỗ trợ PDF, Ảnh (PNG, JPG) và File .tex</p>
+              <h3 style={{ margin: '0 0 0.5rem', color: 'var(--color-text)', fontSize: '1.25rem' }}>Kéo thả hoặc Nhấp để chọn file</h3>
+              <p style={{ margin: 0, color: 'var(--color-text-muted)' }}>Hỗ trợ PDF, Ảnh (PNG, JPG) và File .tex</p>
             </div>
 
             {files.length > 0 && (
-              <div style={{ backgroundColor: '#fff', borderRadius: '12px', padding: '1.5rem', border: '1px solid #e2e8f0' }}>
+              <div style={{ backgroundColor: 'var(--color-surface)', borderRadius: '12px', padding: '1.5rem', border: '1px solid var(--color-border)' }}>
                 <h4 style={{ margin: '0 0 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><FileText size={18} /> Tài liệu nguồn ({files.length})</h4>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                   {files.map((f, idx) => (
-                    <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.75rem', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #f1f5f9' }}>
-                      <span style={{ fontSize: '0.9rem', color: '#334155', fontWeight: 500 }}>{f.name}</span>
-                      <button onClick={() => removeFile(idx)} style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer' }}><Trash2 size={16}/></button>
+                    <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.75rem', backgroundColor: 'var(--color-surface-muted)', borderRadius: '8px', border: '1px solid var(--color-border)' }}>
+                      <span style={{ fontSize: '0.9rem', color: 'var(--color-text)', fontWeight: 500 }}>{f.name}</span>
+                      <button onClick={() => removeFile(idx)} style={{ color: 'var(--color-danger)', background: 'none', border: 'none', cursor: 'pointer' }}><Trash2 size={16}/></button>
                     </div>
                   ))}
                 </div>
@@ -246,33 +246,33 @@ const SmartImportModal = ({ onClose, onSave }) => {
         {/* --- STEP 2: LOADING --- */}
         {step === 'processing' && (
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-            <Loader size={48} color="#0ea5e9" style={{ animation: 'spin 1s linear infinite', marginBottom: '1rem' }} />
-            <h3 style={{ color: '#0f172a' }}>AI đang đọc và bóc tách tài liệu...</h3>
-            <p style={{ color: '#64748b' }}>Tốc độ phụ thuộc vào số lượng và dung lượng file.</p>
+            <Loader size={48} style={{ animation: 'spin 1s linear infinite', marginBottom: '1rem', color: 'var(--color-cobalt)' }} />
+            <h3 style={{ color: 'var(--color-text)' }}>AI đang đọc và bóc tách tài liệu...</h3>
+            <p style={{ color: 'var(--color-text-muted)' }}>Tốc độ phụ thuộc vào số lượng và dung lượng file.</p>
           </div>
         )}
 
         {/* --- STEP 3: REVIEW & EDIT --- */}
         {step === 'review' && (
-          <div style={{ flex: 1, overflowY: 'auto', padding: '1.5rem', backgroundColor: '#e2e8f0' }}>
-            <div style={{ backgroundColor: '#fff', padding: '1rem 1.5rem', borderRadius: '12px', marginBottom: '1.5rem', borderLeft: '4px solid #10b981', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '1.5rem', backgroundColor: 'var(--color-border)' }}>
+            <div style={{ backgroundColor: 'var(--color-surface)', padding: '1rem 1.5rem', borderRadius: '12px', marginBottom: '1.5rem', borderLeft: '4px solid var(--color-success)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
-                <h3 style={{ margin: 0, color: '#064e3b', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><CheckCircle size={20}/> Hoàn tất phân tích!</h3>
-                <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.9rem', color: '#475569' }}>Tìm thấy <b>{results.length}</b> câu hỏi. Thầy có thể rà soát và chỉnh sửa ngay bên dưới.</p>
+                <h3 style={{ margin: 0, color: 'var(--color-solution-text)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><CheckCircle size={20}/> Hoàn tất phân tích!</h3>
+                <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>Tìm thấy <b>{results.length}</b> câu hỏi. Thầy có thể rà soát và chỉnh sửa ngay bên dưới.</p>
               </div>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
               {results.map((res, index) => (
-                <div key={res.id} style={{ backgroundColor: '#fff', borderRadius: '12px', padding: '1.5rem', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
+                <div key={res.id} style={{ backgroundColor: 'var(--color-surface)', borderRadius: '12px', padding: '1.5rem', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', alignItems: 'center' }}>
-                    <select value={res.type} onChange={(e) => updateResultItem(res.id, 'type', e.target.value)} style={{ padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1' }}>
+                    <select value={res.type} onChange={(e) => updateResultItem(res.id, 'type', e.target.value)} style={{ padding: '0.5rem', borderRadius: '6px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)' }}>
                       <option value="Tự luận">Tự luận</option>
                       <option value="Trắc nghiệm">Trắc nghiệm</option>
                       <option value="Đúng/Sai">Đúng/Sai</option>
                       <option value="Trả lời ngắn">Trả lời ngắn</option>
                     </select>
-                    <button onClick={() => removeResultItem(res.id)} style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', padding: '0.5rem' }} title="Xóa câu này nếu nhận diện sai"><Trash2 size={20}/></button>
+                    <button onClick={() => removeResultItem(res.id)} style={{ color: 'var(--color-danger)', background: 'none', border: 'none', cursor: 'pointer', padding: '0.5rem' }} title="Xóa câu này nếu nhận diện sai"><Trash2 size={20}/></button>
                   </div>
                   
                   <textarea 
@@ -288,18 +288,19 @@ const SmartImportModal = ({ onClose, onSave }) => {
                       minHeight: '120px', 
                       padding: '1rem', 
                       borderRadius: '8px', 
-                      border: '1px solid #cbd5e1', 
+                      border: '1px solid var(--color-border)', 
                       fontFamily: 'monospace', 
                       fontSize: '14px',
                       resize: 'none', // Tắt thanh kéo gạch chéo ở góc
-                      backgroundColor: '#f8fafc',
+                      backgroundColor: 'var(--color-surface-muted)',
+                      color: 'var(--color-text)',
                       overflow: 'hidden' // Giấu thanh cuộn thừa
                     }}
                   />
 
                   {/* Task 17: gắn phân loại cho từng câu trước khi lưu hàng loạt */}
                   <div style={{ marginTop: '1rem' }}>
-                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: '#334155', fontSize: '0.9rem' }}>Phân loại</label>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: 'var(--color-text)', fontSize: '0.9rem' }}>Phân loại</label>
                     <ClassificationPicker value={res.cls} onChange={(newCls) => updateResultItem(res.id, 'cls', newCls)} />
                   </div>
                 </div>
@@ -309,17 +310,17 @@ const SmartImportModal = ({ onClose, onSave }) => {
         )}
 
         {/* Footer Actions */}
-        <div style={{ padding: '1.5rem', borderTop: '1px solid #e2e8f0', backgroundColor: '#fff', borderRadius: '0 0 16px 16px', display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
-          <button onClick={onClose} style={{ padding: '0.75rem 1.5rem', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#fff', color: '#475569', fontWeight: 600, cursor: 'pointer' }}>Hủy</button>
+        <div style={{ padding: '1.5rem', borderTop: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', borderRadius: '0 0 16px 16px', display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
+          <button onClick={onClose} style={{ padding: '0.75rem 1.5rem', borderRadius: '8px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text-muted)', fontWeight: 600, cursor: 'pointer' }}>Hủy</button>
           
           {step === 'upload' && (
-            <button onClick={handleProcess} disabled={files.length === 0 || !genAI} style={{ padding: '0.75rem 2rem', borderRadius: '8px', border: 'none', backgroundColor: (files.length > 0 && genAI) ? '#0ea5e9' : '#94a3b8', color: '#fff', fontWeight: 600, cursor: (files.length > 0 && genAI) ? 'pointer' : 'not-allowed' }}>
+            <button onClick={handleProcess} disabled={files.length === 0 || !genAI} style={{ padding: '0.75rem 2rem', borderRadius: '8px', border: 'none', backgroundColor: (files.length > 0 && genAI) ? 'var(--color-cobalt)' : 'var(--color-text-subtle)', color: '#fff', fontWeight: 600, cursor: (files.length > 0 && genAI) ? 'pointer' : 'not-allowed' }}>
               Bắt đầu chuyển hóa
             </button>
           )}
 
           {step === 'review' && (
-            <button onClick={handleFinalSave} style={{ padding: '0.75rem 2rem', borderRadius: '8px', border: 'none', backgroundColor: '#10b981', color: '#fff', fontWeight: 600, cursor: 'pointer' }}>
+            <button onClick={handleFinalSave} style={{ padding: '0.75rem 2rem', borderRadius: '8px', border: 'none', backgroundColor: 'var(--color-success)', color: '#fff', fontWeight: 600, cursor: 'pointer' }}>
               Lưu {results.length} bài vào Ngân hàng
             </button>
           )}
