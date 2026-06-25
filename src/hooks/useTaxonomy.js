@@ -1,11 +1,15 @@
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useContext, createContext } from 'react';
 import { getDb } from '../utils/db';
 
+const TaxonomyContext = createContext(null);
+
 // =============================================================================
-// useTaxonomy — "thư ký" đọc/ghi hệ thống phân loại (cây chuyên đề, độ khó, lớp)
-// Dùng chung cho màn hình Quản lý phân loại và bộ điều khiển phân loại trong form.
+// TaxonomyProvider — tải & giữ MỘT bản hệ thống phân loại (cây/độ khó/lớp) cho
+// CẢ app (load 1 lần), chia sẻ qua context. Trước đây mỗi component gọi
+// useTaxonomy() lại tự query DB → nhiều bản sao + query lặp + sửa nơi này nơi
+// khác không tự cập nhật. Bọc <App/> trong Provider này để dùng chung.
 // =============================================================================
-export const useTaxonomy = () => {
+export const TaxonomyProvider = ({ children }) => {
   const [categories, setCategories] = useState([]);     // [{id, name, parent_id, position}]
   const [difficulties, setDifficulties] = useState([]); // [{id, he_id, name, position}]
   const [grades, setGrades] = useState([]);             // [{id, name, position}]
@@ -186,14 +190,18 @@ export const useTaxonomy = () => {
     await reorderInGroup('grades', grades, id, dir);
   };
 
-  return {
+  const value = {
     categories, difficulties, grades, reload: loadAll,
     addCategory, renameCategory, deleteCategory, moveCategory,
     addDifficulty, renameDifficulty, deleteDifficulty,
     addGrade, deleteGrade,
     reorderCategory, reorderDifficulty, reorderGrade,
   };
+  return <TaxonomyContext.Provider value={value}>{children}</TaxonomyContext.Provider>;
 };
+
+// Hook: đọc hệ thống phân loại dùng chung từ context (Provider đã load 1 lần).
+export const useTaxonomy = () => useContext(TaxonomyContext);
 
 // --- Tiện ích dùng chung (đặt ngoài hook) ---------------------------------------
 
