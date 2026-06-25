@@ -10,12 +10,13 @@ import { useTaxonomy, getDescendantIds } from '../../hooks/useTaxonomy';
 // =============================================================================
 
 const iconBtn = {
-  background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8',
+  background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)',
   padding: '0.2rem', borderRadius: '5px', display: 'inline-flex', alignItems: 'center',
 };
 const inputStyle = {
-  padding: '0.35rem 0.5rem', borderRadius: '6px', border: '1px solid #93c5fd',
+  padding: '0.35rem 0.5rem', borderRadius: '6px', border: '1px solid var(--color-cobalt-border)',
   fontSize: '0.9rem', flex: 1, minWidth: 0,
+  backgroundColor: 'var(--color-surface)', color: 'var(--color-text)',
 };
 
 // Ô nhập inline dùng chung cho "thêm" và "đổi tên".
@@ -32,8 +33,8 @@ const InlineInput = ({ value, onChange, onCommit, onCancel, placeholder }) => (
       }}
       style={inputStyle}
     />
-    <button onClick={onCommit} title="Lưu" style={{ ...iconBtn, color: '#16a34a' }}><Check size={17} /></button>
-    <button onClick={onCancel} title="Hủy" style={{ ...iconBtn, color: '#ef4444' }}><X size={17} /></button>
+    <button onClick={onCommit} title="Lưu" style={{ ...iconBtn, color: 'var(--color-success)' }}><Check size={17} /></button>
+    <button onClick={onCancel} title="Hủy" style={{ ...iconBtn, color: 'var(--color-danger)' }}><X size={17} /></button>
   </div>
 );
 
@@ -58,12 +59,12 @@ const CategoryNode = ({ node, depth, ctx, isFirst, isLast }) => {
         style={{
           display: 'flex', alignItems: 'center', gap: '0.4rem',
           padding: '0.35rem 0.5rem', paddingLeft: `${0.5 + depth * 1.4}rem`,
-          borderRadius: '6px', fontSize: '0.95rem', color: '#1e293b',
+          borderRadius: '6px', fontSize: '0.95rem', color: 'var(--color-text)',
         }}
-        onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#f8fafc'; setHovered(true); }}
+        onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--color-surface-muted)'; setHovered(true); }}
         onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; setHovered(false); }}
       >
-        <span style={{ color: depth === 0 ? '#2563eb' : '#94a3b8' }}>{depth === 0 ? '■' : '•'}</span>
+        <span style={{ color: depth === 0 ? 'var(--color-cobalt)' : 'var(--color-text-muted)' }}>{depth === 0 ? '■' : '•'}</span>
 
         {isRenaming ? (
           <InlineInput
@@ -80,8 +81,8 @@ const CategoryNode = ({ node, depth, ctx, isFirst, isLast }) => {
               style={{
                 flex: 1, fontWeight: depth === 0 ? 700 : 500,
                 cursor: depth === 0 ? 'pointer' : 'default',
-                color: depth === 0 && ctx.selectedHeId === node.id ? '#1d4ed8' : '#1e293b',
-                backgroundColor: depth === 0 && ctx.selectedHeId === node.id ? '#dbeafe' : 'transparent',
+                color: depth === 0 && ctx.selectedHeId === node.id ? 'var(--color-cobalt-text)' : 'var(--color-text)',
+                backgroundColor: depth === 0 && ctx.selectedHeId === node.id ? 'var(--color-cobalt-bg)' : 'transparent',
                 padding: depth === 0 ? '0.1rem 0.45rem' : 0, borderRadius: '5px',
               }}
             >
@@ -96,7 +97,7 @@ const CategoryNode = ({ node, depth, ctx, isFirst, isLast }) => {
                 <button onClick={() => ctx.startAdd(node.id)} title="Thêm nhánh con" style={iconBtn}><Plus size={16} /></button>
                 <button onClick={() => ctx.startRename(node)} title="Đổi tên" style={iconBtn}><Pencil size={15} /></button>
                 <button onClick={() => ctx.startMove(node.id)} title="Di chuyển" style={iconBtn}><FolderInput size={15} /></button>
-                <button onClick={() => ctx.remove(node)} title="Xóa" style={{ ...iconBtn, color: '#f87171' }}><Trash2 size={15} /></button>
+                <button onClick={() => ctx.remove(node)} title="Xóa" style={{ ...iconBtn, color: 'var(--color-danger)' }}><Trash2 size={15} /></button>
               </>
             )}
           </>
@@ -118,7 +119,7 @@ const CategoryNode = ({ node, depth, ctx, isFirst, isLast }) => {
               <option key={t.id} value={t.id}>{ctx.pathOf(t.id)}</option>
             ))}
           </select>
-          <button onClick={ctx.cancel} title="Hủy" style={{ ...iconBtn, color: '#ef4444' }}><X size={17} /></button>
+          <button onClick={ctx.cancel} title="Hủy" style={{ ...iconBtn, color: 'var(--color-danger)' }}><X size={17} /></button>
         </div>
       )}
 
@@ -160,8 +161,8 @@ const DifficultyPanel = ({ he, levels, onAdd, onRename, onDelete, onReorder }) =
 
   return (
     <div>
-      <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-        <Gauge size={15} /> Thang độ khó — <span style={{ color: '#2563eb' }}>{he.name}</span>
+      <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.03em', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+        <Gauge size={15} /> Thang độ khó — <span style={{ color: 'var(--color-cobalt)' }}>{he.name}</span>
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
@@ -173,13 +174,13 @@ const DifficultyPanel = ({ he, levels, onAdd, onRename, onDelete, onReorder }) =
           return (
             <div key={lv.id}
               onMouseEnter={() => setHoveredId(lv.id)} onMouseLeave={() => setHoveredId(null)}
-              style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.6rem', backgroundColor: '#f8fafc', borderRadius: '7px' }}>
-              <span style={{ color: '#cbd5e1', fontSize: '0.8rem', minWidth: '1.2rem' }}>{i + 1}.</span>
+              style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.6rem', backgroundColor: 'var(--color-surface-muted)', borderRadius: '7px' }}>
+              <span style={{ color: 'var(--color-border)', fontSize: '0.8rem', minWidth: '1.2rem' }}>{i + 1}.</span>
               {isRen ? (
                 <InlineInput value={renaming.value} onChange={(v) => setRenaming({ ...renaming, value: v })} onCommit={commitRename} onCancel={() => setRenaming(null)} />
               ) : (
                 <>
-                  <span style={{ flex: 1, fontSize: '0.9rem', color: '#1e293b' }}>{lv.name}</span>
+                  <span style={{ flex: 1, fontSize: '0.9rem', color: 'var(--color-text)' }}>{lv.name}</span>
                   {hoveredId === lv.id && (
                     <>
                       <button onClick={() => onReorder(lv.id, 'up')} disabled={i === 0} title="Lên trên"
@@ -187,7 +188,7 @@ const DifficultyPanel = ({ he, levels, onAdd, onRename, onDelete, onReorder }) =
                       <button onClick={() => onReorder(lv.id, 'down')} disabled={i === levels.length - 1} title="Xuống dưới"
                         style={{ ...iconBtn, opacity: i === levels.length - 1 ? 0.25 : 1, cursor: i === levels.length - 1 ? 'default' : 'pointer' }}><ChevronDown size={14} /></button>
                       <button onClick={() => setRenaming({ id: lv.id, value: lv.name })} title="Đổi tên" style={iconBtn}><Pencil size={14} /></button>
-                      <button onClick={() => { if (window.confirm(`Xóa mức “${lv.name}”? Các bài đang gắn mức này (ở hệ ${he.name}) sẽ bị gỡ độ khó.`)) onDelete(lv.id); }} title="Xóa" style={{ ...iconBtn, color: '#f87171' }}><Trash2 size={14} /></button>
+                      <button onClick={() => { if (window.confirm(`Xóa mức “${lv.name}”? Các bài đang gắn mức này (ở hệ ${he.name}) sẽ bị gỡ độ khó.`)) onDelete(lv.id); }} title="Xóa" style={{ ...iconBtn, color: 'var(--color-danger)' }}><Trash2 size={14} /></button>
                     </>
                   )}
                 </>
@@ -198,8 +199,8 @@ const DifficultyPanel = ({ he, levels, onAdd, onRename, onDelete, onReorder }) =
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.75rem' }}>
-        <input value={newName} onChange={(e) => setNewName(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') commitAdd(); }} placeholder="Thêm mức độ khó…" style={{ ...inputStyle, border: '1px solid #cbd5e1' }} />
-        <button onClick={commitAdd} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', padding: '0.4rem 0.7rem', borderRadius: '7px', border: 'none', backgroundColor: '#2563eb', color: '#fff', fontWeight: 600, fontSize: '0.82rem', cursor: 'pointer', whiteSpace: 'nowrap' }}><Plus size={15} /> Thêm</button>
+        <input value={newName} onChange={(e) => setNewName(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') commitAdd(); }} placeholder="Thêm mức độ khó…" style={{ ...inputStyle, border: '1px solid var(--color-border)' }} />
+        <button onClick={commitAdd} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', padding: '0.4rem 0.7rem', borderRadius: '7px', border: 'none', backgroundColor: 'var(--color-cobalt)', color: '#fff', fontWeight: 600, fontSize: '0.82rem', cursor: 'pointer', whiteSpace: 'nowrap' }}><Plus size={15} /> Thêm</button>
       </div>
     </div>
   );
@@ -214,7 +215,7 @@ const GradesPanel = ({ grades, onAdd, onDelete, onReorder }) => {
   };
   return (
     <div>
-      <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+      <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.03em', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
         <GraduationCap size={15} /> Danh sách Lớp
         <span style={{ fontWeight: 500, textTransform: 'none', letterSpacing: 0, color: 'var(--color-text-muted)' }}>(dùng chung mọi hệ)</span>
       </div>
@@ -226,7 +227,7 @@ const GradesPanel = ({ grades, onAdd, onDelete, onReorder }) => {
         {grades.map((g, i) => (
           <span key={g.id}
             onMouseEnter={() => setHoveredId(g.id)} onMouseLeave={() => setHoveredId(null)}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', padding: '0.25rem 0.6rem', borderRadius: '999px', backgroundColor: '#f1f5f9', border: '1px solid #e2e8f0', fontSize: '0.85rem', color: '#334155' }}>
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', padding: '0.25rem 0.6rem', borderRadius: '999px', backgroundColor: 'var(--color-surface-muted)', border: '1px solid var(--color-border)', fontSize: '0.85rem', color: 'var(--color-text)' }}>
             {g.name}
             {hoveredId === g.id && (
               <>
@@ -235,7 +236,7 @@ const GradesPanel = ({ grades, onAdd, onDelete, onReorder }) => {
                 <button onClick={() => onReorder(g.id, 'down')} disabled={i === grades.length - 1} title="Dời muộn hơn"
                   style={{ ...iconBtn, padding: '0.1rem', opacity: i === grades.length - 1 ? 0.25 : 1, cursor: i === grades.length - 1 ? 'default' : 'pointer' }}><ChevronRight size={14} /></button>
                 <button onClick={() => { if (window.confirm(`Xóa “${g.name}”? Các bài đang gắn lớp này sẽ bị gỡ.`)) onDelete(g.id); }} title="Xóa lớp"
-                  style={{ ...iconBtn, padding: '0.1rem', color: '#94a3b8' }}><X size={14} /></button>
+                  style={{ ...iconBtn, padding: '0.1rem', color: 'var(--color-text-muted)' }}><X size={14} /></button>
               </>
             )}
           </span>
@@ -243,8 +244,8 @@ const GradesPanel = ({ grades, onAdd, onDelete, onReorder }) => {
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.75rem' }}>
-        <input value={newName} onChange={(e) => setNewName(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') commitAdd(); }} placeholder="Thêm lớp…" style={{ ...inputStyle, border: '1px solid #cbd5e1' }} />
-        <button onClick={commitAdd} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', padding: '0.4rem 0.7rem', borderRadius: '7px', border: 'none', backgroundColor: '#2563eb', color: '#fff', fontWeight: 600, fontSize: '0.82rem', cursor: 'pointer', whiteSpace: 'nowrap' }}><Plus size={15} /> Thêm</button>
+        <input value={newName} onChange={(e) => setNewName(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') commitAdd(); }} placeholder="Thêm lớp…" style={{ ...inputStyle, border: '1px solid var(--color-border)' }} />
+        <button onClick={commitAdd} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', padding: '0.4rem 0.7rem', borderRadius: '7px', border: 'none', backgroundColor: 'var(--color-cobalt)', color: '#fff', fontWeight: 600, fontSize: '0.82rem', cursor: 'pointer', whiteSpace: 'nowrap' }}><Plus size={15} /> Thêm</button>
       </div>
     </div>
   );
@@ -321,24 +322,24 @@ const CategoryManagerModal = ({ onClose }) => {
 
   return (
     <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(15, 23, 42, 0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10000 }}>
-      <div style={{ backgroundColor: '#fff', borderRadius: '16px', width: '100%', maxWidth: '900px', height: '80vh', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ backgroundColor: 'var(--color-surface)', borderRadius: '16px', width: '100%', maxWidth: '900px', height: '80vh', boxShadow: '0 25px 50px -12px var(--shadow)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
 
         {/* Header */}
-        <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#f8fafc', flexShrink: 0 }}>
-          <h2 style={{ margin: 0, fontSize: '1.25rem', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-            <FolderTree size={22} color="#2563eb" /> Quản lý phân loại
+        <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'var(--color-surface-muted)', flexShrink: 0 }}>
+          <h2 style={{ margin: 0, fontSize: '1.25rem', color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+            <FolderTree size={22} style={{ color: 'var(--color-cobalt)' }} /> Quản lý phân loại
           </h2>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}><X size={24} /></button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)' }}><X size={24} /></button>
         </div>
 
         {/* Body: 2 cột */}
         <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
 
           {/* Cột trái: CÂY PHÂN LOẠI (có sửa) */}
-          <div style={{ flex: '1 1 55%', display: 'flex', flexDirection: 'column', borderRight: '1px solid #e2e8f0', overflow: 'hidden' }}>
-            <div style={{ padding: '0.75rem 1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #f1f5f9' }}>
-              <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em' }}>Cây chuyên đề</span>
-              <button onClick={() => ctx.startAdd(null)} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', padding: '0.35rem 0.7rem', borderRadius: '7px', border: '1px solid #bfdbfe', backgroundColor: '#eff6ff', color: '#2563eb', fontWeight: 600, fontSize: '0.82rem', cursor: 'pointer' }}>
+          <div style={{ flex: '1 1 55%', display: 'flex', flexDirection: 'column', borderRight: '1px solid var(--color-border)', overflow: 'hidden' }}>
+            <div style={{ padding: '0.75rem 1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--color-surface-muted)' }}>
+              <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.03em' }}>Cây chuyên đề</span>
+              <button onClick={() => ctx.startAdd(null)} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', padding: '0.35rem 0.7rem', borderRadius: '7px', border: '1px solid var(--color-cobalt-border)', backgroundColor: 'var(--color-cobalt-bg)', color: 'var(--color-cobalt)', fontWeight: 600, fontSize: '0.82rem', cursor: 'pointer' }}>
                 <FolderPlus size={15} /> Thêm hệ
               </button>
             </div>
@@ -381,7 +382,7 @@ const CategoryManagerModal = ({ onClose }) => {
             )}
 
             {/* Khu Lớp — Task 9 (dùng chung, luôn hiện) */}
-            <div style={{ borderTop: '1px dashed #e2e8f0', paddingTop: '1.25rem' }}>
+            <div style={{ borderTop: '1px dashed var(--color-border)', paddingTop: '1.25rem' }}>
               <GradesPanel grades={grades} onAdd={tax.addGrade} onDelete={tax.deleteGrade} onReorder={tax.reorderGrade} />
             </div>
           </div>
@@ -389,8 +390,8 @@ const CategoryManagerModal = ({ onClose }) => {
         </div>
 
         {/* Footer */}
-        <div style={{ padding: '1rem 1.5rem', borderTop: '1px solid #e2e8f0', backgroundColor: '#f8fafc', display: 'flex', justifyContent: 'flex-end', flexShrink: 0 }}>
-          <button onClick={onClose} style={{ padding: '0.6rem 1.5rem', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#fff', color: '#475569', fontWeight: 600, cursor: 'pointer' }}>Đóng</button>
+        <div style={{ padding: '1rem 1.5rem', borderTop: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface-muted)', display: 'flex', justifyContent: 'flex-end', flexShrink: 0 }}>
+          <button onClick={onClose} style={{ padding: '0.6rem 1.5rem', borderRadius: '8px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text-muted)', fontWeight: 600, cursor: 'pointer' }}>Đóng</button>
         </div>
 
       </div>
