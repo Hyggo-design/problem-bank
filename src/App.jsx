@@ -207,6 +207,17 @@ function App() {
               onClear={clearCart}
               onExport={() => ui.setShowExportModal(true)}
               onClose={() => ui.setCurrentView('feed')}
+              onLoadHistory={(historicalIds) => {
+                const toAdd = problems.filter(p => historicalIds.includes(p.id));
+                let count = 0;
+                toAdd.forEach(p => {
+                  if (!cartItems.some(item => item.id === p.id)) {
+                    addToCart(p);
+                    count++;
+                  }
+                });
+                success(`Đã tải ${count} bài vào giỏ.`);
+              }}
             />
           )}
 

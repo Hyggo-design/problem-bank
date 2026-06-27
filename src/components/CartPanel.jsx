@@ -1,8 +1,10 @@
-import React from 'react';
-import { ShoppingCart, Trash2, Download, X } from 'lucide-react';
+import React, { useState } from 'react';
+import { ShoppingCart, Trash2, Download, X, Clock } from 'lucide-react';
+import ExportHistoryModal from './Modals/ExportHistoryModal';
 
 // Trang "Giỏ đề" (chiếm trọn cột chính). onClose = quay lại trang Danh sách bài.
-const CartPanel = ({ items, onRemove, onClear, onExport, onClose }) => {
+const CartPanel = ({ items, onRemove, onClear, onExport, onClose, onLoadHistory }) => {
+  const [showHistory, setShowHistory] = useState(false);
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--color-bg)', minWidth: 0, overflow: 'hidden' }}>
 
@@ -14,6 +16,7 @@ const CartPanel = ({ items, onRemove, onClear, onExport, onClose }) => {
         </h3>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexShrink: 0 }}>
+          <button onClick={() => setShowHistory(true)} className="card-btn"><Clock size={16} /> Lịch sử xuất</button>
           {items.length > 0 && (
             <>
               <button onClick={onClear} className="card-btn"><Trash2 size={16} /> Làm sạch</button>
@@ -55,6 +58,15 @@ const CartPanel = ({ items, onRemove, onClear, onExport, onClose }) => {
         )}
       </div>
 
+      {showHistory && (
+        <ExportHistoryModal 
+          onClose={() => setShowHistory(false)} 
+          onLoadToCart={(ids) => {
+            onLoadHistory(ids);
+            setShowHistory(false);
+          }} 
+        />
+      )}
     </div>
   );
 };

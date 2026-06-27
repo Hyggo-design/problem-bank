@@ -120,9 +120,17 @@ export const getDb = () => {
         }
 
         // =========================================================================
-        // 3. BẢNG PHÂN LOẠI MỚI (TAXONOMY)
+        // 3. BẢNG PHÂN LOẠI MỚI (TAXONOMY) & LỊCH SỬ XUẤT ĐỀ
         // Chỉ THÊM bảng mới, KHÔNG xóa bảng problems cũ -> dữ liệu hiện có an toàn.
         // =========================================================================
+        await db.execute(`CREATE TABLE IF NOT EXISTS export_history (
+          id TEXT PRIMARY KEY,
+          export_date TEXT NOT NULL,
+          template_name TEXT NOT NULL,
+          problem_ids TEXT NOT NULL
+        )`);
+        await db.execute(`CREATE INDEX IF NOT EXISTS idx_export_date ON export_history(export_date);`);
+
         await db.execute(`CREATE TABLE IF NOT EXISTS categories (
           id TEXT PRIMARY KEY,
           name TEXT NOT NULL,

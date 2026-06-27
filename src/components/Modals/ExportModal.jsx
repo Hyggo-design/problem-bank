@@ -4,6 +4,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { save } from '@tauri-apps/plugin-dialog';
 import { buildContentFile, parseHeaderFields } from '../../utils/buildContentFile';
 import { useToast } from '../../hooks/useToast';
+import { useExportHistory } from '../../hooks/useExportHistory';
 
 const baseName = (p) => p.split(/[\\/]/).pop();
 const lbl = { display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text)', marginBottom: '0.4rem' };
@@ -11,6 +12,7 @@ const inp = { width: '100%', padding: '0.6rem', borderRadius: 6, border: '1px so
 
 const ExportModal = ({ cartItems, onClose }) => {
   const { success, error } = useToast();
+  const { saveHistory } = useExportHistory();
   const folder = localStorage.getItem('pb-template-folder') || '';
   const [paths, setPaths] = useState([]);
   const [selected, setSelected] = useState('');
@@ -48,6 +50,10 @@ const ExportModal = ({ cartItems, onClose }) => {
       });
       if (!savePath) return;
       await invoke('write_text_file', { path: savePath, contents: content });
+      
+      const problemIds = cartItems.map(p => p.id);
+      await saveHistory(baseName(selected), problemIds);
+      
       success('Đã xuất file nội dung: ' + baseName(savePath));
       onClose();
     } catch (e) { error('Lỗi lưu file: ' + e); }
