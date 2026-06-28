@@ -3,6 +3,8 @@ import { FolderTree, Moon, Type, FileDown, KeyRound, Database } from 'lucide-rea
 import { open, save } from '@tauri-apps/plugin-dialog';
 import { invoke } from '@tauri-apps/api/core';
 import { useToast } from '../hooks/useToast';
+import SqlDb from '@tauri-apps/plugin-sql'; // đổi tên, tránh trùng icon "Database" của lucide-react
+import { getDb } from '../utils/db';
 
 // ==========================================
 // TRANG CÀI ĐẶT (cột phải khi currentView === 'settings').
@@ -48,6 +50,82 @@ const SettingsPage = ({ onManageCategories }) => {
     const folder = localStorage.getItem('pb-db-folder') || 'D:\\0. Problems Bank\\app-data';
     setDbPath(localStorage.getItem('pb-db-path-active') || `${folder}\\problem_bank.db`);
   }, []);
+
+  // Kiểm tra file .db được chọn có đúng là dữ liệu Problem Bank không (phải có bảng "problems").
+  const isValidBackup = async (path) => {
+    let testDb;
+    try {
+      testDb = await SqlDb.load('sqlite:' + path);
+      const rows = await testDb.select(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='problems'"
+      );
+      return rows.length > 0;
+    } catch (e) {
+      return false;
+    } finally {
+      if (testDb) { try { await testDb.close(); } catch (_) {} }
+    }
+  };
+
+  const restoreBackup = async () => {
+    // 1. Chọn file backup
+    const picked = await open({
+      title: 'Chọn file backup (.db) để khôi phục',
+      filters: [{ name: 'SQLite DB', extensions: ['db'] }],
+    });
+    if (typeof picked !== 'string') return; // Thầy bấm Huỷ
+
+    // 2. Kiểm tra file hợp lệ
+    if (!(await isValidBackup(picked))) {
+      error('File này không phải dữ liệu Problem Bank hợp lệ.');
+      return;
+    }
+
+    // 3. Cảnh báo xác nhận
+    const sure = window.confirm(
+      'Toàn bộ dữ liệu hiện tại sẽ bị thay thế bằng dữ liệu trong file backup.\n\n' +
+      'App sẽ tự lưu một bản phòng hờ trước khi thay.\n\n' +
+      'Bạn có chắc chắn muốn tiếp tục?'
+    );
+    if (!sure) return;
+
+    // 4a. Tự lưu bản phòng hờ (PHẢI chạy TRƯỚC khi đóng/ghi đè)
+    const folder = dbPath.replace(/[\\/][^\\/]+$/, '');
+    const autobackup = folder + '\\problem_bank-autobackup.db';
+    try {
+      await invoke('copy_file', { src: dbPath, dst: autobackup });
+    } catch (e) {
+      error('Không tạo được bản phòng hờ, đã huỷ khôi phục: ' + e);
+      return; // chưa đóng DB, chưa ghi đè -> an toàn tuyệt đối
+    }
+
+    // 4b. Đóng kết nối DB để nhả khoá file (Windows)
+    try {
+      const db = await getDb();
+      await db.close();
+    } catch (e) {
+      console.warn('Không đóng được DB trước khi ghi đè:', e);
+    }
+
+    // 4c. Ghi đè DB sống bằng file backup (thử lại tối đa 3 lần nếu Windows còn giữ khoá)
+    let copied = false;
+    for (let i = 0; i < 3; i++) {
+      try {
+        await invoke('copy_file', { src: picked, dst: dbPath });
+        copied = true;
+        break;
+      } catch (e) {
+        await new Promise((r) => setTimeout(r, 400)); // chờ Windows nhả khoá rồi thử lại
+      }
+    }
+
+    // 4d. Tải lại app (luôn reload sau khi đã đóng DB để có kết nối sạch)
+    if (!copied) {
+      window.alert('Khôi phục thất bại (Windows đang giữ khoá file). Dữ liệu cũ được giữ nguyên. App sẽ tải lại.');
+    }
+    window.location.reload();
+  };
+
   const backupNow = async () => {
     if (!dbPath) return;
     const today = new Date().toISOString().slice(0, 10);
@@ -109,6 +187,7 @@ const SettingsPage = ({ onManageCategories }) => {
         <div style={{ display: 'flex', gap: 8 }}>
           <button className="card-btn card-btn-primary" onClick={backupNow} disabled={!dbPath}>Sao lưu ngay</button>
           <button className="card-btn" onClick={openDbFolder} disabled={!dbPath}>Mở thư mục</button>
+          <button className="card-btn" onClick={restoreBackup} disabled={!dbPath}>Khôi phục dữ liệu</button>
         </div>
       </div>
     </div>
