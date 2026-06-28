@@ -75,6 +75,12 @@ const SettingsPage = ({ onManageCategories }) => {
     });
     if (typeof picked !== 'string') return; // Thầy bấm Huỷ
 
+    // Chặn chọn nhầm chính file dữ liệu đang dùng (ghi đè lên chính nó -> mất dữ liệu).
+    if (picked.toLowerCase() === dbPath.toLowerCase()) {
+      error('Đây là chính file dữ liệu đang dùng — không cần khôi phục.');
+      return;
+    }
+
     // 2. Kiểm tra file hợp lệ
     if (!(await isValidBackup(picked))) {
       error('File này không phải dữ liệu Problem Bank hợp lệ.');
