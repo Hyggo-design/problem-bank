@@ -22,6 +22,7 @@ import { useToast } from './hooks/useToast';
 import { useProblems } from './hooks/useProblems';
 import { useUIState } from './hooks/useUIState';
 import { useTaxonomy } from './hooks/useTaxonomy';
+import { useConfirm } from './components/ConfirmProvider';
 function App() {
   // 1. GỌI CÁC THƯ KÝ (Hooks) ĐỂ LẤY DỮ LIỆU
   const {
@@ -65,12 +66,14 @@ function App() {
     onSettings: () => info('Mở cài đặt...')
   });
 
+  const confirm = useConfirm();
+
   // 3. CÁC HÀM XỬ LÝ SỰ KIỆN LIÊN KẾT (Business Logic)
 
-  const handleBulkDelete = () => {
+  const handleBulkDelete = async () => {
     if (ui.selectedIds.length === 0) return;
     const ids = ui.selectedIds;
-    if (window.confirm(`Thầy có chắc chắn muốn xóa ${ids.length} bài tập đã chọn? (Sẽ chuyển vào Thùng rác)`)) {
+    if (await confirm({ title: 'Chuyển vào Thùng rác', message: `Thầy có chắc chắn muốn xóa ${ids.length} bài tập đã chọn? (Sẽ chuyển vào Thùng rác)`, danger: true, confirmLabel: 'Xoá' })) {
       bulkDeleteProblems(ids);
       ids.forEach((id) => removeFromCart(id));
       ui.setSelectedIds([]);

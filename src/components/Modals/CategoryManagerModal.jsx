@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { X, FolderTree, FolderPlus, Plus, Pencil, Trash2, Check, FolderInput, Gauge, GraduationCap, ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useTaxonomy, getDescendantIds } from '../../hooks/useTaxonomy';
+import { useConfirm } from '../ConfirmProvider';
 
 // =============================================================================
 // CategoryManagerModal — màn hình "Quản lý phân loại"
@@ -147,6 +148,7 @@ const CategoryNode = ({ node, depth, ctx, isFirst, isLast }) => {
 // Cột phải: thang độ khó của MỘT hệ (Task 8). Tự quản state nhập/đổi tên;
 // được keyed theo he.id ở chỗ render nên khi đổi hệ thì state tự reset.
 const DifficultyPanel = ({ he, levels, onAdd, onRename, onDelete, onReorder }) => {
+  const confirm = useConfirm();
   const [newName, setNewName] = useState('');
   const [renaming, setRenaming] = useState(null); // { id, value }
   const [hoveredId, setHoveredId] = useState(null);
@@ -188,7 +190,7 @@ const DifficultyPanel = ({ he, levels, onAdd, onRename, onDelete, onReorder }) =
                       <button onClick={() => onReorder(lv.id, 'down')} disabled={i === levels.length - 1} title="Xuống dưới"
                         style={{ ...iconBtn, opacity: i === levels.length - 1 ? 0.25 : 1, cursor: i === levels.length - 1 ? 'default' : 'pointer' }}><ChevronDown size={14} /></button>
                       <button onClick={() => setRenaming({ id: lv.id, value: lv.name })} title="Đổi tên" style={iconBtn}><Pencil size={14} /></button>
-                      <button onClick={() => { if (window.confirm(`Xóa mức “${lv.name}”? Các bài đang gắn mức này (ở hệ ${he.name}) sẽ bị gỡ độ khó.`)) onDelete(lv.id); }} title="Xóa" style={{ ...iconBtn, color: 'var(--color-danger)' }}><Trash2 size={14} /></button>
+                      <button onClick={async () => { if (await confirm({ title: 'Xoá mức độ khó', message: `Xóa mức “${lv.name}”? Các bài đang gắn mức này (ở hệ ${he.name}) sẽ bị gỡ độ khó.`, danger: true, confirmLabel: 'Xoá' })) onDelete(lv.id); }} title="Xóa" style={{ ...iconBtn, color: 'var(--color-danger)' }}><Trash2 size={14} /></button>
                     </>
                   )}
                 </>
@@ -208,6 +210,7 @@ const DifficultyPanel = ({ he, levels, onAdd, onRename, onDelete, onReorder }) =
 
 // Khu "Lớp" (Task 9) — danh sách phẳng dùng chung cho mọi hệ. Chip + nút xóa.
 const GradesPanel = ({ grades, onAdd, onDelete, onReorder }) => {
+  const confirm = useConfirm();
   const [newName, setNewName] = useState('');
   const [hoveredId, setHoveredId] = useState(null);
   const commitAdd = async () => {
@@ -235,7 +238,7 @@ const GradesPanel = ({ grades, onAdd, onDelete, onReorder }) => {
                   style={{ ...iconBtn, padding: '0.1rem', opacity: i === 0 ? 0.25 : 1, cursor: i === 0 ? 'default' : 'pointer' }}><ChevronLeft size={14} /></button>
                 <button onClick={() => onReorder(g.id, 'down')} disabled={i === grades.length - 1} title="Dời muộn hơn"
                   style={{ ...iconBtn, padding: '0.1rem', opacity: i === grades.length - 1 ? 0.25 : 1, cursor: i === grades.length - 1 ? 'default' : 'pointer' }}><ChevronRight size={14} /></button>
-                <button onClick={() => { if (window.confirm(`Xóa “${g.name}”? Các bài đang gắn lớp này sẽ bị gỡ.`)) onDelete(g.id); }} title="Xóa lớp"
+                <button onClick={async () => { if (await confirm({ title: 'Xoá lớp', message: `Xóa “${g.name}”? Các bài đang gắn lớp này sẽ bị gỡ.`, danger: true, confirmLabel: 'Xoá' })) onDelete(g.id); }} title="Xóa lớp"
                   style={{ ...iconBtn, padding: '0.1rem', color: 'var(--color-text-muted)' }}><X size={14} /></button>
               </>
             )}
@@ -253,6 +256,7 @@ const GradesPanel = ({ grades, onAdd, onDelete, onReorder }) => {
 
 const CategoryManagerModal = ({ onClose }) => {
   const tax = useTaxonomy();
+  const confirm = useConfirm();
   const { categories, difficulties, grades } = tax;
 
   const [adding, setAdding] = useState(null);     // { parentId, value } | null
@@ -314,7 +318,7 @@ const CategoryManagerModal = ({ onClose }) => {
     },
     commitMove: async (nodeId, newParentId) => { await tax.moveCategory(nodeId, newParentId); setMoving(null); },
     remove: async (node) => {
-      if (window.confirm(`Xóa nhánh “${node.name}” và TẤT CẢ nhánh con bên dưới?\n\nCác bài đang gắn sẽ bị gỡ nhãn nhưng KHÔNG bị xóa.`)) {
+      if (await confirm({ title: 'Xoá nhánh phân loại', message: `Xóa nhánh “${node.name}” và TẤT CẢ nhánh con bên dưới?\n\nCác bài đang gắn sẽ bị gỡ nhãn nhưng KHÔNG bị xóa.`, danger: true, confirmLabel: 'Xoá' })) {
         await tax.deleteCategory(node.id);
       }
     },

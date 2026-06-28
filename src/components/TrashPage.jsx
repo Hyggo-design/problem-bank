@@ -4,12 +4,14 @@ import { RotateCcw, Trash2, Trash } from 'lucide-react';
 import { useTaxonomy } from '../hooks/useTaxonomy';
 import { groupClassificationByHe } from '../utils/classification';
 import LatexBlockRenderer from './LatexBlockRenderer';
+import { useConfirm } from './ConfirmProvider';
 
 const fmtDate = (iso) => { try { return new Date(iso).toLocaleString('vi-VN'); } catch { return ''; } };
 
 // Trang Thùng rác: bài đã xoá mềm. Khôi phục để dùng lại, hoặc xoá hẳn (không hoàn tác).
 const TrashPage = ({ items, onRestore, onPurge, onEmptyAll }) => {
   const { categories, difficulties } = useTaxonomy();
+  const confirm = useConfirm();
   const catById = useMemo(() => Object.fromEntries(categories.map((c) => [c.id, c])), [categories]);
   const diffById = useMemo(() => Object.fromEntries(difficulties.map((d) => [d.id, d])), [difficulties]);
   const parentMap = useMemo(() => Object.fromEntries(categories.map((c) => [c.id, c.parent_id])), [categories]);
@@ -22,7 +24,7 @@ const TrashPage = ({ items, onRestore, onPurge, onEmptyAll }) => {
           <div style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>Bài đã xoá. Khôi phục để dùng lại, hoặc xoá hẳn để giải phóng.</div>
         </div>
         <button className="card-btn card-btn-danger" disabled={items.length === 0}
-          onClick={() => { if (window.confirm(`Xoá hẳn toàn bộ ${items.length} bài trong thùng rác? Không thể hoàn tác.`)) onEmptyAll(); }}>
+          onClick={async () => { if (await confirm({ title: 'Xoá sạch thùng rác', message: `Xoá hẳn toàn bộ ${items.length} bài trong thùng rác? Không thể hoàn tác.`, danger: true, confirmLabel: 'Xoá hẳn' })) onEmptyAll(); }}>
           <Trash size={16} /> Xoá sạch thùng rác
         </button>
       </div>
@@ -51,7 +53,7 @@ const TrashPage = ({ items, onRestore, onPurge, onEmptyAll }) => {
                 </div>
                 <div style={{ padding: '9px 16px', background: 'var(--color-surface-muted)', borderTop: '1px solid var(--color-border-subtle)', display: 'flex', gap: 8 }}>
                   <button className="card-btn card-btn-primary" onClick={() => onRestore(p.id)}><RotateCcw size={16} /> Khôi phục</button>
-                  <button className="card-btn card-btn-danger" onClick={() => { if (window.confirm('Xoá hẳn bài này? Không thể hoàn tác.')) onPurge(p.id); }}><Trash2 size={16} /> Xoá hẳn</button>
+                  <button className="card-btn card-btn-danger" onClick={async () => { if (await confirm({ title: 'Xoá hẳn bài', message: 'Xoá hẳn bài này? Không thể hoàn tác.', danger: true, confirmLabel: 'Xoá hẳn' })) onPurge(p.id); }}><Trash2 size={16} /> Xoá hẳn</button>
                 </div>
               </div>
             </div>

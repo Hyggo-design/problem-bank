@@ -4,6 +4,7 @@ import App from './App';
 import './index.css';
 import ErrorBoundary from './components/ErrorBoundary';
 import { TaxonomyProvider } from './hooks/useTaxonomy';
+import { ConfirmProvider } from './components/ConfirmProvider';
 import '@fontsource/inter/400.css';
 import '@fontsource/inter/500.css';
 import '@fontsource/inter/600.css';
@@ -18,7 +19,9 @@ root.render(
   <React.StrictMode>
     <ErrorBoundary>
       <TaxonomyProvider>
-        <App />
+        <ConfirmProvider>
+          <App />
+        </ConfirmProvider>
       </TaxonomyProvider>
     </ErrorBoundary>
   </React.StrictMode>

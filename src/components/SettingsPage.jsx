@@ -5,6 +5,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { useToast } from '../hooks/useToast';
 import SqlDb from '@tauri-apps/plugin-sql'; // đổi tên, tránh trùng icon "Database" của lucide-react
 import { getDb } from '../utils/db';
+import { useConfirm } from './ConfirmProvider';
 
 // ==========================================
 // TRANG CÀI ĐẶT (cột phải khi currentView === 'settings').
@@ -42,6 +43,7 @@ const SettingsPage = ({ onManageCategories }) => {
     setDark(!dark);
   };
   const { success, error } = useToast();
+  const confirm = useConfirm();
   const [apiKey, setApiKey] = useState(localStorage.getItem('pb-gemini-key') || '');
   const [showKey, setShowKey] = useState(false);
   const saveKey = () => { localStorage.setItem('pb-gemini-key', apiKey.trim()); success('Đã lưu API key'); };
@@ -88,11 +90,14 @@ const SettingsPage = ({ onManageCategories }) => {
     }
 
     // 3. Cảnh báo xác nhận
-    const sure = window.confirm(
-      'Toàn bộ dữ liệu hiện tại sẽ bị thay thế bằng dữ liệu trong file backup.\n\n' +
-      'App sẽ tự lưu một bản phòng hờ trước khi thay.\n\n' +
-      'Bạn có chắc chắn muốn tiếp tục?'
-    );
+    const sure = await confirm({
+      title: 'Khôi phục dữ liệu',
+      message: 'Toàn bộ dữ liệu hiện tại sẽ bị thay thế bằng dữ liệu trong file backup.\n\n' +
+        'App sẽ tự lưu một bản phòng hờ trước khi thay.\n\n' +
+        'Bạn có chắc chắn muốn tiếp tục?',
+      danger: true,
+      confirmLabel: 'Khôi phục',
+    });
     if (!sure) return;
 
     // 4a. Tự lưu bản phòng hờ (PHẢI chạy TRƯỚC khi đóng/ghi đè)
@@ -127,7 +132,7 @@ const SettingsPage = ({ onManageCategories }) => {
 
     // 4d. Tải lại app (luôn reload sau khi đã đóng DB để có kết nối sạch)
     if (!copied) {
-      window.alert('Khôi phục thất bại (Windows đang giữ khoá file). Dữ liệu cũ được giữ nguyên. App sẽ tải lại.');
+      await confirm({ title: 'Khôi phục thất bại', message: 'Khôi phục thất bại (Windows đang giữ khoá file). Dữ liệu cũ được giữ nguyên. App sẽ tải lại.', confirmLabel: 'Đã hiểu', hideCancel: true });
     }
     window.location.reload();
   };
