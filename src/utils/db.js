@@ -71,7 +71,9 @@ export const getDb = () => {
             type TEXT,
             shortAnswer TEXT,
             options TEXT,
-            metadata TEXT 
+            metadata TEXT,
+            figStatement TEXT,
+            figSolution TEXT
           )
         `);
 
@@ -82,12 +84,19 @@ export const getDb = () => {
           // Nếu cột đã có sẵn, SQLite ném lỗi -> Bắt lỗi và bỏ qua an toàn
         }
 
-        // 🛠️ MIGRATION: cột xoá mềm. NULL = đang dùng; có mốc thời gian ISO = đang trong Thùng rác.
         try {
           await db.execute(`ALTER TABLE problems ADD COLUMN deletedAt TEXT DEFAULT NULL`);
         } catch (e) {
           // Cột đã có sẵn -> SQLite ném lỗi -> bỏ qua an toàn (idempotent)
         }
+
+        // 🛠️ MIGRATION: 2 cột mã hình (TikZ/ảnh). Bài cũ -> NULL, an toàn (idempotent).
+        try {
+          await db.execute(`ALTER TABLE problems ADD COLUMN figStatement TEXT`);
+        } catch (e) { /* cột đã có -> bỏ qua */ }
+        try {
+          await db.execute(`ALTER TABLE problems ADD COLUMN figSolution TEXT`);
+        } catch (e) { /* cột đã có -> bỏ qua */ }
 
         // 2. TẠO INDEX (Đánh mục lục giúp tìm kiếm 10.000 bài trong chớp mắt)
         await db.execute(`CREATE INDEX IF NOT EXISTS idx_topic ON problems(topic);`);

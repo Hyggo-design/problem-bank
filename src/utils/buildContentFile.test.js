@@ -1,6 +1,5 @@
 import { buildContentFile, parseHeaderFields } from './buildContentFile';
-
-const TEMPLATE = [
+import { buildProblemTex } from './buildProblemTex';const TEMPLATE = [
   '\\begin{name}',
   '\t{} %PHÒNG GIÁO DỤC',
   '\t{} %TRƯỜNG HỌC',
@@ -44,19 +43,46 @@ test('buildContentFile khớp golden byte-for-byte', () => {
     '%Từ đây tôi bắt đầu gõ bài tập nè',
     '',
     '\\begin{bt}',
-    'Chứng minh $x^2+y^2=z^2$ có vô số nghiệm nguyên.',
-    '\\loigiai{',
-    'Bộ ba Pythagore.',
-    '}',
+    '\tChứng minh $x^2+y^2=z^2$ có vô số nghiệm nguyên.',
+    '\t\\loigiai{',
+    '\t\tBộ ba Pythagore.',
+    '\t}',
     '\\end{bt}',
     '',
     '\\begin{bt}',
-    'Chọn đáp án đúng:',
-    '\\choice',
-    '  {$1$}',
-    '  {\\True $2$}',
+    '\tChọn đáp án đúng:',
+    '\t\\choice',
+    '\t\t{$1$}',
+    '\t\t{\\True $2$}',
     '\\end{bt}',
     '',
   ].join('\n');
   expect(out).toBe(golden);
+});
+
+test('buildProblemTex chèn hình đề + lời giải, bọc center, thụt lề đúng', () => {
+  const p = {
+    statement: 'Cho tam giác $ABC$.',
+    figStatement: '\\begin{tikzpicture}\n\\draw (0,0)--(1,0);\n\\end{tikzpicture}',
+    solution: 'Dựng đường cao.',
+    figSolution: '\\includegraphics{hinh1}',
+    options: [],
+  };
+  const expected = [
+    '\\begin{bt}',
+    '\tCho tam giác $ABC$.',
+    '\t\\begin{center}',
+    '\t\t\\begin{tikzpicture}',
+    '\t\t\\draw (0,0)--(1,0);',
+    '\t\t\\end{tikzpicture}',
+    '\t\\end{center}',
+    '\t\\loigiai{',
+    '\t\t\\begin{center}',
+    '\t\t\t\\includegraphics{hinh1}',
+    '\t\t\\end{center}',
+    '\t\tDựng đường cao.',
+    '\t}',
+    '\\end{bt}',
+  ].join('\n');
+  expect(buildProblemTex(p)).toBe(expected);
 });

@@ -125,8 +125,8 @@ export const useProblems = () => {
       const optionsStr = JSON.stringify(newProblem.options || []);
       
       await db.execute(
-        `INSERT OR REPLACE INTO problems (id, statement, solution, topic, level, tags, dateAdded, timesUsed, type, shortAnswer, options, metadata) 
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+        `INSERT OR REPLACE INTO problems (id, statement, solution, topic, level, tags, dateAdded, timesUsed, type, shortAnswer, options, metadata, figStatement, figSolution) 
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
         [
           newProblem.id, 
           newProblem.statement || '', 
@@ -139,7 +139,9 @@ export const useProblems = () => {
           newProblem.type || 'Tự luận', 
           newProblem.shortAnswer || '', 
           optionsStr,
-          "{}" // Cột metadata dự phòng
+          "{}", // Cột metadata dự phòng
+          newProblem.figStatement || '',
+          newProblem.figSolution || ''
         ]
       );
 
@@ -157,11 +159,13 @@ export const useProblems = () => {
       const optionsStr = JSON.stringify(updatedProblem.options || []);
 
       await db.execute(
-        `UPDATE problems SET statement = $1, solution = $2, topic = $3, level = $4, tags = $5, type = $6, shortAnswer = $7, options = $8 WHERE id = $9`,
+        `UPDATE problems SET statement = $1, solution = $2, topic = $3, level = $4, tags = $5, type = $6, shortAnswer = $7, options = $8, figStatement = $9, figSolution = $10 WHERE id = $11`,
         [
           updatedProblem.statement, updatedProblem.solution || '', updatedProblem.topic,
           updatedProblem.level, updatedProblem.tags || '', updatedProblem.type || 'Tự luận',
-          updatedProblem.shortAnswer || '', optionsStr, updatedProblem.id
+          updatedProblem.shortAnswer || '', optionsStr,
+          updatedProblem.figStatement || '', updatedProblem.figSolution || '',
+          updatedProblem.id
         ]
       );
 
