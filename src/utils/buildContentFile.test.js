@@ -1,5 +1,7 @@
 import { buildContentFile, parseHeaderFields } from './buildContentFile';
-import { buildProblemTex } from './buildProblemTex';const TEMPLATE = [
+import { buildProblemTex } from './buildProblemTex';
+
+const TEMPLATE = [
   '\\begin{name}',
   '\t{} %PHÒNG GIÁO DỤC',
   '\t{} %TRƯỜNG HỌC',
