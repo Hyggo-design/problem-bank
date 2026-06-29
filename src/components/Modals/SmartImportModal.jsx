@@ -3,6 +3,7 @@ import { X, Upload, FileText, CheckCircle, Trash2, Loader } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import ClassificationPicker from '../ClassificationPicker';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { parseProblemLatex } from '../../utils/extractFigures';
 
 // Phân loại rỗng khởi tạo cho mỗi câu rà soát (giống form Thêm/Sửa).
 const makeEmptyCls = () => ({ categoryIds: [], difficultyByHe: {}, gradeIds: [], tags: '' });
@@ -163,14 +164,7 @@ const SmartImportModal = ({ onClose, onSave }) => {
   const handleFinalSave = () => {
     // Chuyển đổi rawLatex về format lưu chuẩn của ngân hàng
     const finalProblems = results.map(item => {
-      let cleanText = item.rawLatex.replace(/\\begin\{bt\}/g, '').replace(/\\end\{bt\}/g, '').trim();
-      let statement = cleanText;
-      let solution = '';
-      const solMatch = cleanText.match(/\\loigiai\{([\s\S]*?)\}(?=\s*$|\\end)/);
-      if (solMatch) {
-        solution = solMatch[1].trim();
-        statement = cleanText.replace(solMatch[0], '').trim();
-      }
+      const { statement, solution, figStatement, figSolution } = parseProblemLatex(item.rawLatex);
       return {
         id: item.id,
         statement: statement,
@@ -179,6 +173,8 @@ const SmartImportModal = ({ onClose, onSave }) => {
         level: 1,                // cột cũ (legacy) — giữ mặc định
         type: item.type,
         tags: item.cls?.tags || '',
+        figStatement,
+        figSolution,
         // Phân loại mới — đính kèm để saveImportedProblems lưu qua saveClassification
         categoryIds: item.cls?.categoryIds || [],
         difficultyByHe: item.cls?.difficultyByHe || {},

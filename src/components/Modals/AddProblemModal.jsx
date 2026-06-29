@@ -3,6 +3,7 @@ import { X, Save } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { PROBLEM_TYPES } from '../../utils/constants';
 import ClassificationPicker from '../ClassificationPicker';
+import { parseProblemLatex } from '../../utils/extractFigures';
 
 const AddProblemModal = ({ onClose, onSave }) => {
 
@@ -10,9 +11,7 @@ const AddProblemModal = ({ onClose, onSave }) => {
   const getInitialFormData = () => ({
     rawLatex: '',
     type: 'Tự luận',
-    notes: '',
-    figStatement: '',
-    figSolution: ''
+    notes: ''
   });
   // Phân loại mới (cây + độ khó theo hệ + lớp + tag) cho ClassificationPicker
   const getInitialCls = () => ({ categoryIds: [], difficultyByHe: {}, gradeIds: [], tags: '' });
@@ -63,15 +62,7 @@ const AddProblemModal = ({ onClose, onSave }) => {
     }
 
     // 3. Nếu an toàn, tự động bóc tách Đề bài và Lời giải
-    let cleanText = raw.replace(/\\begin\{bt\}/g, '').replace(/\\end\{bt\}/g, '').trim();
-    let statement = cleanText;
-    let solution = '';
-
-    const loigiaiMatch = cleanText.match(/\\loigiai\{([\s\S]*?)\}(?=\s*$|\\end)/);
-    if (loigiaiMatch) {
-      solution = loigiaiMatch[1].trim();
-      statement = cleanText.replace(loigiaiMatch[0], '').trim();
-    }
+    const { statement, solution, figStatement, figSolution } = parseProblemLatex(raw);
 
     const newProblem = {
       id: crypto.randomUUID(),
@@ -82,8 +73,8 @@ const AddProblemModal = ({ onClose, onSave }) => {
       type: formData.type,
       tags: cls.tags,            // tag giờ lấy từ ClassificationPicker
       notes: formData.notes,
-      figStatement: formData.figStatement,
-      figSolution: formData.figSolution,
+      figStatement,
+      figSolution,
       // Phân loại mới — đi kèm để addProblem lưu qua saveClassification
       categoryIds: cls.categoryIds,
       difficultyByHe: cls.difficultyByHe,
@@ -123,27 +114,7 @@ const AddProblemModal = ({ onClose, onSave }) => {
             />
           </div>
 
-          {/* Hình vẽ (tuỳ chọn) — mã LaTeX thuần, app tự bọc \begin{center} khi xuất */}
-          <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: 'var(--color-text)', fontSize: '0.9rem' }}>Hình đề bài (mã LaTeX — tuỳ chọn)</label>
-            <textarea
-              value={formData.figStatement}
-              onChange={(e) => setFormData({ ...formData, figStatement: e.target.value })}
-              placeholder="Dán mã TikZ hoặc \includegraphics{ten-file} cho hình của ĐỀ BÀI…"
-              rows="4"
-              style={{ width: '100%', padding: '1rem', borderRadius: '8px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)', fontFamily: 'monospace', fontSize: '14px', resize: 'vertical' }}
-            />
-          </div>
-          <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: 'var(--color-text)', fontSize: '0.9rem' }}>Hình lời giải (mã LaTeX — tuỳ chọn)</label>
-            <textarea
-              value={formData.figSolution}
-              onChange={(e) => setFormData({ ...formData, figSolution: e.target.value })}
-              placeholder="Dán mã TikZ hoặc \includegraphics{ten-file} cho hình trong LỜI GIẢI…"
-              rows="4"
-              style={{ width: '100%', padding: '1rem', borderRadius: '8px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)', fontFamily: 'monospace', fontSize: '14px', resize: 'vertical' }}
-            />
-          </div>
+
 
           {/* Ô chọn Loại câu (giữ nguyên) */}
           <div>

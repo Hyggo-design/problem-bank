@@ -101,6 +101,7 @@ const PreviewPanel = ({ problem, onClose, onCopied }) => {
             {diffNames.length ? ` • ${diffNames.join(' / ')}` : ''}
             {gradeNames.length ? ` • Lớp ${gradeNames.join(', ')}` : ''}
             {` • ${parsed.type}`}
+            {(problem.figStatement || problem.figSolution) ? ' • 📐 Có hình' : ''}
           </span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>

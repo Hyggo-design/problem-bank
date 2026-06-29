@@ -83,6 +83,9 @@ const ProblemCard = ({
           {problem.type || 'Tự luận'}
           {(problem.gradeNames && problem.gradeNames.length) ? ` · Lớp ${problem.gradeNames.join(', ')}` : ''}
           {problem.tags ? <span style={{ color: 'var(--color-tag-text)' }}>{' · ' + problem.tags.split(',').map((t) => '#' + t.trim()).join(' ')}</span> : ''}
+          {(problem.figStatement || problem.figSolution)
+            ? <span style={{ color: 'var(--color-cobalt)', fontWeight: 500 }}> · 📐 Có hình</span>
+            : ''}
         </div>
       </div>
 
