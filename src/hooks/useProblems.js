@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getDb } from '../utils/db';
+import { findDuplicates } from '../utils/findDuplicates';
 
 // Hàm bọc thép chống crash khi parse JSON
 const safeJSONParse = (str) => {
@@ -30,40 +31,6 @@ const saveClassification = async (db, problemId, cls = {}) => {
   }
 };
 
-// Tính độ tương đồng Sorensen-Dice dựa trên character bigrams (tần suất cặp ký tự)
-const calculateSimilarity = (str1, str2) => {
-  if (!str1 || !str2) return 0.0;
-
-  // Chuẩn hóa văn bản: Chuyển thường, loại bỏ khoảng trắng và xuống dòng
-  const clean1 = str1.toLowerCase().replace(/\s+/g, '');
-  const clean2 = str2.toLowerCase().replace(/\s+/g, '');
-
-  if (clean1 === clean2) return 1.0;
-  if (clean1.length < 2 || clean2.length < 2) return 0.0;
-
-  // Trích xuất tập hợp bigrams của chuỗi 1
-  const bigrams1 = new Set();
-  for (let i = 0; i < clean1.length - 1; i++) {
-    bigrams1.add(clean1.substring(i, i + 2));
-  }
-
-  // Trích xuất tập hợp bigrams của chuỗi 2
-  const bigrams2 = new Set();
-  for (let i = 0; i < clean2.length - 1; i++) {
-    bigrams2.add(clean2.substring(i, i + 2));
-  }
-
-  // Đếm số lượng cặp bigrams trùng nhau
-  let intersection = 0;
-  for (const val of bigrams1) {
-    if (bigrams2.has(val)) {
-      intersection++;
-    }
-  }
-
-  // Sorensen-Dice: 2 * |A ∩ B| / (|A| + |B|)
-  return (2.0 * intersection) / (bigrams1.size + bigrams2.size);
-};
 
 export const useProblems = () => {
   const [problems, setProblems] = useState([]);
@@ -288,38 +255,23 @@ export const useProblems = () => {
   };
 
   // 7. KIỂM TRA TRÙNG LẶP (Duplicate Detection)
-  const checkDuplicate = useCallback((newStatement, currentId = null, threshold = 0.85) => {
-    if (!newStatement) return null;
+  // Trả MẢNG bài trùng (đề HOẶC lời giải vượt ngưỡng), xếp % giảm dần. Rỗng nếu không trùng.
+  const checkDuplicate = useCallback((newStatement, newSolution, currentId = null) => {
+    if (!newStatement && !newSolution) return [];
 
     // Nếu đang chỉnh sửa và đề bài mới giống hệt đề bài cũ trong DB, tự động bỏ qua check trùng
     if (currentId) {
       const originalProblem = problems.find(p => p.id === currentId);
-      if (originalProblem && originalProblem.statement.trim() === newStatement.trim()) {
-        return null;
+      if (originalProblem && (originalProblem.statement || '').trim() === (newStatement || '').trim()) {
+        return [];
       }
     }
 
-    let maxSimilarity = 0;
-    let closestProblem = null;
+    // Đọc ngưỡng Thầy đặt trong Cài đặt (mặc định 85%).
+    const pct = parseInt(localStorage.getItem('pb-dup-threshold') ?? '85', 10);
+    const threshold = (Number.isNaN(pct) ? 85 : pct) / 100;
 
-    for (const prob of problems) {
-      // Bỏ qua chính nó khi sửa bài tập
-      if (currentId && prob.id === currentId) continue;
-
-      const score = calculateSimilarity(newStatement, prob.statement);
-      if (score > maxSimilarity) {
-        maxSimilarity = score;
-        closestProblem = prob;
-      }
-    }
-
-    if (maxSimilarity >= threshold) {
-      return {
-        problem: closestProblem,
-        similarity: maxSimilarity
-      };
-    }
-    return null;
+    return findDuplicates(problems, newStatement, newSolution, threshold, currentId);
   }, [problems]);
 
   return {

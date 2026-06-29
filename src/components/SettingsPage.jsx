@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FolderTree, Moon, Type, FileDown, KeyRound, Database } from 'lucide-react';
+import { FolderTree, Moon, Type, FileDown, KeyRound, Database, AlertTriangle } from 'lucide-react';
 import { open, save } from '@tauri-apps/plugin-dialog';
 import { invoke } from '@tauri-apps/api/core';
 import { useToast } from '../hooks/useToast';
@@ -47,6 +47,11 @@ const SettingsPage = ({ onManageCategories }) => {
   const [apiKey, setApiKey] = useState(localStorage.getItem('pb-gemini-key') || '');
   const [showKey, setShowKey] = useState(false);
   const saveKey = () => { localStorage.setItem('pb-gemini-key', apiKey.trim()); success('Đã lưu API key'); };
+  const [dupThreshold, setDupThreshold] = useState(parseInt(localStorage.getItem('pb-dup-threshold') ?? '85', 10) || 85);
+  const changeDupThreshold = (val) => {
+    setDupThreshold(val);
+    localStorage.setItem('pb-dup-threshold', String(val));
+  };
   const [dbPath, setDbPath] = useState('');
   useEffect(() => {
     const folder = localStorage.getItem('pb-db-folder') || 'D:\\0. Problems Bank\\app-data';
@@ -172,6 +177,21 @@ const SettingsPage = ({ onManageCategories }) => {
         desc={templateFolder || 'Chưa chọn — nơi app tìm các file template .tex để xuất.'}
         action={<button className="card-btn card-btn-primary" onClick={pickFolder}>Chọn thư mục…</button>}
       />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: '14px 16px', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', background: 'var(--color-surface)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          <div style={{ color: 'var(--color-cobalt)', display: 'flex' }}><AlertTriangle size={20} /></div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontWeight: 600, color: 'var(--color-text)' }}>Ngưỡng cảnh báo trùng</div>
+            <div style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>Khi Thêm/Sửa/Import, cảnh báo nếu đề hoặc lời giải giống ≥ mức này.</div>
+          </div>
+          <span style={{ fontWeight: 700, color: 'var(--color-cobalt)', fontSize: '1.1rem', minWidth: 48, textAlign: 'right' }}>{dupThreshold}%</span>
+        </div>
+        <input
+          type="range" min={70} max={95} step={1} value={dupThreshold}
+          onChange={(e) => changeDupThreshold(parseInt(e.target.value, 10))}
+          style={{ width: '100%', accentColor: 'var(--color-cobalt)' }}
+        />
+      </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: '14px 16px', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', background: 'var(--color-surface)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
           <div style={{ color: 'var(--color-cobalt)', display: 'flex' }}><KeyRound size={20} /></div>

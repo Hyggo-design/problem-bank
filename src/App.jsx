@@ -42,7 +42,7 @@ function App() {
   const ui = useUIState(); 
   const { cartItems, addToCart, removeFromCart, clearCart, cartCount } = useCart();
   const { success, info, undoToast } = useToast();
-  const [pendingSave, setPendingSave] = useState(null); // { type: 'add' | 'edit', problem, duplicateInfo }
+  const [pendingSave, setPendingSave] = useState(null); // { type: 'add' | 'edit', problem, duplicates }
 
   // GĐ3 — đặt hệ mặc định = hệ đầu (theo position) khi taxonomy tải xong.
   const { categories } = useTaxonomy();
@@ -245,9 +245,9 @@ function App() {
         <AddProblemModal 
           onClose={() => ui.setShowAddModal(false)} 
           onSave={(prob) => {
-            const dup = checkDuplicate(prob.statement);
-            if (dup) {
-              setPendingSave({ type: 'add', problem: prob, duplicateInfo: dup });
+            const dups = checkDuplicate(prob.statement, prob.solution);
+            if (dups.length) {
+              setPendingSave({ type: 'add', problem: prob, duplicates: dups });
             } else {
               addProblem(prob);
               ui.setShowAddModal(false);
@@ -263,9 +263,9 @@ function App() {
           problem={ui.editingProblem} 
           onClose={() => ui.setEditingProblem(null)} 
           onSave={(prob) => {
-            const dup = checkDuplicate(prob.statement, prob.id);
-            if (dup) {
-              setPendingSave({ type: 'edit', problem: prob, duplicateInfo: dup });
+            const dups = checkDuplicate(prob.statement, prob.solution, prob.id);
+            if (dups.length) {
+              setPendingSave({ type: 'edit', problem: prob, duplicates: dups });
             } else {
               updateProblem(prob);
               ui.setEditingProblem(null);
@@ -279,6 +279,7 @@ function App() {
       {ui.showImportModal && (
         <SmartImportModal 
           onClose={() => ui.setShowImportModal(false)} 
+          checkDuplicate={checkDuplicate}
           onSave={(newProbs) => {
             saveImportedProblems(newProbs);
             success(`Cập nhật ${newProbs.length} bài thành công!`);

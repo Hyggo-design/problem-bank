@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { X, Upload, FileText, CheckCircle, Trash2, Loader } from 'lucide-react';
+import { X, Upload, FileText, CheckCircle, Trash2, Loader, AlertTriangle } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import ClassificationPicker from '../ClassificationPicker';
 import { GoogleGenerativeAI } from '@google/generative-ai';
@@ -8,7 +8,7 @@ import { parseProblemLatex } from '../../utils/extractFigures';
 // Phân loại rỗng khởi tạo cho mỗi câu rà soát (giống form Thêm/Sửa).
 const makeEmptyCls = () => ({ categoryIds: [], difficultyByHe: {}, gradeIds: [], tags: '' });
 
-const SmartImportModal = ({ onClose, onSave }) => {
+const SmartImportModal = ({ onClose, onSave, checkDuplicate }) => {
   const [files, setFiles] = useState([]);
   const [step, setStep] = useState('upload'); // 'upload' | 'processing' | 'review'
   const [results, setResults] = useState([]);
@@ -128,7 +128,13 @@ const SmartImportModal = ({ onClose, onSave }) => {
 
       // Xử lý kết quả sau khi duyệt xong tất cả các file
       if (tempResults.length > 0) {
-        setResults(tempResults);
+        // Kiểm trùng với kho đã lưu (đối chiếu từng bài vừa bóc tách).
+        const checked = tempResults.map(item => {
+          const { statement, solution } = parseProblemLatex(item.rawLatex);
+          const dups = checkDuplicate(statement, solution);
+          return dups.length ? { ...item, dup: dups[0] } : item;
+        });
+        setResults(checked);
         setStep('review');
         if (hasError) {
           toast.info("Đã bóc tách được một phần, nhưng có file bị lỗi trong quá trình xử lý.", { duration: 4000 });
@@ -271,6 +277,13 @@ const SmartImportModal = ({ onClose, onSave }) => {
                     <button onClick={() => removeResultItem(res.id)} style={{ color: 'var(--color-danger)', background: 'none', border: 'none', cursor: 'pointer', padding: '0.5rem' }} title="Xóa câu này nếu nhận diện sai"><Trash2 size={20}/></button>
                   </div>
                   
+                  {res.dup && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.75rem', marginBottom: '0.75rem', borderRadius: '8px', backgroundColor: 'var(--color-amber-bg)', color: 'var(--color-amber-text)', fontSize: '0.85rem', fontWeight: 600 }}>
+                      <AlertTriangle size={16} />
+                      <span>Có thể trùng với một bài đã lưu — Đề: {(res.dup.statementSimilarity * 100).toFixed(0)}% · Lời giải: {(res.dup.solutionSimilarity * 100).toFixed(0)}%</span>
+                    </div>
+                  )}
+
                   <textarea 
                     value={res.rawLatex} 
                     onChange={(e) => updateResultItem(res.id, 'rawLatex', e.target.value)}
