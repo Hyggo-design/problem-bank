@@ -1,10 +1,17 @@
-import { getRootHeId } from '../hooks/useTaxonomy';
-
 // Nhóm phân loại của một bài theo HỆ, dựng trọn đường cây cho mỗi nhánh đã gắn.
 // Trả về: [{ heId, paths: [[tênHệ, …, tênNhánhLá], ...], difficultyName }] — mỗi hệ một mục.
 //   catById:   { [id]: { id, name, parent_id } }
 //   parentMap: { [id]: parent_id }
 //   diffById:  { [id]: { name } }
+// Hàm THUẦN (không import DB/React) để test được — leo cây tự nội tuyến.
+
+// Leo ngược parentMap tới nút gốc (hệ) của một nhánh.
+const rootHeId = (catId, parentMap) => {
+  let cur = catId;
+  while (parentMap[cur]) cur = parentMap[cur];
+  return cur;
+};
+
 export const groupClassificationByHe = (problem, catById, parentMap, diffById) => {
   const buildPath = (catId) => {
     const names = [];
@@ -13,10 +20,21 @@ export const groupClassificationByHe = (problem, catById, parentMap, diffById) =
     return names; // [Tên hệ, …, tên nhánh lá]
   };
 
+  // Chỉ giữ nhánh "sâu nhất": bỏ nhánh cha nếu có nhánh con của nó cũng được gắn
+  // (nhánh cha đã hàm ý trong đường dẫn dài hơn → tránh hiện path tiền tố trùng).
+  const ids = (problem.categoryIds || []).filter((cid) => catById[cid]); // bỏ id mồ côi (nhánh đã xoá)
+  const hasSelectedDescendant = (cid) =>
+    ids.some((other) => {
+      if (other === cid) return false;
+      let cur = parentMap[other];
+      while (cur) { if (cur === cid) return true; cur = parentMap[cur]; }
+      return false;
+    });
+
   const byHe = {};
-  for (const cid of (problem.categoryIds || [])) {
-    if (!catById[cid]) continue;                 // bỏ id mồ côi (nhánh đã xoá)
-    const heId = getRootHeId(cid, parentMap);
+  for (const cid of ids) {
+    if (hasSelectedDescendant(cid)) continue;    // bỏ tổ tiên đã có nhánh con được gắn
+    const heId = rootHeId(cid, parentMap);
     (byHe[heId] = byHe[heId] || { heId, paths: [] }).paths.push(buildPath(cid));
   }
 

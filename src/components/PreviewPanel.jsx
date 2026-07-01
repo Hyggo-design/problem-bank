@@ -3,6 +3,7 @@ import { X, BookOpen, CheckCircle, HelpCircle, Code, Lightbulb } from 'lucide-re
 import LatexBlockRenderer from './LatexBlockRenderer';
 import { buildProblemTex } from '../utils/buildProblemTex';
 import { useTaxonomy } from '../hooks/useTaxonomy';
+import { groupClassificationByHe } from '../utils/classification';
 
 const PreviewPanel = ({ problem, onClose, onCopied }) => {
   // Gọi hook TRƯỚC mọi return sớm (luật Hooks: phải gọi cùng thứ tự mỗi lần render).
@@ -14,7 +15,10 @@ const PreviewPanel = ({ problem, onClose, onCopied }) => {
   const catById = Object.fromEntries(categories.map(c => [c.id, c]));
   const diffById = Object.fromEntries(difficulties.map(d => [d.id, d]));
   const gradeById = Object.fromEntries(grades.map(g => [g.id, g]));
-  const catNames = (problem.categoryIds || []).map(id => catById[id]?.name).filter(Boolean);
+  const parentMap = Object.fromEntries(categories.map(c => [c.id, c.parent_id]));
+  // Tên nhánh SÂU NHẤT theo từng hệ (đã bỏ nhánh cha dư — dùng chung logic với thẻ).
+  const catNames = groupClassificationByHe(problem, catById, parentMap, diffById)
+    .flatMap(g => g.paths.map(p => p[p.length - 1]));
   const diffNames = Object.values(problem.difficultyByHe || {}).map(id => diffById[id]?.name).filter(Boolean);
   const gradeNames = (problem.gradeIds || []).map(id => gradeById[id]?.name).filter(Boolean);
 
