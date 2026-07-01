@@ -13,7 +13,7 @@ const ControlsRow = ({ searchTerm, onSearchChange, sortBy, onSortChange, searchI
         <input
           ref={searchInputRef}
           type="text"
-          placeholder="Tìm kiếm theo ID, từ khóa, tag... (Ctrl + F)"
+          placeholder="Tìm trong đề, lời giải, tag… (Ctrl + F)"
           value={searchTerm}
           onChange={(e) => onSearchChange(e.target.value)}
           style={{ border: 'none', background: 'transparent', marginLeft: '0.5rem', width: '100%', color: 'var(--color-text)' }}

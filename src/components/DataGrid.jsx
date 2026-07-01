@@ -5,6 +5,7 @@ import { useTaxonomy, getDescendantIds, getRootHeId } from '../hooks/useTaxonomy
 import { groupClassificationByHe } from '../utils/classification';
 import { useToast } from '../hooks/useToast';
 import ProblemCard from './ProblemCard';
+import { makeSearchFields, matchFields } from '../utils/searchText';
 
 // ==========================================
 // FEED THẺ CHÍNH (cuộn vô tận với Virtuoso)
@@ -39,12 +40,16 @@ const DataGrid = ({
     return new Set(getDescendantIds(filterTopic, childrenMap));
   }, [filterTopic, childrenMap]);
 
+  // Chỉ mục tìm kiếm: chuẩn hóa (bỏ dấu) đề + lời giải + tag của mỗi bài, nhớ lại
+  // — chỉ tính lại khi kho đổi (không tính mỗi phím gõ).
+  const searchIndex = useMemo(
+    () => new Map(problems.map((p) => [p.id, makeSearchFields(p)])),
+    [problems]
+  );
+
   const filteredAndSorted = useMemo(() => {
     let filtered = problems.filter(p => {
-      if (searchTerm) {
-        const search = searchTerm.toLowerCase();
-        if (!p.statement.toLowerCase().includes(search) && !(p.tags && p.tags.toLowerCase().includes(search))) return false;
-      }
+      if (searchTerm && !matchFields(searchIndex.get(p.id), searchTerm).matched) return false;
       // GĐ3 — chế độ "chưa phân loại" đè mọi lọc khác: chỉ bài có 0 phân loại.
       if (unclassifiedMode) return (p.categoryIds || []).length === 0;
       // GĐ3 — khoá 1 hệ: chỉ giữ bài có nhánh leo về gốc đúng hệ đang chọn.
@@ -65,7 +70,18 @@ const DataGrid = ({
         default: return 0;
       }
     });
-  }, [problems, sortBy, validBranchIds, filterGrade, filterDifficulty, searchTerm, selectedHe, unclassifiedMode, parentMap]);
+  }, [problems, sortBy, validBranchIds, filterGrade, filterDifficulty, searchTerm, selectedHe, unclassifiedMode, parentMap, searchIndex]);
+
+  // Nhãn "khớp ở đâu" cho các bài đang hiển thị (chỉ khi đang tìm).
+  const matchFieldsById = useMemo(() => {
+    const map = {};
+    if (!searchTerm) return map;
+    for (const p of filteredAndSorted) {
+      const r = matchFields(searchIndex.get(p.id), searchTerm);
+      if (r.hitFields.length) map[p.id] = r.hitFields;
+    }
+    return map;
+  }, [filteredAndSorted, searchIndex, searchTerm]);
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', backgroundColor: 'var(--color-bg)', overflow: 'hidden' }}>
@@ -118,6 +134,7 @@ const DataGrid = ({
                 problem={{ ...problem, gradeNames }}
                 classification={classification}
                 selected={selectedIds.includes(problem.id)}
+                matchFields={matchFieldsById[problem.id]}
                 onToggleSelect={() => onSelectChange(problem.id)}
                 onPreview={() => onPreviewClick(problem)}
                 onAddToCart={() => onAddToCart(problem)}
