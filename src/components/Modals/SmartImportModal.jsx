@@ -12,6 +12,9 @@ const SmartImportModal = ({ onClose, onSave, checkDuplicate }) => {
   const [files, setFiles] = useState([]);
   const [step, setStep] = useState('upload'); // 'upload' | 'processing' | 'review'
   const [results, setResults] = useState([]);
+  const [selectedForBulk, setSelectedForBulk] = useState([]); // id các bài đang tick để phân loại hàng loạt
+  const [showBulkPicker, setShowBulkPicker] = useState(false); // có đang mở bảng phân loại dùng chung không
+  const [bulkCls, setBulkCls] = useState(makeEmptyCls());       // giá trị đang chọn trong bảng dùng chung
   const [isDragging, setIsDragging] = useState(false);
   
   const fileInputRef = useRef(null);
@@ -165,6 +168,21 @@ const SmartImportModal = ({ onClose, onSave, checkDuplicate }) => {
   };
   const removeResultItem = (id) => {
     setResults(results.filter(r => r.id !== id));
+    setSelectedForBulk(prev => prev.filter(x => x !== id)); // bài bị xoá thì cũng bỏ khỏi danh sách đang tick
+  };
+
+  // --- PHÂN LOẠI HÀNG LOẠT: chỉ áp dụng cho các bài đang được tick ở màn review ---
+  const toggleSelectForBulk = (id) => {
+    setSelectedForBulk(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  };
+  const toggleSelectAllForBulk = () => {
+    setSelectedForBulk(prev => prev.length === results.length ? [] : results.map(r => r.id));
+  };
+  const applyBulkCls = () => {
+    setResults(prev => prev.map(r => selectedForBulk.includes(r.id) ? { ...r, cls: bulkCls } : r));
+    setSelectedForBulk([]);
+    setShowBulkPicker(false);
+    setBulkCls(makeEmptyCls());
   };
 
   const handleFinalSave = () => {
@@ -264,16 +282,54 @@ const SmartImportModal = ({ onClose, onSave, checkDuplicate }) => {
               </div>
             </div>
 
+            {/* Thanh công cụ: tick nhiều bài rồi gán phân loại chung 1 lần */}
+            <div style={{ backgroundColor: 'var(--color-surface)', borderRadius: '12px', padding: '1rem 1.5rem', marginBottom: '1.5rem', border: showBulkPicker ? '1px solid var(--color-cobalt)' : '1px solid var(--color-border)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                <span style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>
+                  {selectedForBulk.length > 0 ? `Đã chọn ${selectedForBulk.length} bài` : 'Tick các bài giống nhau để phân loại hàng loạt'}
+                </span>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button type="button" className="card-btn" onClick={toggleSelectAllForBulk} disabled={results.length === 0}>
+                    {selectedForBulk.length === results.length && results.length > 0 ? 'Bỏ chọn tất cả' : 'Chọn tất cả'}
+                  </button>
+                  <button type="button" className="card-btn card-btn-primary" disabled={selectedForBulk.length === 0} onClick={() => setShowBulkPicker(s => !s)}>
+                    Phân loại hàng loạt
+                  </button>
+                </div>
+              </div>
+
+              {showBulkPicker && (
+                <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--color-border)' }}>
+                  <ClassificationPicker value={bulkCls} onChange={setBulkCls} />
+                  <div style={{ display: 'flex', gap: 8, marginTop: '1rem' }}>
+                    <button type="button" className="card-btn card-btn-primary" disabled={selectedForBulk.length === 0} onClick={applyBulkCls}>
+                      Áp dụng cho {selectedForBulk.length} bài
+                    </button>
+                    <button type="button" className="card-btn" onClick={() => setShowBulkPicker(false)}>Đóng</button>
+                  </div>
+                </div>
+              )}
+            </div>
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
               {results.map((res, index) => (
                 <div key={res.id} style={{ backgroundColor: 'var(--color-surface)', borderRadius: '12px', padding: '1.5rem', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', alignItems: 'center' }}>
-                    <select value={res.type} onChange={(e) => updateResultItem(res.id, 'type', e.target.value)} style={{ padding: '0.5rem', borderRadius: '6px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)' }}>
-                      <option value="Tự luận">Tự luận</option>
-                      <option value="Trắc nghiệm">Trắc nghiệm</option>
-                      <option value="Đúng/Sai">Đúng/Sai</option>
-                      <option value="Trả lời ngắn">Trả lời ngắn</option>
-                    </select>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                      <input
+                        type="checkbox"
+                        checked={selectedForBulk.includes(res.id)}
+                        onChange={() => toggleSelectForBulk(res.id)}
+                        style={{ width: 18, height: 18, cursor: 'pointer' }}
+                        title="Chọn bài này để phân loại hàng loạt"
+                      />
+                      <select value={res.type} onChange={(e) => updateResultItem(res.id, 'type', e.target.value)} style={{ padding: '0.5rem', borderRadius: '6px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)' }}>
+                        <option value="Tự luận">Tự luận</option>
+                        <option value="Trắc nghiệm">Trắc nghiệm</option>
+                        <option value="Đúng/Sai">Đúng/Sai</option>
+                        <option value="Trả lời ngắn">Trả lời ngắn</option>
+                      </select>
+                    </div>
                     <button onClick={() => removeResultItem(res.id)} style={{ color: 'var(--color-danger)', background: 'none', border: 'none', cursor: 'pointer', padding: '0.5rem' }} title="Xóa câu này nếu nhận diện sai"><Trash2 size={20}/></button>
                   </div>
                   
