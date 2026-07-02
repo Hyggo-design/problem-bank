@@ -2,3 +2,8 @@ node_modules/
 .env
 build/
 /app-data/
+
+# Công cụ & file làm việc cục bộ (không thuộc mã nguồn app)
+/.antigravity/
+/template/
+/claude-design-prompt.md
