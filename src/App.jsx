@@ -22,6 +22,7 @@ import { useToast } from './hooks/useToast';
 import { useProblems } from './hooks/useProblems';
 import { useUIState } from './hooks/useUIState';
 import { useTaxonomy } from './hooks/useTaxonomy';
+import { useAutoBackup } from './hooks/useAutoBackup';
 import { useConfirm } from './components/ConfirmProvider';
 function App() {
   // 1. GỌI CÁC THƯ KÝ (Hooks) ĐỂ LẤY DỮ LIỆU
@@ -39,7 +40,8 @@ function App() {
     saveImportedProblems,
     checkDuplicate
   } = useProblems();
-  const ui = useUIState(); 
+  const ui = useUIState();
+  useAutoBackup(); // tự sao lưu khi đóng app
   const { cartItems, addToCart, removeFromCart, clearCart, cartCount } = useCart();
   const { success, info, undoToast } = useToast();
   const [pendingSave, setPendingSave] = useState(null); // { type: 'add' | 'edit', problem, duplicates }

@@ -58,6 +58,24 @@ const SettingsPage = ({ onManageCategories }) => {
     setDbPath(localStorage.getItem('pb-db-path-active') || `${folder}\\problem_bank.db`);
   }, []);
 
+  const [autoBackup, setAutoBackup] = useState(localStorage.getItem('pb-auto-backup-enabled') !== '0');
+  const lastBackup = localStorage.getItem('pb-auto-backup-last') || '';
+  const toggleAutoBackup = () => {
+    const next = !autoBackup;
+    localStorage.setItem('pb-auto-backup-enabled', next ? '1' : '0');
+    setAutoBackup(next);
+  };
+  const openBackupsFolder = async () => {
+    const backups = dbPath.replace(/[\\/][^\\/]+$/, '') + '\\backups';
+    try { await invoke('ensure_dir', { path: backups }); } catch (_) {}
+    invoke('open_path', { path: backups }).catch(() => {});
+  };
+  const fmtBackupDate = (iso) => {
+    if (!iso) return 'chưa có bản nào';
+    const [y, m, d] = iso.split('-');
+    return `${d}/${m}/${y}`;
+  };
+
   // Kiểm tra file .db được chọn có đúng là dữ liệu Problem Bank không (phải có bảng "problems").
   const isValidBackup = async (path) => {
     let testDb;
@@ -219,6 +237,20 @@ const SettingsPage = ({ onManageCategories }) => {
           <button className="card-btn card-btn-primary" onClick={backupNow} disabled={!dbPath}>Sao lưu ngay</button>
           <button className="card-btn" onClick={openDbFolder} disabled={!dbPath}>Mở thư mục</button>
           <button className="card-btn" onClick={restoreBackup} disabled={!dbPath}>Khôi phục dữ liệu</button>
+        </div>
+        <div style={{ borderTop: '1px solid var(--color-border)', marginTop: 4, paddingTop: 12, display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontWeight: 600, color: 'var(--color-text)' }}>Tự động sao lưu khi đóng app</div>
+            <div style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>
+              {autoBackup
+                ? `Đang bật · bản gần nhất: ${fmtBackupDate(lastBackup)} · giữ 14 ngày gần nhất`
+                : 'Đang tắt — đóng app sẽ không tự sao lưu.'}
+            </div>
+          </div>
+          <button className="card-btn" onClick={openBackupsFolder} disabled={!dbPath}>Mở thư mục sao lưu</button>
+          <button className={autoBackup ? 'card-btn' : 'card-btn card-btn-primary'} onClick={toggleAutoBackup}>
+            {autoBackup ? 'Tắt' : 'Bật'}
+          </button>
         </div>
       </div>
     </div>

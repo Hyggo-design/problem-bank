@@ -46,6 +46,32 @@ fn open_path(path: String) -> Result<(), String> {
     Ok(())
 }
 
+// Liệt kê TÊN file (không kèm đường dẫn) trong một thư mục.
+// Thư mục chưa tồn tại -> trả danh sách rỗng (không coi là lỗi).
+#[tauri::command]
+fn list_files(dir: String) -> Result<Vec<String>, String> {
+    let mut out = Vec::new();
+    let rd = match fs::read_dir(&dir) {
+        Ok(rd) => rd,
+        Err(_) => return Ok(out),
+    };
+    for entry in rd {
+        let path = entry.map_err(|e| e.to_string())?.path();
+        if path.is_file() {
+            if let Some(name) = path.file_name().and_then(|s| s.to_str()) {
+                out.push(name.to_string());
+            }
+        }
+    }
+    Ok(out)
+}
+
+// Xoá một file (dùng để dọn bản sao lưu cũ).
+#[tauri::command]
+fn delete_file(path: String) -> Result<(), String> {
+    fs::remove_file(&path).map_err(|e| e.to_string())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -57,7 +83,9 @@ pub fn run() {
             write_text_file,
             ensure_dir,
             copy_file,
-            open_path
+            open_path,
+            list_files,
+            delete_file
         ])
         .setup(|app| {
             if cfg!(debug_assertions) {
