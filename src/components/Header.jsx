@@ -1,12 +1,11 @@
 import React from 'react';
-import { BookOpen, AlertCircle, ShoppingCart, Activity } from 'lucide-react';
+import { BookOpen, AlertCircle, ShoppingCart } from 'lucide-react';
 
 const Header = ({ stats, onUnclassifiedClick, unclassifiedActive }) => {
   const statCards = [
     { label: 'Tổng bài tập', value: stats.total, icon: <BookOpen size={22} color="var(--color-cobalt)" /> },
     { label: 'Chưa phân loại', value: stats.unclassified, icon: <AlertCircle size={22} color="var(--color-amber)" /> },
     { label: 'Giỏ đề thi', value: stats.cartCount, icon: <ShoppingCart size={22} color="var(--color-success)" /> },
-    { label: 'Lượt sử dụng', value: stats.used, icon: <Activity size={22} color="var(--color-text-subtle)" /> },
   ];
 
   return (

@@ -5,7 +5,7 @@ import { buildProblemTex } from '../utils/buildProblemTex';
 
 // Một THẺ bài tập (Phương án C — đề nổi trên "khay" xám). Bấm thân thẻ = chọn/bỏ chọn.
 const ProblemCard = ({
-  problem, classification, selected, matchFields,
+  problem, classification, selected, matchFields, usageCount,
   onToggleSelect, onPreview, onAddToCart, onEdit, onDelete, onCopied,
 }) => {
   const [showSol, setShowSol] = useState(false);
@@ -85,6 +85,9 @@ const ProblemCard = ({
           {problem.tags ? <span style={{ color: 'var(--color-tag-text)' }}>{' · ' + problem.tags.split(',').map((t) => '#' + t.trim()).join(' ')}</span> : ''}
           {(problem.figStatement || problem.figSolution)
             ? <span style={{ color: 'var(--color-cobalt)', fontWeight: 500 }}> · 📐 Có hình</span>
+            : ''}
+          {usageCount > 0
+            ? <span style={{ color: 'var(--color-cobalt)', fontWeight: 500 }}> · 🔁 Đã dùng {usageCount} lần</span>
             : ''}
           {matchFields && matchFields.length > 0 && (
             <span style={{ color: 'var(--color-cobalt)', fontWeight: 500 }}>
