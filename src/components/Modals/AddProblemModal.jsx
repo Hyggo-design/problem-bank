@@ -3,6 +3,7 @@ import { X, Save } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { PROBLEM_TYPES } from '../../utils/constants';
 import ClassificationPicker from '../ClassificationPicker';
+import LatexEditor from '../LatexEditor';
 import { parseProblemLatex } from '../../utils/extractFigures';
 
 const AddProblemModal = ({ onClose, onSave }) => {
@@ -105,12 +106,11 @@ const AddProblemModal = ({ onClose, onSave }) => {
 
           <div>
             <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: 'var(--color-text)' }}>Mã LaTeX (\begin&#123;bt&#125; ... \end&#123;bt&#125;)</label>
-            <textarea
+            <LatexEditor
               value={formData.rawLatex}
-              onChange={(e) => setFormData({...formData, rawLatex: e.target.value})}
-              placeholder="\begin{bt}&#10;Nội dung đề bài...&#10;\loigiai{ Lời giải... }&#10;\end{bt}"
-              rows="8"
-              style={{ width: '100%', padding: '1rem', borderRadius: '8px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)', fontFamily: 'monospace', fontSize: '14px', resize: 'vertical' }}
+              onChange={(val) => setFormData((f) => ({ ...f, rawLatex: val }))}
+              placeholder={"\\begin{bt} ... \\loigiai{ ... } ... \\end{bt}"}
+              minHeight="180px"
             />
           </div>
 

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { X, Upload, FileText, CheckCircle, Trash2, Loader, AlertTriangle } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import ClassificationPicker from '../ClassificationPicker';
+import LatexEditor from '../LatexEditor';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { parseProblemLatex } from '../../utils/extractFigures';
 
@@ -340,27 +341,11 @@ const SmartImportModal = ({ onClose, onSave, checkDuplicate }) => {
                     </div>
                   )}
 
-                  <textarea 
-                    value={res.rawLatex} 
-                    onChange={(e) => updateResultItem(res.id, 'rawLatex', e.target.value)}
-                    onInput={(e) => {
-                      e.target.style.height = 'auto';
-                      e.target.style.height = e.target.scrollHeight + 'px';
-                    }}
-                    style={{ 
-                      width: '100%', 
-                      boxSizing: 'border-box', // Chìa khóa để không bị tràn khung
-                      minHeight: '120px', 
-                      padding: '1rem', 
-                      borderRadius: '8px', 
-                      border: '1px solid var(--color-border)', 
-                      fontFamily: 'monospace', 
-                      fontSize: '14px',
-                      resize: 'none', // Tắt thanh kéo gạch chéo ở góc
-                      backgroundColor: 'var(--color-surface-muted)',
-                      color: 'var(--color-text)',
-                      overflow: 'hidden' // Giấu thanh cuộn thừa
-                    }}
+                  <LatexEditor
+                    value={res.rawLatex}
+                    onChange={(val) => updateResultItem(res.id, 'rawLatex', val)}
+                    minHeight="120px"
+                    maxHeight="320px"
                   />
 
                   {/* Task 17: gắn phân loại cho từng câu trước khi lưu hàng loạt */}

@@ -3,6 +3,7 @@ import { X, Save } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { PROBLEM_TYPES } from '../../utils/constants';
 import ClassificationPicker from '../ClassificationPicker';
+import LatexEditor from '../LatexEditor';
 import { parseProblemLatex, reconstructProblemLatex } from '../../utils/extractFigures';
 
 const EditProblemModal = ({ problem, onClose, onSave }) => {
@@ -110,11 +111,10 @@ const EditProblemModal = ({ problem, onClose, onSave }) => {
 
           <div>
             <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: 'var(--color-text)' }}>Mã LaTeX (\begin&#123;bt&#125; ... \end&#123;bt&#125;)</label>
-            <textarea
+            <LatexEditor
               value={formData.rawLatex}
-              onChange={(e) => setFormData({...formData, rawLatex: e.target.value})}
-              rows="10"
-              style={{ width: '100%', padding: '1rem', borderRadius: '8px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)', fontFamily: 'monospace', fontSize: '14px', resize: 'vertical' }}
+              onChange={(val) => setFormData((f) => ({ ...f, rawLatex: val }))}
+              minHeight="220px"
             />
           </div>
 
