@@ -10,6 +10,7 @@ const FilterSidebar = ({
   filterTopic, onSelectBranch,
   filterDifficulty, onDifficulty,
   filterGrade, onGrade,
+  onlyUnused, onToggleOnlyUnused,
   onClear, onCollapse,
 }) => {
   const { categories, difficulties, grades } = useTaxonomy();
@@ -115,6 +116,11 @@ const FilterSidebar = ({
           ))}
         </div>
       </div>
+
+      <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.85rem', color: 'var(--color-text)', cursor: 'pointer' }}>
+        <input type="checkbox" checked={onlyUnused} onChange={onToggleOnlyUnused} />
+        Chỉ hiện bài chưa dùng
+      </label>
 
       <button className="card-btn" style={{ alignSelf: 'flex-start' }} onClick={onClear}>
         <X size={14} /> Xoá lọc
