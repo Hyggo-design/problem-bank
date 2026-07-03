@@ -12,7 +12,7 @@ import { makeSearchFields, matchFields } from '../utils/searchText';
 // ==========================================
 const DataGrid = ({
   problems, sortBy, filterTopic, filterGrade, filterDifficulty, searchTerm, selectedHe, unclassifiedMode, selectedIds,
-  usageByProblemId, onlyUnused,
+  recentUsageByProblemId, onlyUnused,
   onSelectChange, onPreviewClick, onAddToCart, onDelete, onEdit,
   onBulkAddToCart, onBulkDelete, onClearSelection, onExitUnclassified,
 }) => {
@@ -59,7 +59,7 @@ const DataGrid = ({
       if (validBranchIds && !(p.categoryIds || []).some((id) => validBranchIds.has(id))) return false;
       if (filterGrade !== 'all' && !(p.gradeIds || []).includes(filterGrade)) return false;
       if (filterDifficulty !== 'all' && !Object.values(p.difficultyByHe || {}).includes(filterDifficulty)) return false;
-      if (onlyUnused && usageByProblemId[p.id]) return false;
+      if (onlyUnused && recentUsageByProblemId[p.id]) return false;
       return true;
     });
 
@@ -72,7 +72,7 @@ const DataGrid = ({
         default: return 0;
       }
     });
-  }, [problems, sortBy, validBranchIds, filterGrade, filterDifficulty, searchTerm, selectedHe, unclassifiedMode, parentMap, searchIndex, onlyUnused, usageByProblemId]);
+  }, [problems, sortBy, validBranchIds, filterGrade, filterDifficulty, searchTerm, selectedHe, unclassifiedMode, parentMap, searchIndex, onlyUnused, recentUsageByProblemId]);
 
   // Nhãn "khớp ở đâu" cho các bài đang hiển thị (chỉ khi đang tìm).
   const matchFieldsById = useMemo(() => {
@@ -137,7 +137,7 @@ const DataGrid = ({
                 classification={classification}
                 selected={selectedIds.includes(problem.id)}
                 matchFields={matchFieldsById[problem.id]}
-                usageCount={usageByProblemId[problem.id] || 0}
+                recentUsage={recentUsageByProblemId[problem.id] || null}
                 onToggleSelect={() => onSelectChange(problem.id)}
                 onPreview={() => onPreviewClick(problem)}
                 onAddToCart={() => onAddToCart(problem)}

@@ -119,7 +119,7 @@ const FilterSidebar = ({
 
       <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.85rem', color: 'var(--color-text)', cursor: 'pointer' }}>
         <input type="checkbox" checked={onlyUnused} onChange={onToggleOnlyUnused} />
-        Chỉ hiện bài chưa dùng
+        Chỉ hiện bài chưa dùng (30 ngày qua)
       </label>
 
       <button className="card-btn" style={{ alignSelf: 'flex-start' }} onClick={onClear}>

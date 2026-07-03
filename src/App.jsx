@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import Header from './components/Header';
 import ControlsRow from './components/ControlsRow';
 import FilterSidebar from './components/FilterSidebar';
 import DataGrid from './components/DataGrid';
@@ -25,7 +24,7 @@ import { useUIState } from './hooks/useUIState';
 import { useTaxonomy } from './hooks/useTaxonomy';
 import { useAutoBackup } from './hooks/useAutoBackup';
 import { useExportHistory } from './hooks/useExportHistory';
-import { countUsageByProblemId } from './utils/usageStats';
+import { getRecentUsageByProblemId } from './utils/usageStats';
 import { useConfirm } from './components/ConfirmProvider';
 function App() {
   // 1. GỌI CÁC THƯ KÝ (Hooks) ĐỂ LẤY DỮ LIỆU
@@ -65,7 +64,7 @@ function App() {
   useEffect(() => {
     if (ui.currentView === 'feed' || ui.currentView === 'dashboard') loadHistory();
   }, [ui.currentView, loadHistory]);
-  const usageByProblemId = useMemo(() => countUsageByProblemId(historyItems), [historyItems]);
+  const recentUsageByProblemId = useMemo(() => getRecentUsageByProblemId(historyItems), [historyItems]);
 
   // 2. ĐĂNG KÝ PHÍM TẮT
   useKeyboardShortcuts({
@@ -142,16 +141,6 @@ function App() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', backgroundColor: 'var(--color-bg)', fontFamily: 'Inter, sans-serif' }}>
       
-      <Header
-        stats={{
-          total: problems.length,
-          unclassified: problems.filter(p => (p.categoryIds?.length || 0) === 0).length,
-          cartCount: cartCount,
-        }}
-        unclassifiedActive={ui.unclassifiedMode}
-        onUnclassifiedClick={goToUnclassified}
-      />
-
       {/* KHU VỰC CHÍNH — 3 cột: nav rail | (cột lọc Task 5) | cột phải */}
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
 
@@ -208,7 +197,7 @@ function App() {
                 <DataGrid
                   problems={problems}
                   sortBy={ui.sortBy} filterTopic={ui.filterTopic} filterGrade={ui.filterGrade} filterDifficulty={ui.filterDifficulty} searchTerm={ui.searchTerm}
-                  usageByProblemId={usageByProblemId} onlyUnused={ui.onlyUnused}
+                  recentUsageByProblemId={recentUsageByProblemId} onlyUnused={ui.onlyUnused}
                   selectedHe={ui.selectedHe} unclassifiedMode={ui.unclassifiedMode}
                   onExitUnclassified={() => ui.setUnclassifiedMode(false)}
                   selectedIds={ui.selectedIds}
@@ -337,7 +326,7 @@ function App() {
       {ui.selectedPreview && (
         <PreviewModal
           problem={ui.selectedPreview}
-          usageCount={usageByProblemId[ui.selectedPreview.id] || 0}
+          recentUsage={recentUsageByProblemId[ui.selectedPreview.id] || null}
           onClose={() => ui.setSelectedPreview(null)}
           onCopied={() => success('Đã chép mã LaTeX')}
         />

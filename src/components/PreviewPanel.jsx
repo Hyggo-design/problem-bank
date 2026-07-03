@@ -5,7 +5,7 @@ import { buildProblemTex } from '../utils/buildProblemTex';
 import { useTaxonomy } from '../hooks/useTaxonomy';
 import { groupClassificationByHe } from '../utils/classification';
 
-const PreviewPanel = ({ problem, onClose, onCopied, usageCount }) => {
+const PreviewPanel = ({ problem, onClose, onCopied, recentUsage }) => {
   // Gọi hook TRƯỚC mọi return sớm (luật Hooks: phải gọi cùng thứ tự mỗi lần render).
   const { categories, difficulties, grades } = useTaxonomy();
   const [hideSolution, setHideSolution] = useState(false);
@@ -106,7 +106,7 @@ const PreviewPanel = ({ problem, onClose, onCopied, usageCount }) => {
             {gradeNames.length ? ` • Lớp ${gradeNames.join(', ')}` : ''}
             {` • ${parsed.type}`}
             {(problem.figStatement || problem.figSolution) ? ' • 📐 Có hình' : ''}
-            {usageCount > 0 ? ` • 🔁 Đã dùng ${usageCount} lần` : ''}
+            {recentUsage ? ` • 🔁 Đã dùng: ${recentUsage.fileName}` : ''}
           </span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>

@@ -52,7 +52,7 @@ const ExportModal = ({ cartItems, onClose }) => {
       await invoke('write_text_file', { path: savePath, contents: content });
       
       const problemIds = cartItems.map(p => p.id);
-      await saveHistory(baseName(selected), problemIds);
+      await saveHistory(baseName(savePath), problemIds);
       
       success('Đã xuất file nội dung: ' + baseName(savePath));
       onClose();

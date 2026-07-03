@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import PreviewPanel from './PreviewPanel';
 
 // "Xem đầy đủ" = hộp thoại giữa màn (lớp phủ trong-app). Đóng bằng Esc / bấm nền mờ.
-const PreviewModal = ({ problem, onClose, onCopied, usageCount }) => {
+const PreviewModal = ({ problem, onClose, onCopied, recentUsage }) => {
   useEffect(() => {
     const onKey = (e) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', onKey);
@@ -27,7 +27,7 @@ const PreviewModal = ({ problem, onClose, onCopied, usageCount }) => {
           boxShadow: '0 10px 40px rgba(15,23,42,0.25)',
         }}
       >
-        <PreviewPanel problem={problem} onClose={onClose} onCopied={onCopied} usageCount={usageCount} />
+        <PreviewPanel problem={problem} onClose={onClose} onCopied={onCopied} recentUsage={recentUsage} />
       </div>
     </div>
   );
