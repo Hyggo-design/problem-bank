@@ -20,7 +20,7 @@ export const useUIState = () => {
   const [selectedPreview, setSelectedPreview] = useState(null);
   const [editingProblem, setEditingProblem] = useState(null);
   const [isImporting, setIsImporting] = useState(false);
-  const [currentView, setCurrentView] = useState('feed'); // 'feed' | 'cart' | 'settings'
+  const [currentView, setCurrentView] = useState('dashboard'); // 'dashboard' | 'feed' | 'cart' | 'settings' | 'trash'
 
   // 4. GĐ3 — state khung 3 cột (nav rail + lọc hệ-first)
   const [selectedHe, setSelectedHe] = useState(null);              // id hệ đang khoá (null = chưa đặt)

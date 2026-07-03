@@ -14,6 +14,7 @@ import CategoryManagerModal from './components/Modals/CategoryManagerModal';
 import NavRail from './components/NavRail';
 import SettingsPage from './components/SettingsPage';
 import TrashPage from './components/TrashPage';
+import DashboardPage from './components/DashboardPage';
 
 import { Toaster } from 'react-hot-toast';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
@@ -71,6 +72,12 @@ function App() {
   const confirm = useConfirm();
 
   // 3. CÁC HÀM XỬ LÝ SỰ KIỆN LIÊN KẾT (Business Logic)
+
+  // Dùng chung cho Header và màn Thống kê: chuyển sang "Bài", bật chế độ xem bài chưa phân loại.
+  const goToUnclassified = () => {
+    if (ui.currentView !== 'feed') ui.setCurrentView('feed');
+    ui.showUnclassified();
+  };
 
   const handleBulkDelete = async () => {
     if (ui.selectedIds.length === 0) return;
@@ -132,10 +139,7 @@ function App() {
           used: problems.reduce((sum, p) => sum + (p.timesUsed || 0), 0)
         }}
         unclassifiedActive={ui.unclassifiedMode}
-        onUnclassifiedClick={() => {
-          if (ui.currentView !== 'feed') ui.setCurrentView('feed');
-          ui.showUnclassified();
-        }}
+        onUnclassifiedClick={goToUnclassified}
       />
 
       {/* KHU VỰC CHÍNH — 3 cột: nav rail | (cột lọc Task 5) | cột phải */}
@@ -154,6 +158,15 @@ function App() {
 
         {/* CỘT PHẢI — feed / Giỏ / Cài đặt theo currentView */}
         <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', backgroundColor: 'var(--color-surface)', zIndex: 1 }}>
+
+          {ui.currentView === 'dashboard' && (
+            <DashboardPage
+              problems={problems}
+              onNavigateToHe={(heId) => { ui.selectHe(heId); ui.setCurrentView('feed'); }}
+              onNavigateToBranch={(heId, branchId) => { ui.selectHe(heId); ui.setFilterTopic(branchId); ui.setCurrentView('feed'); }}
+              onNavigateToUnclassified={goToUnclassified}
+            />
+          )}
 
           {ui.currentView === 'feed' && (
             <div style={{ display: 'flex', flex: 1, minWidth: 0, overflow: 'hidden' }}>
