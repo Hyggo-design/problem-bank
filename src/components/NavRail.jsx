@@ -1,5 +1,5 @@
 import React from 'react';
-import { PlusSquare, Upload, List, ShoppingCart, Settings, Trash2, ChevronsLeft, ChevronsRight, BarChart3 } from 'lucide-react';
+import { PlusSquare, Upload, List, ShoppingCart, Settings, Trash2, ChevronsLeft, ChevronsRight, BarChart3, LayoutGrid } from 'lucide-react';
 
 // ==========================================
 // NAV RAIL (cột 1) — điều hướng dọc kiểu Gmail, gập được.
@@ -32,6 +32,10 @@ const NavRail = ({ currentView, onNavigate, onAdd, onImport, cartCount, trashCou
       <button className={`rail-item ${currentView === 'feed' ? 'on' : ''}`} onClick={() => onNavigate('feed')}
         style={{ justifyContent: align }}>
         <List size={18} /> {lbl('Bài')}
+      </button>
+      <button className={`rail-item ${currentView === 'matrix' ? 'on' : ''}`} onClick={() => onNavigate('matrix')}
+        style={{ justifyContent: align }}>
+        <LayoutGrid size={18} /> {lbl('Tạo đề')}
       </button>
       <button className={`rail-item ${currentView === 'cart' ? 'on' : ''}`} onClick={() => onNavigate('cart')}
         style={{ justifyContent: align }}>
