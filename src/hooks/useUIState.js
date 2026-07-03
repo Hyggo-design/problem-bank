@@ -6,6 +6,7 @@ export const useUIState = () => {
   const [filterTopic, setFilterTopic] = useState('all');
   const [filterGrade, setFilterGrade] = useState('all');       // Task 16: lọc theo Lớp (grade id)
   const [filterDifficulty, setFilterDifficulty] = useState('all'); // Task 16: lọc theo Độ khó (difficulty id)
+  const [onlyUnused, setOnlyUnused] = useState(false); // chỉ hiện bài CHƯA dùng trong đề đã xuất
   const [sortBy, setSortBy] = useState('date-new');
   const searchInputRef = useRef(null);
 
@@ -34,6 +35,7 @@ export const useUIState = () => {
     setFilterTopic('all');
     setFilterGrade('all');
     setFilterDifficulty('all');
+    setOnlyUnused(false);
   };
 
   // GĐ3 — đổi hệ: xoá lựa chọn nhánh + độ khó cũ (thuộc hệ cũ); thoát chế độ chưa-phân-loại.
@@ -51,6 +53,7 @@ export const useUIState = () => {
     filterTopic, setFilterTopic,
     filterGrade, setFilterGrade,
     filterDifficulty, setFilterDifficulty,
+    onlyUnused, setOnlyUnused,
     sortBy, setSortBy,
     searchInputRef, clearFilters,
 

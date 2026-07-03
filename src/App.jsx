@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import Header from './components/Header';
 import ControlsRow from './components/ControlsRow';
 import FilterSidebar from './components/FilterSidebar';
@@ -24,6 +24,8 @@ import { useProblems } from './hooks/useProblems';
 import { useUIState } from './hooks/useUIState';
 import { useTaxonomy } from './hooks/useTaxonomy';
 import { useAutoBackup } from './hooks/useAutoBackup';
+import { useExportHistory } from './hooks/useExportHistory';
+import { countUsageByProblemId } from './utils/usageStats';
 import { useConfirm } from './components/ConfirmProvider';
 function App() {
   // 1. GỌI CÁC THƯ KÝ (Hooks) ĐỂ LẤY DỮ LIỆU
@@ -55,6 +57,15 @@ function App() {
     const firstHe = categories.filter((c) => !c.parent_id).sort((a, b) => a.position - b.position)[0];
     if (firstHe) setSelectedHe(firstHe.id);
   }, [categories, selectedHe, setSelectedHe]);
+
+  // Nguồn "đã dùng" — đếm từ export_history (KHÔNG dùng cột problems.timesUsed, cột này chết).
+  // Tải lại mỗi khi vào "Bài" hoặc "Thống kê" (gồm cả lúc mở app, vì màn mặc định là "Thống kê")
+  // để số liệu luôn mới ngay cả khi vừa xuất xong một đề rồi quay lại 1 trong 2 màn này.
+  const { historyItems, loadHistory } = useExportHistory();
+  useEffect(() => {
+    if (ui.currentView === 'feed' || ui.currentView === 'dashboard') loadHistory();
+  }, [ui.currentView, loadHistory]);
+  const usageByProblemId = useMemo(() => countUsageByProblemId(historyItems), [historyItems]);
 
   // 2. ĐĂNG KÝ PHÍM TẮT
   useKeyboardShortcuts({
@@ -176,6 +187,7 @@ function App() {
                   filterTopic={ui.filterTopic} onSelectBranch={ui.setFilterTopic}
                   filterDifficulty={ui.filterDifficulty} onDifficulty={ui.setFilterDifficulty}
                   filterGrade={ui.filterGrade} onGrade={ui.setFilterGrade}
+                  onlyUnused={ui.onlyUnused} onToggleOnlyUnused={() => ui.setOnlyUnused((v) => !v)}
                   onClear={ui.clearFilters}
                   onCollapse={() => ui.setSidebarCollapsed(true)}
                 />
@@ -197,6 +209,7 @@ function App() {
                 <DataGrid
                   problems={problems}
                   sortBy={ui.sortBy} filterTopic={ui.filterTopic} filterGrade={ui.filterGrade} filterDifficulty={ui.filterDifficulty} searchTerm={ui.searchTerm}
+                  usageByProblemId={usageByProblemId} onlyUnused={ui.onlyUnused}
                   selectedHe={ui.selectedHe} unclassifiedMode={ui.unclassifiedMode}
                   onExitUnclassified={() => ui.setUnclassifiedMode(false)}
                   selectedIds={ui.selectedIds}
@@ -325,6 +338,7 @@ function App() {
       {ui.selectedPreview && (
         <PreviewModal
           problem={ui.selectedPreview}
+          usageCount={usageByProblemId[ui.selectedPreview.id] || 0}
           onClose={() => ui.setSelectedPreview(null)}
           onCopied={() => success('Đã chép mã LaTeX')}
         />
