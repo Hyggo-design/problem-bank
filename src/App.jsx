@@ -14,6 +14,7 @@ import NavRail from './components/NavRail';
 import SettingsPage from './components/SettingsPage';
 import TrashPage from './components/TrashPage';
 import DashboardPage from './components/DashboardPage';
+import MatrixPage from './components/MatrixPage';
 
 import { Toaster } from 'react-hot-toast';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
@@ -62,7 +63,7 @@ function App() {
   // để số liệu luôn mới ngay cả khi vừa xuất xong một đề rồi quay lại 1 trong 2 màn này.
   const { historyItems, loadHistory } = useExportHistory();
   useEffect(() => {
-    if (ui.currentView === 'feed' || ui.currentView === 'dashboard') loadHistory();
+    if (ui.currentView === 'feed' || ui.currentView === 'dashboard' || ui.currentView === 'matrix') loadHistory();
   }, [ui.currentView, loadHistory]);
   const recentUsageByProblemId = useMemo(() => getRecentUsageByProblemId(historyItems), [historyItems]);
 
@@ -164,6 +165,22 @@ function App() {
               onNavigateToHe={(heId) => { ui.selectHe(heId); ui.setCurrentView('feed'); }}
               onNavigateToBranch={(heId, branchId) => { ui.selectHe(heId); ui.setFilterTopic(branchId); ui.setCurrentView('feed'); }}
               onNavigateToUnclassified={goToUnclassified}
+            />
+          )}
+
+          {ui.currentView === 'matrix' && (
+            <MatrixPage
+              problems={problems}
+              recentUsageByProblemId={recentUsageByProblemId}
+              defaultHeId={ui.selectedHe}
+              onAddManyToCart={(picked) => {
+                let added = 0;
+                picked.forEach((p) => {
+                  if (!cartItems.some((item) => item.id === p.id)) { addToCart(p); added++; }
+                });
+                if (added > 0) { success(`Đã thêm ${added} bài vào giỏ đề thi!`); ui.setCurrentView('cart'); }
+                else info('Các bài này đều đã có sẵn trong giỏ rồi ạ.');
+              }}
             />
           )}
 
