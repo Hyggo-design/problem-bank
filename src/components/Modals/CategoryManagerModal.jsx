@@ -19,6 +19,11 @@ const inputStyle = {
   fontSize: '0.9rem', flex: 1, minWidth: 0,
   backgroundColor: 'var(--color-surface)', color: 'var(--color-text)',
 };
+const miniBtn = {
+  background: 'none', border: '1px solid var(--color-border)', cursor: 'pointer',
+  color: 'var(--color-text-muted)', padding: '0.15rem 0.5rem', borderRadius: '6px',
+  fontSize: '0.72rem', fontWeight: 600,
+};
 
 // Ô nhập inline dùng chung cho "thêm" và "đổi tên".
 const InlineInput = ({ value, onChange, onCommit, onCancel, placeholder }) => (
@@ -43,6 +48,8 @@ const InlineInput = ({ value, onChange, onCommit, onCancel, placeholder }) => (
 // remount (mất focus) mỗi lần re-render. Mọi handler/state truyền qua `ctx`.
 const CategoryNode = ({ node, depth, ctx, isFirst, isLast }) => {
   const children = ctx.childrenMap[node.id] || [];
+  const hasChildren = children.length > 0;
+  const open = !!ctx.expanded[node.id];
   const [hovered, setHovered] = useState(false);
   const isRenaming = ctx.renaming && ctx.renaming.nodeId === node.id;
   const isMoving = ctx.moving === node.id;
@@ -65,6 +72,17 @@ const CategoryNode = ({ node, depth, ctx, isFirst, isLast }) => {
         onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--color-surface-muted)'; setHovered(true); }}
         onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; setHovered(false); }}
       >
+        {hasChildren ? (
+          <button
+            onClick={() => ctx.toggleExpand(node.id)}
+            aria-label={open ? 'Gập nhánh' : 'Mở nhánh'}
+            style={{ ...iconBtn, padding: 0, color: 'var(--color-text-subtle)' }}
+          >
+            {open ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
+          </button>
+        ) : (
+          <span style={{ width: 15, flexShrink: 0, display: 'inline-block' }} />
+        )}
         <span style={{ color: depth === 0 ? 'var(--color-cobalt)' : 'var(--color-text-muted)' }}>{depth === 0 ? '■' : '•'}</span>
 
         {isRenaming ? (
@@ -137,7 +155,7 @@ const CategoryNode = ({ node, depth, ctx, isFirst, isLast }) => {
         </div>
       )}
 
-      {children.map((child, i) => (
+      {open && children.map((child, i) => (
         <CategoryNode key={child.id} node={child} depth={depth + 1} ctx={ctx}
           isFirst={i === 0} isLast={i === children.length - 1} />
       ))}
@@ -263,6 +281,7 @@ const CategoryManagerModal = ({ onClose }) => {
   const [renaming, setRenaming] = useState(null); // { nodeId, value } | null
   const [moving, setMoving] = useState(null);     // nodeId | null
   const [selectedHeId, setSelectedHeId] = useState(null); // hệ đang chọn để xem thang độ khó
+  const [expanded, setExpanded] = useState({});   // { [catId]: true } — mặc định {} = gập hết (chỉ thấy các hệ)
 
   // map parent_id -> con (đã sắp theo position) + danh sách hệ gốc
   const { childrenMap, roots } = useMemo(() => {
@@ -292,6 +311,14 @@ const CategoryManagerModal = ({ onClose }) => {
   // Hệ đang chọn (bỏ qua nếu nó vừa bị xóa)
   const selectedHe = roots.find((r) => r.id === selectedHeId) || null;
 
+  // Mở/gập toàn bộ cây. "Mở tất cả" = đánh dấu mọi nhánh CÓ con; "Gập tất cả" = xoá hết.
+  const expandAll = () => {
+    const next = {};
+    for (const c of categories) if ((childrenMap[c.id] || []).length) next[c.id] = true;
+    setExpanded(next);
+  };
+  const collapseAll = () => setExpanded({});
+
   const cancel = () => { setAdding(null); setRenaming(null); setMoving(null); };
 
   const ctx = {
@@ -299,12 +326,14 @@ const CategoryManagerModal = ({ onClose }) => {
     childrenMap,
     adding, renaming, moving,
     selectedHeId,
+    expanded,
+    toggleExpand: (id) => setExpanded((e) => ({ ...e, [id]: !e[id] })),
     selectHe: (id) => setSelectedHeId((cur) => (cur === id ? null : id)), // bấm lại để bỏ chọn
     pathOf: (id) => pathMap[id] || '',
     reorderCategory: (id, dir) => tax.reorderCategory(id, dir),
     setAddValue: (v) => setAdding((a) => ({ ...a, value: v })),
     setRenameValue: (v) => setRenaming((r) => ({ ...r, value: v })),
-    startAdd: (parentId) => { cancel(); setAdding({ parentId, value: '' }); },
+    startAdd: (parentId) => { cancel(); if (parentId) setExpanded((e) => ({ ...e, [parentId]: true })); setAdding({ parentId, value: '' }); },
     startRename: (node) => { cancel(); setRenaming({ nodeId: node.id, value: node.name }); },
     startMove: (nodeId) => { cancel(); setMoving(nodeId); },
     cancel,
@@ -341,8 +370,14 @@ const CategoryManagerModal = ({ onClose }) => {
 
           {/* Cột trái: CÂY PHÂN LOẠI (có sửa) */}
           <div style={{ flex: '1 1 55%', display: 'flex', flexDirection: 'column', borderRight: '1px solid var(--color-border)', overflow: 'hidden' }}>
-            <div style={{ padding: '0.75rem 1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--color-surface-muted)' }}>
-              <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.03em' }}>Cây chuyên đề</span>
+            <div style={{ padding: '0.75rem 1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', borderBottom: '1px solid var(--color-surface-muted)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.03em' }}>Cây chuyên đề</span>
+                <div style={{ display: 'flex', gap: '0.3rem' }}>
+                  <button onClick={expandAll} style={miniBtn} title="Mở tất cả nhánh">Mở tất cả</button>
+                  <button onClick={collapseAll} style={miniBtn} title="Gập tất cả nhánh">Gập tất cả</button>
+                </div>
+              </div>
               <button onClick={() => ctx.startAdd(null)} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', padding: '0.35rem 0.7rem', borderRadius: '7px', border: '1px solid var(--color-cobalt-border)', backgroundColor: 'var(--color-cobalt-bg)', color: 'var(--color-cobalt)', fontWeight: 600, fontSize: '0.82rem', cursor: 'pointer' }}>
                 <FolderPlus size={15} /> Thêm hệ
               </button>
