@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { Virtuoso } from 'react-virtuoso';
 import { ShoppingCart, Trash2 } from 'lucide-react';
 import { useTaxonomy, getDescendantIds, getRootHeId } from '../hooks/useTaxonomy';
@@ -6,6 +6,7 @@ import { groupClassificationByHe } from '../utils/classification';
 import { useToast } from '../hooks/useToast';
 import ProblemCard from './ProblemCard';
 import { makeSearchFields, matchFields } from '../utils/searchText';
+import { rangeIds, unionSelection } from '../utils/feedSelection';
 
 // ==========================================
 // FEED THẺ CHÍNH (cuộn vô tận với Virtuoso)
@@ -13,7 +14,7 @@ import { makeSearchFields, matchFields } from '../utils/searchText';
 const DataGrid = ({
   problems, sortBy, filterTopic, filterGrade, filterDifficulty, searchTerm, selectedHe, unclassifiedMode, selectedIds,
   recentUsageByProblemId, onlyUnused,
-  onSelectChange, onPreviewClick, onAddToCart, onDelete, onEdit,
+  onSelectChange, onSetSelection, onPreviewClick, onAddToCart, onDelete, onEdit,
   onBulkAddToCart, onBulkDelete, onClearSelection, onExitUnclassified,
 }) => {
 
@@ -85,6 +86,29 @@ const DataGrid = ({
     return map;
   }, [filteredAndSorted, searchIndex, searchTerm]);
 
+  // Khung sáng ("thẻ đang ngắm") + mốc cho chọn dải.
+  const [activeIndex, setActiveIndex] = useState(-1);
+  const [anchorIndex, setAnchorIndex] = useState(-1);
+  const ids = useMemo(() => filteredAndSorted.map((p) => p.id), [filteredAndSorted]);
+
+  // Đổi bộ lọc/tìm/sắp xếp -> khung sáng về đầu danh sách.
+  useEffect(() => {
+    setActiveIndex(filteredAndSorted.length ? 0 : -1);
+    setAnchorIndex(-1);
+  }, [filteredAndSorted]);
+
+  // Bấm thẻ: Shift = gộp dải từ mốc; thường = tick/bỏ 1 thẻ và đặt mốc mới.
+  const handleCardClick = (index, e) => {
+    if (e.shiftKey && anchorIndex >= 0) {
+      onSetSelection(unionSelection(selectedIds, rangeIds(ids, anchorIndex, index)));
+      setActiveIndex(index);
+    } else {
+      onSelectChange(ids[index]);
+      setAnchorIndex(index);
+      setActiveIndex(index);
+    }
+  };
+
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', backgroundColor: 'var(--color-bg)', overflow: 'hidden' }}>
 
@@ -136,9 +160,10 @@ const DataGrid = ({
                 problem={{ ...problem, gradeNames }}
                 classification={classification}
                 selected={selectedIds.includes(problem.id)}
+                active={index === activeIndex}
                 matchFields={matchFieldsById[problem.id]}
                 recentUsage={recentUsageByProblemId[problem.id] || null}
-                onToggleSelect={() => onSelectChange(problem.id)}
+                onSelect={(e) => handleCardClick(index, e)}
                 onPreview={() => onPreviewClick(problem)}
                 onAddToCart={() => onAddToCart(problem)}
                 onEdit={() => onEdit(problem)}

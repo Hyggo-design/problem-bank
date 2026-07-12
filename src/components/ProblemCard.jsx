@@ -5,8 +5,8 @@ import { buildProblemTex } from '../utils/buildProblemTex';
 
 // Một THẺ bài tập (Phương án C — đề nổi trên "khay" xám). Bấm thân thẻ = chọn/bỏ chọn.
 const ProblemCard = ({
-  problem, classification, selected, matchFields, recentUsage,
-  onToggleSelect, onPreview, onAddToCart, onEdit, onDelete, onCopied,
+  problem, classification, selected, active, matchFields, recentUsage,
+  onSelect, onPreview, onAddToCart, onEdit, onDelete, onCopied,
 }) => {
   const [showSol, setShowSol] = useState(false);
 
@@ -20,12 +20,14 @@ const ProblemCard = ({
 
   return (
     <div
-      onClick={onToggleSelect}
+      onClick={(e) => onSelect(e)}
       style={{
         cursor: 'pointer', margin: '0 0 12px', borderRadius: 'var(--radius-md)', overflow: 'hidden',
         background: 'var(--color-surface)', position: 'relative',
         border: selected ? '1px solid var(--color-accent)' : '1px solid var(--color-border)',
         boxShadow: selected ? '0 0 0 1px var(--color-accent)' : '0 1px 3px var(--shadow)',
+        outline: active ? '2px solid var(--color-cobalt)' : 'none',
+        outlineOffset: '-2px',
       }}
     >
       {selected && (

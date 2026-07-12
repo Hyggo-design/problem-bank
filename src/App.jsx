@@ -229,6 +229,7 @@ function App() {
                   onExitUnclassified={() => ui.setUnclassifiedMode(false)}
                   selectedIds={ui.selectedIds}
                   onSelectChange={(id) => ui.setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])}
+                  onSetSelection={ui.setSelectedIds}
                   onBulkAddToCart={handleBulkAddToCart}
                   onBulkDelete={handleBulkDelete}
                   onClearSelection={() => ui.setSelectedIds([])}
