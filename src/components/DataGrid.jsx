@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { Virtuoso } from 'react-virtuoso';
 import { ShoppingCart, Trash2 } from 'lucide-react';
 import { useTaxonomy, getDescendantIds, getRootHeId } from '../hooks/useTaxonomy';
@@ -6,7 +6,7 @@ import { groupClassificationByHe } from '../utils/classification';
 import { useToast } from '../hooks/useToast';
 import ProblemCard from './ProblemCard';
 import { makeSearchFields, matchFields } from '../utils/searchText';
-import { rangeIds, unionSelection } from '../utils/feedSelection';
+import { rangeIds, unionSelection, clampIndex } from '../utils/feedSelection';
 
 // ==========================================
 // FEED THẺ CHÍNH (cuộn vô tận với Virtuoso)
@@ -90,12 +90,22 @@ const DataGrid = ({
   const [activeIndex, setActiveIndex] = useState(-1);
   const [anchorIndex, setAnchorIndex] = useState(-1);
   const ids = useMemo(() => filteredAndSorted.map((p) => p.id), [filteredAndSorted]);
+  const virtuosoRef = useRef(null);   // để cuộn thẻ đang ngắm vào tầm nhìn
+  const feedWrapRef = useRef(null);   // khung nhận phím (tabIndex)
 
   // Đổi bộ lọc/tìm/sắp xếp -> khung sáng về đầu danh sách.
   useEffect(() => {
     setActiveIndex(filteredAndSorted.length ? 0 : -1);
     setAnchorIndex(-1);
   }, [filteredAndSorted]);
+
+  // Cuộn thẻ đang ngắm vào tầm nhìn mỗi khi nó đổi.
+  useEffect(() => {
+    if (activeIndex >= 0) virtuosoRef.current?.scrollIntoView({ index: activeIndex });
+  }, [activeIndex]);
+
+  // Tự lấy tiêu điểm khung feed khi vào màn (để gõ phím ngay).
+  useEffect(() => { feedWrapRef.current?.focus(); }, []);
 
   // Bấm thẻ: Shift = gộp dải từ mốc; thường = tick/bỏ 1 thẻ và đặt mốc mới.
   const handleCardClick = (index, e) => {
@@ -106,6 +116,30 @@ const DataGrid = ({
       onSelectChange(ids[index]);
       setAnchorIndex(index);
       setActiveIndex(index);
+    }
+    feedWrapRef.current?.focus(); // giữ tiêu điểm để gõ phím tiếp
+  };
+
+  // Điều hướng bàn phím trong feed (khung có tabIndex nhận sự kiện).
+  const onKeyDown = (e) => {
+    const n = ids.length;
+    if (n === 0) return;
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      const cur = activeIndex < 0 ? 0 : activeIndex;
+      const next = clampIndex(cur + (e.key === 'ArrowDown' ? 1 : -1), n);
+      if (e.shiftKey && anchorIndex >= 0) {
+        onSetSelection(unionSelection(selectedIds, rangeIds(ids, anchorIndex, next)));
+      }
+      setActiveIndex(next);
+    } else if (e.key === ' ') {
+      e.preventDefault();
+      if (activeIndex >= 0) { onSelectChange(ids[activeIndex]); setAnchorIndex(activeIndex); }
+    } else if (e.key === 'Enter') {
+      if (activeIndex >= 0) onPreviewClick(filteredAndSorted[activeIndex]);
+    } else if ((e.key === 'a' || e.key === 'A') && e.ctrlKey && e.shiftKey) {
+      e.preventDefault();
+      onSetSelection([...ids]); // chọn tất cả bài đang hiện (theo bộ lọc)
     }
   };
 
@@ -139,8 +173,10 @@ const DataGrid = ({
         </div>
       )}
 
+      <div ref={feedWrapRef} tabIndex={0} onKeyDown={onKeyDown} style={{ flex: 1, minHeight: 0, outline: 'none' }}>
       <Virtuoso
-        style={{ flex: 1 }}
+        ref={virtuosoRef}
+        style={{ height: '100%' }}
         data={filteredAndSorted}
         components={{
           EmptyPlaceholder: () => (
@@ -174,6 +210,7 @@ const DataGrid = ({
           );
         }}
       />
+      </div>
 
       <div style={{ padding: '0.75rem 1rem', borderTop: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
         Tổng cộng <strong style={{ color: 'var(--color-text)' }}>{filteredAndSorted.length}</strong> bài thỏa điều kiện.

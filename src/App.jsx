@@ -72,7 +72,6 @@ function App() {
     onNewProblem: () => ui.setShowAddModal(true),
     onSearch: () => ui.searchInputRef.current?.focus(),
     onEscape: () => ui.setSelectedPreview(null),
-    onSelectAll: () => {}, 
     onDeselectAll: () => ui.setSelectedIds([]),
     onDelete: () => handleBulkDelete(),
     onExport: () => ui.setShowExportModal(true),
