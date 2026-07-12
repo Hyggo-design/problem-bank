@@ -1,6 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getDb } from '../utils/db';
 import { findDuplicates } from '../utils/findDuplicates';
+import {
+  insertProblem, updateProblemRow, insertImportedProblems,
+  softDeleteProblem, softDeleteMany, restoreProblemRow, purgeProblemRow, emptyTrashRows,
+} from '../utils/problemWrites';
 
 // Hàm bọc thép chống crash khi parse JSON
 const safeJSONParse = (str) => {
@@ -11,26 +15,6 @@ const safeJSONParse = (str) => {
     return [];
   }
 };
-
-// Lưu phân loại của một bài vào 3 bảng nối theo kiểu XÓA-RỒI-GHI (dùng được cả khi
-// thêm mới lẫn khi sửa: luôn dọn sạch rồi ghi lại đúng trạng thái hiện tại).
-// cls = { categoryIds: string[], difficultyByHe: {heId: diffId}, gradeIds: string[] }
-const saveClassification = async (db, problemId, cls = {}) => {
-  await db.execute('DELETE FROM problem_categories WHERE problem_id = $1', [problemId]);
-  await db.execute('DELETE FROM problem_difficulties WHERE problem_id = $1', [problemId]);
-  await db.execute('DELETE FROM problem_grades WHERE problem_id = $1', [problemId]);
-
-  for (const cid of (cls.categoryIds || [])) {
-    await db.execute('INSERT INTO problem_categories (problem_id, category_id) VALUES ($1, $2)', [problemId, cid]);
-  }
-  for (const [heId, diffId] of Object.entries(cls.difficultyByHe || {})) {
-    if (diffId) await db.execute('INSERT INTO problem_difficulties (problem_id, he_id, difficulty_id) VALUES ($1, $2, $3)', [problemId, heId, diffId]);
-  }
-  for (const gid of (cls.gradeIds || [])) {
-    await db.execute('INSERT INTO problem_grades (problem_id, grade_id) VALUES ($1, $2)', [problemId, gid]);
-  }
-};
-
 
 export const useProblems = () => {
   const [problems, setProblems] = useState([]);
@@ -82,175 +66,119 @@ export const useProblems = () => {
 
   useEffect(() => { loadProblems(); }, [loadProblems]);
 
-  // 2. THÊM BÀI MỚI (Dùng INSERT OR REPLACE để chống trùng ID)
+  // Mọi hàm ghi dưới đây trả về TRUE nếu CSDL ghi xong, FALSE nếu hỏng (không nuốt lỗi âm thầm).
+  // State trên màn CHỈ đổi SAU KHI ghi xong -> màn hình không bao giờ hiện "bài ma" chưa nằm trong CSDL.
+
+  // 2. THÊM BÀI MỚI
   const addProblem = async (newProblem) => {
     try {
       // Validate cơ bản chống dữ liệu rác
       if (!newProblem || !newProblem.id) throw new Error("Bài tập thiếu ID");
-
       const db = await getDb();
-      const optionsStr = JSON.stringify(newProblem.options || []);
-      
-      await db.execute(
-        `INSERT OR REPLACE INTO problems (id, statement, solution, topic, level, tags, dateAdded, timesUsed, type, shortAnswer, options, metadata, figStatement, figSolution) 
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
-        [
-          newProblem.id, 
-          newProblem.statement || '', 
-          newProblem.solution || '', 
-          newProblem.topic || 'Chưa phân loại', 
-          parseInt(newProblem.level) || 1, 
-          newProblem.tags || '', 
-          newProblem.dateAdded || new Date().toISOString(), 
-          newProblem.timesUsed || 0,
-          newProblem.type || 'Tự luận', 
-          newProblem.shortAnswer || '', 
-          optionsStr,
-          "{}", // Cột metadata dự phòng
-          newProblem.figStatement || '',
-          newProblem.figSolution || ''
-        ]
-      );
-
-      // Lưu phân loại mới (cây + độ khó theo hệ + lớp) đi kèm trên object newProblem.
-      await saveClassification(db, newProblem.id, newProblem);
-
+      await insertProblem(db, newProblem);
       setProblems(prev => [newProblem, ...prev.filter(p => p.id !== newProblem.id)]);
-    } catch (error) { console.error("Lỗi thêm bài:", error); }
+      return true;
+    } catch (error) {
+      console.error("Lỗi thêm bài:", error);
+      return false;
+    }
   };
 
   // 3. CẬP NHẬT BÀI
   const updateProblem = async (updatedProblem) => {
     try {
       const db = await getDb();
-      const optionsStr = JSON.stringify(updatedProblem.options || []);
-
-      await db.execute(
-        `UPDATE problems SET statement = $1, solution = $2, topic = $3, level = $4, tags = $5, type = $6, shortAnswer = $7, options = $8, figStatement = $9, figSolution = $10 WHERE id = $11`,
-        [
-          updatedProblem.statement, updatedProblem.solution || '', updatedProblem.topic,
-          updatedProblem.level, updatedProblem.tags || '', updatedProblem.type || 'Tự luận',
-          updatedProblem.shortAnswer || '', optionsStr,
-          updatedProblem.figStatement || '', updatedProblem.figSolution || '',
-          updatedProblem.id
-        ]
-      );
-
-      // Task 14: lưu lại phân loại mới (cây + độ khó theo hệ + lớp) đi kèm trên object.
-      await saveClassification(db, updatedProblem.id, updatedProblem);
-
+      await updateProblemRow(db, updatedProblem);
       setProblems(prev => prev.map(p => p.id === updatedProblem.id ? updatedProblem : p));
-    } catch (error) { console.error("Lỗi cập nhật:", error); }
+      return true;
+    } catch (error) {
+      console.error("Lỗi cập nhật:", error);
+      return false;
+    }
   };
 
-  // 4. XÓA MỀM 1 BÀI -> chuyển vào Thùng rác (đánh dấu deletedAt, nạp lại để 2 danh sách khớp DB)
+  // 4. XÓA MỀM 1 BÀI -> chuyển vào Thùng rác (nạp lại để 2 danh sách khớp DB)
   const deleteProblem = async (id) => {
     try {
       const db = await getDb();
-      await db.execute('UPDATE problems SET deletedAt = $1 WHERE id = $2', [new Date().toISOString(), id]);
+      await softDeleteProblem(db, id);
       await loadProblems();
-    } catch (error) { console.error("Lỗi xoá mềm:", error); }
+      return true;
+    } catch (error) {
+      console.error("Lỗi xoá mềm:", error);
+      return false;
+    }
   };
 
-  // 5. XÓA MỀM HÀNG LOẠT -> chuyển nhiều bài vào Thùng rác bằng 1 câu lệnh
+  // 5. XÓA MỀM HÀNG LOẠT
   const bulkDeleteProblems = async (idsToDelete) => {
-    if (!idsToDelete || idsToDelete.length === 0) return;
+    if (!idsToDelete || idsToDelete.length === 0) return true;
     try {
       const db = await getDb();
-      const now = new Date().toISOString();
-      // $1 = thời điểm xoá; các id bắt đầu từ $2
-      const placeholders = idsToDelete.map((_, i) => `$${i + 2}`).join(', ');
-      await db.execute(`UPDATE problems SET deletedAt = $1 WHERE id IN (${placeholders})`, [now, ...idsToDelete]);
+      await softDeleteMany(db, idsToDelete);
       await loadProblems();
-    } catch (error) { console.error("Lỗi xoá mềm hàng loạt:", error); }
+      return true;
+    } catch (error) {
+      console.error("Lỗi xoá mềm hàng loạt:", error);
+      return false;
+    }
   };
 
   // 5b. KHÔI PHỤC: bỏ dấu xoá -> bài về lại feed nguyên phân loại
   const restoreProblem = async (id) => {
     try {
       const db = await getDb();
-      await db.execute('UPDATE problems SET deletedAt = NULL WHERE id = $1', [id]);
+      await restoreProblemRow(db, id);
       await loadProblems();
-    } catch (error) { console.error("Lỗi khôi phục:", error); }
+      return true;
+    } catch (error) {
+      console.error("Lỗi khôi phục:", error);
+      return false;
+    }
   };
 
-  // 5c. XÓA HẲN 1 BÀI: xoá bản ghi + dọn 3 bảng nối phân loại (vá luôn rác mồ côi)
+  // 5c. XÓA HẲN 1 BÀI: xoá bản ghi + dọn 3 bảng nối phân loại
   const purgeProblem = async (id) => {
     try {
       const db = await getDb();
-      await db.execute('DELETE FROM problems WHERE id = $1', [id]);
-      await db.execute('DELETE FROM problem_categories WHERE problem_id = $1', [id]);
-      await db.execute('DELETE FROM problem_difficulties WHERE problem_id = $1', [id]);
-      await db.execute('DELETE FROM problem_grades WHERE problem_id = $1', [id]);
+      await purgeProblemRow(db, id);
       await loadProblems();
-    } catch (error) { console.error("Lỗi xoá hẳn:", error); }
+      return true;
+    } catch (error) {
+      console.error("Lỗi xoá hẳn:", error);
+      return false;
+    }
   };
 
   // 5d. XÓA SẠCH THÙNG RÁC: xoá hẳn mọi bài đã đánh dấu xoá + dọn bảng nối của chúng
   const emptyTrash = async () => {
     try {
       const db = await getDb();
-      const rows = await db.select('SELECT id FROM problems WHERE deletedAt IS NOT NULL');
-      const ids = rows.map((r) => r.id);
-      if (ids.length === 0) return;
-      const ph = ids.map((_, i) => `$${i + 1}`).join(', ');
-      await db.execute(`DELETE FROM problem_categories WHERE problem_id IN (${ph})`, ids);
-      await db.execute(`DELETE FROM problem_difficulties WHERE problem_id IN (${ph})`, ids);
-      await db.execute(`DELETE FROM problem_grades WHERE problem_id IN (${ph})`, ids);
-      await db.execute('DELETE FROM problems WHERE deletedAt IS NOT NULL');
+      await emptyTrashRows(db);
       await loadProblems();
-    } catch (error) { console.error("Lỗi dọn thùng rác:", error); }
+      return true;
+    } catch (error) {
+      console.error("Lỗi dọn thùng rác:", error);
+      return false;
+    }
   };
 
-  // 6. LƯU IMPORT HÀNG LOẠT (Tối ưu bằng Transaction/Batch)
+  // 6. LƯU IMPORT HÀNG LOẠT
   const saveImportedProblems = async (newProblems) => {
-    if (!newProblems || newProblems.length === 0) return;
+    if (!newProblems || newProblems.length === 0) return true;
     try {
       const db = await getDb();
-      
-      // Xây dựng Bulk Insert (Chèn nhiều dòng trong 1 lệnh duy nhất)
-      // SQLite giới hạn số tham số (parameters), nên ta cắt nhỏ ra mỗi 50 bài 1 lần (chunk)
-      const chunkSize = 50;
-      
-      for (let i = 0; i < newProblems.length; i += chunkSize) {
-        const chunk = newProblems.slice(i, i + chunkSize);
-        
-        // Tạo chuỗi ($1, $2...), ($13, $14...) tương ứng với số bài
-        const chunkPlaceholders = chunk.map((_, index) => {
-          const offset = index * 12;
-          return `($${offset + 1}, $${offset + 2}, $${offset + 3}, $${offset + 4}, $${offset + 5}, $${offset + 6}, $${offset + 7}, $${offset + 8}, $${offset + 9}, $${offset + 10}, $${offset + 11}, $${offset + 12})`;
-        }).join(', ');
-        
-        const query = `INSERT OR REPLACE INTO problems (id, statement, solution, topic, level, tags, dateAdded, timesUsed, type, shortAnswer, options, metadata) VALUES ${chunkPlaceholders}`;
-        
-        // Gom toàn bộ data của 50 bài vào 1 mảng dẹt (flat array)
-        const bindValues = [];
-        for (const prob of chunk) {
-          const optionsStr = JSON.stringify(prob.options || []);
-          bindValues.push(
-            prob.id, prob.statement || '', prob.solution || '', prob.topic || 'Chưa phân loại', 
-            parseInt(prob.level) || 1, prob.tags || '', prob.dateAdded || new Date().toISOString(), 
-            prob.timesUsed || 0, prob.type || 'Tự luận', prob.shortAnswer || '', optionsStr, "{}"
-          );
-        }
-        
-        await db.execute(query, bindValues);
-      }
-
-      // Task 17: lưu phân loại (cây + độ khó theo hệ + lớp) cho TỪNG bài import,
-      // sau khi đã chèn xong các bài. Phân loại đi kèm trên mỗi object newProblem.
-      for (const prob of newProblems) {
-        await saveClassification(db, prob.id, prob);
-      }
-
+      await insertImportedProblems(db, newProblems);
       // Gom lại update State 1 lần duy nhất để không giật màn hình
       setProblems(prev => {
         const existingIds = new Set(prev.map(p => p.id));
         const trulyNew = newProblems.filter(p => !existingIds.has(p.id));
         return [...trulyNew, ...prev];
       });
+      return true;
     } catch (error) {
       console.error("Lỗi Import:", error);
+      return false;
     }
   };
 
