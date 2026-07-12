@@ -94,11 +94,14 @@ function App() {
     if (ui.selectedIds.length === 0) return;
     const ids = ui.selectedIds;
     if (await confirm({ title: 'Chuyển vào Thùng rác', message: `Thầy có chắc chắn muốn xóa ${ids.length} bài tập đã chọn? (Sẽ chuyển vào Thùng rác)`, danger: true, confirmLabel: 'Xoá' })) {
-      bulkDeleteProblems(ids);
-      ids.forEach((id) => removeFromCart(id));
-      ui.setSelectedIds([]);
-      ui.setSelectedPreview(null);
-      success(`Đã chuyển ${ids.length} bài vào Thùng rác`);
+      if (await bulkDeleteProblems(ids)) {
+        ids.forEach((id) => removeFromCart(id));
+        ui.setSelectedIds([]);
+        ui.setSelectedPreview(null);
+        success(`Đã chuyển ${ids.length} bài vào Thùng rác`);
+      } else {
+        error('Chưa xoá được — thử lại nhé.');
+      }
     }
   };
 
@@ -231,11 +234,16 @@ function App() {
                   onClearSelection={() => ui.setSelectedIds([])}
                   onPreviewClick={(prob) => ui.setSelectedPreview(prob)}
                   onAddToCart={(prob) => { addToCart(prob); success('Đã thêm vào giỏ!'); }}
-                  onDelete={(id) => {
-                    deleteProblem(id);
-                    removeFromCart(id);
-                    if (ui.selectedPreview?.id === id) ui.setSelectedPreview(null);
-                    undoToast('Đã chuyển vào thùng rác', () => restoreProblem(id));
+                  onDelete={async (id) => {
+                    if (await deleteProblem(id)) {
+                      removeFromCart(id);
+                      if (ui.selectedPreview?.id === id) ui.setSelectedPreview(null);
+                      undoToast('Đã chuyển vào thùng rác', async () => {
+                        if (!(await restoreProblem(id))) error('Chưa khôi phục được — thử lại nhé.');
+                      });
+                    } else {
+                      error('Chưa xoá được — thử lại nhé.');
+                    }
                   }}
                   onEdit={(prob) => ui.setEditingProblem(prob)}
                 />
@@ -271,9 +279,9 @@ function App() {
           {ui.currentView === 'trash' && (
             <TrashPage
               items={trashedProblems}
-              onRestore={(id) => { restoreProblem(id); success('Đã khôi phục bài'); }}
-              onPurge={(id) => { purgeProblem(id); success('Đã xoá hẳn'); }}
-              onEmptyAll={() => { emptyTrash(); success('Đã dọn sạch thùng rác'); }}
+              onRestore={async (id) => { if (await restoreProblem(id)) success('Đã khôi phục bài'); else error('Chưa khôi phục được — thử lại nhé.'); }}
+              onPurge={async (id) => { if (await purgeProblem(id)) success('Đã xoá hẳn'); else error('Chưa xoá hẳn được — thử lại nhé.'); }}
+              onEmptyAll={async () => { if (await emptyTrash()) success('Đã dọn sạch thùng rác'); else error('Chưa dọn được — thử lại nhé.'); }}
             />
           )}
         </div>
