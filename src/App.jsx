@@ -46,7 +46,7 @@ function App() {
   const ui = useUIState();
   useAutoBackup(); // tự sao lưu khi đóng app
   const { cartItems, addToCart, removeFromCart, clearCart, cartCount } = useCart();
-  const { success, info, undoToast } = useToast();
+  const { success, error, info, undoToast } = useToast();
   const [pendingSave, setPendingSave] = useState(null); // { type: 'add' | 'edit', problem, duplicates }
 
   // GĐ3 — đặt hệ mặc định = hệ đầu (theo position) khi taxonomy tải xong.
@@ -116,21 +116,28 @@ function App() {
     ui.setSelectedIds([]); 
   };
 
-  const handleConfirmDuplicateSave = () => {
+  const handleConfirmDuplicateSave = async () => {
     if (!pendingSave) return;
     const { type, problem } = pendingSave;
-    
+
     if (type === 'add') {
-      addProblem(problem);
-      ui.setShowAddModal(false);
-      success('Đã thêm bài tập!');
-      ui.setSelectedPreview(problem);
+      if (await addProblem(problem)) {
+        ui.setShowAddModal(false);
+        success('Đã thêm bài tập!');
+        ui.setSelectedPreview(problem);
+      } else {
+        error('Chưa lưu được — ổ đĩa hoặc CSDL đang trục trặc. Bài CHƯA được lưu, Thầy thử lại nhé.');
+      }
     } else if (type === 'edit') {
-      updateProblem(problem);
-      ui.setEditingProblem(null);
-      success('Cập nhật thành công!');
-      if (ui.selectedPreview?.id === problem.id) ui.setSelectedPreview(problem);
+      if (await updateProblem(problem)) {
+        ui.setEditingProblem(null);
+        success('Cập nhật thành công!');
+        if (ui.selectedPreview?.id === problem.id) ui.setSelectedPreview(problem);
+      } else {
+        error('Chưa lưu được thay đổi — CSDL đang trục trặc. Thầy thử lại nhé.');
+      }
     }
+    // Lưu hỏng: đóng cảnh báo trùng nhưng GIỮ modal Thêm/Sửa để Thầy thử lại (không mất nội dung đã gõ).
     setPendingSave(null);
   };
 
@@ -277,17 +284,18 @@ function App() {
       {ui.showAddModal && (
         <AddProblemModal 
           onClose={() => ui.setShowAddModal(false)} 
-          onSave={(prob) => {
+          onSave={async (prob) => {
             const dups = checkDuplicate(prob.statement, prob.solution);
             if (dups.length) {
               setPendingSave({ type: 'add', problem: prob, duplicates: dups });
-            } else {
-              addProblem(prob);
+            } else if (await addProblem(prob)) {
               ui.setShowAddModal(false);
               success('Đã thêm bài tập!');
               ui.setSelectedPreview(prob);
+            } else {
+              error('Chưa lưu được — ổ đĩa hoặc CSDL đang trục trặc. Bài CHƯA được lưu, Thầy thử lại nhé.');
             }
-          }} 
+          }}
         />
       )}
 
@@ -295,17 +303,18 @@ function App() {
         <EditProblemModal 
           problem={ui.editingProblem} 
           onClose={() => ui.setEditingProblem(null)} 
-          onSave={(prob) => {
+          onSave={async (prob) => {
             const dups = checkDuplicate(prob.statement, prob.solution, prob.id);
             if (dups.length) {
               setPendingSave({ type: 'edit', problem: prob, duplicates: dups });
-            } else {
-              updateProblem(prob);
+            } else if (await updateProblem(prob)) {
               ui.setEditingProblem(null);
               success('Cập nhật thành công!');
               if (ui.selectedPreview?.id === prob.id) ui.setSelectedPreview(prob);
+            } else {
+              error('Chưa lưu được thay đổi — CSDL đang trục trặc. Thầy thử lại nhé.');
             }
-          }} 
+          }}
         />
       )}
 
@@ -313,10 +322,13 @@ function App() {
         <SmartImportModal 
           onClose={() => ui.setShowImportModal(false)} 
           checkDuplicate={checkDuplicate}
-          onSave={(newProbs) => {
-            saveImportedProblems(newProbs);
-            success(`Cập nhật ${newProbs.length} bài thành công!`);
-            ui.setShowImportModal(false);
+          onSave={async (newProbs) => {
+            if (await saveImportedProblems(newProbs)) {
+              success(`Cập nhật ${newProbs.length} bài thành công!`);
+              ui.setShowImportModal(false);
+            } else {
+              error('Chưa nhập được — CSDL đang trục trặc. Thầy thử lại nhé.');
+            }
           }}
         />
       )}
