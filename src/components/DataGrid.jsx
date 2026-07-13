@@ -112,6 +112,7 @@ const DataGrid = ({
     if (e.shiftKey && anchorIndex >= 0) {
       onSetSelection(unionSelection(selectedIds, rangeIds(ids, anchorIndex, index)));
       setActiveIndex(index);
+      window.getSelection()?.removeAllRanges(); // lau vùng bôi đen text (nếu có) khi Shift-chọn dải
     } else {
       onSelectChange(ids[index]);
       setAnchorIndex(index);
@@ -173,7 +174,13 @@ const DataGrid = ({
         </div>
       )}
 
-      <div ref={feedWrapRef} tabIndex={0} onKeyDown={onKeyDown} style={{ flex: 1, minHeight: 0, outline: 'none' }}>
+      <div
+        ref={feedWrapRef}
+        tabIndex={0}
+        onKeyDown={onKeyDown}
+        onMouseDown={(e) => { if (e.shiftKey) e.preventDefault(); }} // chặn bôi đen text khi Shift-bấm chọn dải
+        style={{ flex: 1, minHeight: 0, outline: 'none' }}
+      >
       <Virtuoso
         ref={virtuosoRef}
         style={{ height: '100%' }}
