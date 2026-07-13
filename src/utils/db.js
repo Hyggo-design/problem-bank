@@ -67,7 +67,7 @@ export const getDb = () => {
             level INTEGER,
             tags TEXT,
             dateAdded TEXT,
-            timesUsed INTEGER,
+            timesUsed INTEGER, -- LEGACY: cột chết, không ai ghi/đọc. "Đã dùng" tính từ export_history. Giữ cột để không phá DB cũ (không migration xoá).
             type TEXT,
             shortAnswer TEXT,
             options TEXT,

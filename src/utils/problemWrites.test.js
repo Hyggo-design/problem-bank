@@ -54,9 +54,19 @@ describe('problemWrites — biên rỗng là no-op (không gọi execute)', () =
   });
 });
 
-test('insertProblem: db ổn thì có chèn vào bảng problems', async () => {
+test('insertProblem: db ổn thì có chèn vào bảng problems, KHÔNG còn cột timesUsed', async () => {
   const db = okDb();
   await insertProblem(db, sample);
   const sqls = db.execute.mock.calls.map((c) => c[0]);
   expect(sqls.some((s) => /INSERT OR REPLACE INTO problems/.test(s))).toBe(true);
+  // timesUsed đã dọn (cột chết) — không câu INSERT nào được nhắc tới nó nữa.
+  expect(sqls.some((s) => /timesUsed/.test(s))).toBe(false);
+});
+
+test('insertImportedProblems: chèn hàng loạt cũng KHÔNG còn cột timesUsed', async () => {
+  const db = okDb();
+  await insertImportedProblems(db, [sample, { ...sample, id: 'p2' }]);
+  const sqls = db.execute.mock.calls.map((c) => c[0]);
+  expect(sqls.some((s) => /INSERT OR REPLACE INTO problems/.test(s))).toBe(true);
+  expect(sqls.some((s) => /timesUsed/.test(s))).toBe(false);
 });

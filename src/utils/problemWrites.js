@@ -25,8 +25,8 @@ export const saveClassification = async (db, problemId, cls = {}) => {
 export const insertProblem = async (db, p) => {
   const optionsStr = JSON.stringify(p.options || []);
   await db.execute(
-    `INSERT OR REPLACE INTO problems (id, statement, solution, topic, level, tags, dateAdded, timesUsed, type, shortAnswer, options, metadata, figStatement, figSolution)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
+    `INSERT OR REPLACE INTO problems (id, statement, solution, topic, level, tags, dateAdded, type, shortAnswer, options, metadata, figStatement, figSolution)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
     [
       p.id,
       p.statement || '',
@@ -35,7 +35,6 @@ export const insertProblem = async (db, p) => {
       parseInt(p.level) || 1,
       p.tags || '',
       p.dateAdded || new Date().toISOString(),
-      p.timesUsed || 0,
       p.type || 'Tự luận',
       p.shortAnswer || '',
       optionsStr,
@@ -73,11 +72,11 @@ export const insertImportedProblems = async (db, list) => {
     const chunk = list.slice(i, i + chunkSize);
 
     const chunkPlaceholders = chunk.map((_, index) => {
-      const offset = index * 12;
-      return `($${offset + 1}, $${offset + 2}, $${offset + 3}, $${offset + 4}, $${offset + 5}, $${offset + 6}, $${offset + 7}, $${offset + 8}, $${offset + 9}, $${offset + 10}, $${offset + 11}, $${offset + 12})`;
+      const offset = index * 11;
+      return `($${offset + 1}, $${offset + 2}, $${offset + 3}, $${offset + 4}, $${offset + 5}, $${offset + 6}, $${offset + 7}, $${offset + 8}, $${offset + 9}, $${offset + 10}, $${offset + 11})`;
     }).join(', ');
 
-    const query = `INSERT OR REPLACE INTO problems (id, statement, solution, topic, level, tags, dateAdded, timesUsed, type, shortAnswer, options, metadata) VALUES ${chunkPlaceholders}`;
+    const query = `INSERT OR REPLACE INTO problems (id, statement, solution, topic, level, tags, dateAdded, type, shortAnswer, options, metadata) VALUES ${chunkPlaceholders}`;
 
     const bindValues = [];
     for (const prob of chunk) {
@@ -85,7 +84,7 @@ export const insertImportedProblems = async (db, list) => {
       bindValues.push(
         prob.id, prob.statement || '', prob.solution || '', prob.topic || 'Chưa phân loại',
         parseInt(prob.level) || 1, prob.tags || '', prob.dateAdded || new Date().toISOString(),
-        prob.timesUsed || 0, prob.type || 'Tự luận', prob.shortAnswer || '', optionsStr, "{}"
+        prob.type || 'Tự luận', prob.shortAnswer || '', optionsStr, "{}"
       );
     }
 

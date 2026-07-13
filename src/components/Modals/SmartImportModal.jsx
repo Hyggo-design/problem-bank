@@ -204,8 +204,7 @@ const SmartImportModal = ({ onClose, onSave, checkDuplicate }) => {
         categoryIds: item.cls?.categoryIds || [],
         difficultyByHe: item.cls?.difficultyByHe || {},
         gradeIds: item.cls?.gradeIds || [],
-        dateAdded: new Date().toISOString(),
-        timesUsed: 0
+        dateAdded: new Date().toISOString()
       };
     });
     onSave(finalProblems);
