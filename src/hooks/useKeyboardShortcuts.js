@@ -5,7 +5,6 @@ export const useKeyboardShortcuts = ({
   onNewProblem,
   onSearch,
   onEscape,
-  onSelectAll,
   onDeselectAll,
   onDelete,
   onExport,
@@ -31,7 +30,6 @@ export const useKeyboardShortcuts = ({
     hotkeys('ctrl+n', (e) => { e.preventDefault(); onNewProblem(); });
     hotkeys('ctrl+f', (e) => { e.preventDefault(); onSearch(); });
     hotkeys('escape', () => { onEscape(); });
-    hotkeys('ctrl+shift+a', (e) => { e.preventDefault(); onSelectAll(); });
     hotkeys('ctrl+shift+n', (e) => { e.preventDefault(); onDeselectAll(); });
     hotkeys('del, backspace', () => { onDelete(); });
     hotkeys('ctrl+e', (e) => { e.preventDefault(); onExport(); });
@@ -43,7 +41,6 @@ export const useKeyboardShortcuts = ({
       hotkeys.unbind('ctrl+n');
       hotkeys.unbind('ctrl+f');
       hotkeys.unbind('escape');
-      hotkeys.unbind('ctrl+shift+a');
       hotkeys.unbind('ctrl+shift+n');
       hotkeys.unbind('del, backspace');
       hotkeys.unbind('ctrl+e');
@@ -56,7 +53,6 @@ export const useKeyboardShortcuts = ({
     onNewProblem,
     onSearch,
     onEscape,
-    onSelectAll,
     onDeselectAll,
     onDelete,
     onExport,

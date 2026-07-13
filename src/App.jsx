@@ -72,7 +72,6 @@ function App() {
     onNewProblem: () => ui.setShowAddModal(true),
     onSearch: () => ui.searchInputRef.current?.focus(),
     onEscape: () => ui.setSelectedPreview(null),
-    onSelectAll: () => {}, 
     onDeselectAll: () => ui.setSelectedIds([]),
     onDelete: () => handleBulkDelete(),
     onExport: () => ui.setShowExportModal(true),
@@ -229,6 +228,7 @@ function App() {
                   onExitUnclassified={() => ui.setUnclassifiedMode(false)}
                   selectedIds={ui.selectedIds}
                   onSelectChange={(id) => ui.setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])}
+                  onSetSelection={ui.setSelectedIds}
                   onBulkAddToCart={handleBulkAddToCart}
                   onBulkDelete={handleBulkDelete}
                   onClearSelection={() => ui.setSelectedIds([])}
