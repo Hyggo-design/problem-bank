@@ -80,8 +80,7 @@ const AddProblemModal = ({ onClose, onSave }) => {
       categoryIds: cls.categoryIds,
       difficultyByHe: cls.difficultyByHe,
       gradeIds: cls.gradeIds,
-      dateAdded: new Date().toISOString(),
-      timesUsed: 0
+      dateAdded: new Date().toISOString()
     };
 
     onSave(newProblem);
