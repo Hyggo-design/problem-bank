@@ -10,6 +10,7 @@ import SmartImportModal from './components/Modals/SmartImportModal';
 import ExportModal from './components/Modals/ExportModal';
 import DuplicateWarningModal from './components/Modals/DuplicateWarningModal';
 import CategoryManagerModal from './components/Modals/CategoryManagerModal';
+import TagManagerModal from './components/Modals/TagManagerModal';
 import NavRail from './components/NavRail';
 import SettingsPage from './components/SettingsPage';
 import TrashPage from './components/TrashPage';
@@ -42,6 +43,8 @@ function App() {
     purgeProblem,
     emptyTrash,
     saveImportedProblems,
+    renameTag,
+    deleteTag,
     checkDuplicate
   } = useProblems();
   const ui = useUIState();
@@ -278,7 +281,7 @@ function App() {
           )}
 
           {ui.currentView === 'settings' && (
-            <SettingsPage onManageCategories={() => ui.setShowCategoryManager(true)} />
+            <SettingsPage onManageCategories={() => ui.setShowCategoryManager(true)} onManageTags={() => ui.setShowTagManager(true)} />
           )}
 
           {ui.currentView === 'trash' && (
@@ -366,6 +369,15 @@ function App() {
 
       {ui.showCategoryManager && (
         <CategoryManagerModal onClose={() => ui.setShowCategoryManager(false)} />
+      )}
+
+      {ui.showTagManager && (
+        <TagManagerModal
+          problems={problems}
+          onRenameTag={renameTag}
+          onDeleteTag={deleteTag}
+          onClose={() => ui.setShowTagManager(false)}
+        />
       )}
 
       {ui.selectedPreview && (
