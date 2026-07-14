@@ -6,7 +6,7 @@ import ClassificationPicker from '../ClassificationPicker';
 import LatexEditor from '../LatexEditor';
 import { parseProblemLatex } from '../../utils/extractFigures';
 
-const AddProblemModal = ({ onClose, onSave }) => {
+const AddProblemModal = ({ onClose, onSave, allTags = [] }) => {
 
   // 2. Khai báo hàm tạo dữ liệu gốc (LaTeX, loại câu, ghi chú)
   const getInitialFormData = () => ({
@@ -126,7 +126,7 @@ const AddProblemModal = ({ onClose, onSave }) => {
           {/* Phân loại mới: cây chuyên đề + độ khó theo hệ + lớp + tag (thay 3 ô cũ) */}
           <div>
             <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: 'var(--color-text)', fontSize: '0.9rem' }}>Phân loại</label>
-            <ClassificationPicker value={cls} onChange={setCls} />
+            <ClassificationPicker value={cls} onChange={setCls} allTags={allTags} />
           </div>
 
           {/* Nút lưu */}

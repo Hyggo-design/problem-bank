@@ -6,7 +6,7 @@ import ClassificationPicker from '../ClassificationPicker';
 import LatexEditor from '../LatexEditor';
 import { parseProblemLatex, reconstructProblemLatex } from '../../utils/extractFigures';
 
-const EditProblemModal = ({ problem, onClose, onSave }) => {
+const EditProblemModal = ({ problem, onClose, onSave, allTags = [] }) => {
   // Mã LaTeX + loại câu + ghi chú (các trường còn ở form). Chủ đề/độ khó/lớp/tag
   // giờ do ClassificationPicker quản lý (state `cls` bên dưới).
   const [formData, setFormData] = useState({
@@ -131,7 +131,7 @@ const EditProblemModal = ({ problem, onClose, onSave }) => {
           {/* Phân loại mới: cây chuyên đề + độ khó theo hệ + lớp + tag (thay 3 ô cũ) */}
           <div>
             <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: 'var(--color-text)', fontSize: '0.9rem' }}>Phân loại</label>
-            <ClassificationPicker value={cls} onChange={setCls} />
+            <ClassificationPicker value={cls} onChange={setCls} allTags={allTags} />
           </div>
 
           {/* Nút lưu */}

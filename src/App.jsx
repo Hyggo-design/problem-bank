@@ -26,6 +26,7 @@ import { useTaxonomy } from './hooks/useTaxonomy';
 import { useAutoBackup } from './hooks/useAutoBackup';
 import { useExportHistory } from './hooks/useExportHistory';
 import { getRecentUsageByProblemId } from './utils/usageStats';
+import { buildTagIndex } from './utils/tagUtils';
 import { useConfirm } from './components/ConfirmProvider';
 function App() {
   // 1. GỌI CÁC THƯ KÝ (Hooks) ĐỂ LẤY DỮ LIỆU
@@ -66,6 +67,8 @@ function App() {
     if (ui.currentView === 'feed' || ui.currentView === 'dashboard' || ui.currentView === 'matrix') loadHistory();
   }, [ui.currentView, loadHistory]);
   const recentUsageByProblemId = useMemo(() => getRecentUsageByProblemId(historyItems), [historyItems]);
+  // Danh sách tag toàn kho (tag + số bài) — nguồn cho gợi ý khi gõ, lọc, và màn quản lý.
+  const tagIndex = useMemo(() => buildTagIndex(problems), [problems]);
 
   // 2. ĐĂNG KÝ PHÍM TẮT
   useKeyboardShortcuts({
@@ -290,7 +293,8 @@ function App() {
 
       {/* CÁC CỬA SỔ MODAL */}
       {ui.showAddModal && (
-        <AddProblemModal 
+        <AddProblemModal
+          allTags={tagIndex}
           onClose={() => ui.setShowAddModal(false)} 
           onSave={async (prob) => {
             const dups = checkDuplicate(prob.statement, prob.solution);
@@ -308,7 +312,8 @@ function App() {
       )}
 
       {ui.editingProblem && (
-        <EditProblemModal 
+        <EditProblemModal
+          allTags={tagIndex}
           problem={ui.editingProblem} 
           onClose={() => ui.setEditingProblem(null)} 
           onSave={async (prob) => {
@@ -327,7 +332,8 @@ function App() {
       )}
 
       {ui.showImportModal && (
-        <SmartImportModal 
+        <SmartImportModal
+          allTags={tagIndex}
           onClose={() => ui.setShowImportModal(false)} 
           checkDuplicate={checkDuplicate}
           onSave={async (newProbs) => {

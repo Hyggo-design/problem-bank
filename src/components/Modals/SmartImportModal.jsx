@@ -9,7 +9,7 @@ import { parseProblemLatex } from '../../utils/extractFigures';
 // Phân loại rỗng khởi tạo cho mỗi câu rà soát (giống form Thêm/Sửa).
 const makeEmptyCls = () => ({ categoryIds: [], difficultyByHe: {}, gradeIds: [], tags: '' });
 
-const SmartImportModal = ({ onClose, onSave, checkDuplicate }) => {
+const SmartImportModal = ({ onClose, onSave, checkDuplicate, allTags = [] }) => {
   const [files, setFiles] = useState([]);
   const [step, setStep] = useState('upload'); // 'upload' | 'processing' | 'review'
   const [results, setResults] = useState([]);
@@ -300,7 +300,7 @@ const SmartImportModal = ({ onClose, onSave, checkDuplicate }) => {
 
               {showBulkPicker && (
                 <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--color-border)' }}>
-                  <ClassificationPicker value={bulkCls} onChange={setBulkCls} />
+                  <ClassificationPicker value={bulkCls} onChange={setBulkCls} allTags={allTags} />
                   <div style={{ display: 'flex', gap: 8, marginTop: '1rem' }}>
                     <button type="button" className="card-btn card-btn-primary" disabled={selectedForBulk.length === 0} onClick={applyBulkCls}>
                       Áp dụng cho {selectedForBulk.length} bài
@@ -350,7 +350,7 @@ const SmartImportModal = ({ onClose, onSave, checkDuplicate }) => {
                   {/* Task 17: gắn phân loại cho từng câu trước khi lưu hàng loạt */}
                   <div style={{ marginTop: '1rem' }}>
                     <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: 'var(--color-text)', fontSize: '0.9rem' }}>Phân loại</label>
-                    <ClassificationPicker value={res.cls} onChange={(newCls) => updateResultItem(res.id, 'cls', newCls)} />
+                    <ClassificationPicker value={res.cls} onChange={(newCls) => updateResultItem(res.id, 'cls', newCls)} allTags={allTags} />
                   </div>
                 </div>
               ))}
