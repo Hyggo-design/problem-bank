@@ -25,12 +25,13 @@ const shuffle = (arr, rng) => {
   return a;
 };
 
-// Các bài khớp một ô (chủ đề = categoryId gồm cả nhánh con, mức độ = difficultyId trong hệ heId),
-// đúng lớp nếu có gradeId, và chưa bị dùng ở ô khác (excludeIds).
-const candidatesForCell = (problems, childrenMap, heId, gradeId, categoryId, difficultyId, excludeIds) => {
+// Các bài khớp một ô (chủ đề = categoryId gồm cả nhánh con, LOẠI CÂU = type, mức độ = difficultyId
+// trong hệ heId), đúng lớp nếu có gradeId, và chưa bị dùng ở ô khác (excludeIds).
+const candidatesForCell = (problems, childrenMap, heId, gradeId, categoryId, type, difficultyId, excludeIds) => {
   const inBranch = new Set(collectDescendantIds(categoryId, childrenMap));
   return (problems || []).filter((p) =>
     !excludeIds.has(p.id) &&
+    p.type === type &&
     (p.difficultyByHe || {})[heId] === difficultyId &&
     (p.categoryIds || []).some((cid) => inBranch.has(cid)) &&
     (!gradeId || (p.gradeIds || []).includes(gradeId))
@@ -45,18 +46,24 @@ const rankAndPick = (candidates, count, recentUsageIds, rng) => {
   return ordered.slice(0, count);
 };
 
-// Bốc cả ma trận. rows: [{ rowId, categoryId, counts: { [difficultyId]: number } }]
-export const generateExamMatrix = ({ problems, childrenMap, heId, gradeId, rows, recentUsageIds, rng = Math.random }) => {
+// Bốc cả ma trận.
+//   rows: [{ rowId, categoryId, counts: { [type]: { [difficultyId]: number } } }]
+//   types: mảng loại câu ĐANG bật (đúng thứ tự cột). usedIds chung cả lần bốc -> không lặp câu
+//          toàn đề, kể cả khi 1 bài nằm ở nhiều nhánh (bốc đủ bằng bài khác, chỉ thiếu khi cạn bài).
+export const generateExamMatrix = ({ problems, childrenMap, heId, gradeId, rows, types, recentUsageIds, rng = Math.random }) => {
   const usedIds = new Set();
   const cells = [];
   for (const row of (rows || [])) {
-    for (const [difficultyId, rawCount] of Object.entries(row.counts || {})) {
-      const n = parseInt(rawCount, 10) || 0;
-      if (n <= 0) continue;
-      const cands = candidatesForCell(problems, childrenMap, heId, gradeId, row.categoryId, difficultyId, usedIds);
-      const picked = rankAndPick(cands, n, recentUsageIds, rng);
-      picked.forEach((p) => usedIds.add(p.id));
-      cells.push({ rowId: row.rowId, categoryId: row.categoryId, difficultyId, requested: n, picked, shortfall: n - picked.length });
+    for (const type of (types || [])) {
+      const byDiff = (row.counts && row.counts[type]) || {};
+      for (const [difficultyId, rawCount] of Object.entries(byDiff)) {
+        const n = parseInt(rawCount, 10) || 0;
+        if (n <= 0) continue;
+        const cands = candidatesForCell(problems, childrenMap, heId, gradeId, row.categoryId, type, difficultyId, usedIds);
+        const picked = rankAndPick(cands, n, recentUsageIds, rng);
+        picked.forEach((p) => usedIds.add(p.id));
+        cells.push({ rowId: row.rowId, categoryId: row.categoryId, type, difficultyId, requested: n, picked, shortfall: n - picked.length });
+      }
     }
   }
   const pickedProblems = [];
@@ -67,12 +74,12 @@ export const generateExamMatrix = ({ problems, childrenMap, heId, gradeId, rows,
 };
 
 // Đếm "còn X khả dụng" cho nhãn dưới ô (độc lập từng ô — chưa trừ ô khác).
-export const countAvailableForCell = ({ problems, childrenMap, heId, gradeId, categoryId, difficultyId }) =>
-  candidatesForCell(problems, childrenMap, heId, gradeId, categoryId, difficultyId, new Set()).length;
+export const countAvailableForCell = ({ problems, childrenMap, heId, gradeId, categoryId, type, difficultyId }) =>
+  candidatesForCell(problems, childrenMap, heId, gradeId, categoryId, type, difficultyId, new Set()).length;
 
 // Đổi 1 câu khác trong một ô: loại mọi id đang hiển thị (excludeIds), trả 1 câu hoặc null nếu hết.
-export const pickReplacementProblem = ({ problems, childrenMap, heId, gradeId, categoryId, difficultyId, excludeIds, recentUsageIds, rng = Math.random }) => {
-  const cands = candidatesForCell(problems, childrenMap, heId, gradeId, categoryId, difficultyId, excludeIds);
+export const pickReplacementProblem = ({ problems, childrenMap, heId, gradeId, categoryId, type, difficultyId, excludeIds, recentUsageIds, rng = Math.random }) => {
+  const cands = candidatesForCell(problems, childrenMap, heId, gradeId, categoryId, type, difficultyId, excludeIds);
   const picked = rankAndPick(cands, 1, recentUsageIds, rng);
   return picked[0] || null;
 };
