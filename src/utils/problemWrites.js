@@ -62,6 +62,11 @@ export const updateProblemRow = async (db, p) => {
   await saveClassification(db, p.id, p);
 };
 
+// Chỉ đụng cột tags của MỘT bài (đổi tên/xoá tag hàng loạt — KHÔNG chạm phân loại).
+export const updateProblemTags = async (db, id, tagsStr) => {
+  await db.execute(`UPDATE problems SET tags = $1 WHERE id = $2`, [tagsStr, id]);
+};
+
 // Nhập hàng loạt (Bulk Insert theo chunk 50) + phân loại từng bài.
 export const insertImportedProblems = async (db, list) => {
   if (!list || list.length === 0) return;

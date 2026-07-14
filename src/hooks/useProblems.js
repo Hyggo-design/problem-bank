@@ -4,7 +4,9 @@ import { findDuplicates } from '../utils/findDuplicates';
 import {
   insertProblem, updateProblemRow, insertImportedProblems,
   softDeleteProblem, softDeleteMany, restoreProblemRow, purgeProblemRow, emptyTrashRows,
+  updateProblemTags,
 } from '../utils/problemWrites';
+import { applyTagRename, applyTagDelete } from '../utils/tagUtils';
 
 // Hàm bọc thép chống crash khi parse JSON
 const safeJSONParse = (str) => {
@@ -182,6 +184,32 @@ export const useProblems = () => {
     }
   };
 
+  // 6b. ĐỔI TÊN / GỘP / XOÁ TAG TOÀN KHO — ghi hàng loạt, TRẢ true/false (Đợt A #1: báo lỗi thật).
+  // Chỉ ghi những bài THỰC SỰ đổi chuỗi tags; xong nạp lại để state khớp CSDL.
+  const renameTag = async (oldTag, newTag) => {
+    try {
+      const db = await getDb();
+      for (const p of problems) {
+        const next = applyTagRename(p.tags || '', oldTag, newTag);
+        if (next !== (p.tags || '')) await updateProblemTags(db, p.id, next);
+      }
+      await loadProblems();
+      return true;
+    } catch (error) { console.error("Lỗi đổi tên tag:", error); return false; }
+  };
+
+  const deleteTag = async (tag) => {
+    try {
+      const db = await getDb();
+      for (const p of problems) {
+        const next = applyTagDelete(p.tags || '', tag);
+        if (next !== (p.tags || '')) await updateProblemTags(db, p.id, next);
+      }
+      await loadProblems();
+      return true;
+    } catch (error) { console.error("Lỗi xoá tag:", error); return false; }
+  };
+
   // 7. KIỂM TRA TRÙNG LẶP (Duplicate Detection)
   // Trả MẢNG bài trùng (đề HOẶC lời giải vượt ngưỡng), xếp % giảm dần. Rỗng nếu không trùng.
   const checkDuplicate = useCallback((newStatement, newSolution, currentId = null) => {
@@ -214,6 +242,8 @@ export const useProblems = () => {
     purgeProblem,
     emptyTrash,
     saveImportedProblems,
+    renameTag,
+    deleteTag,
     checkDuplicate
   };
 };

@@ -10,6 +10,7 @@ import SmartImportModal from './components/Modals/SmartImportModal';
 import ExportModal from './components/Modals/ExportModal';
 import DuplicateWarningModal from './components/Modals/DuplicateWarningModal';
 import CategoryManagerModal from './components/Modals/CategoryManagerModal';
+import TagManagerModal from './components/Modals/TagManagerModal';
 import NavRail from './components/NavRail';
 import SettingsPage from './components/SettingsPage';
 import TrashPage from './components/TrashPage';
@@ -26,6 +27,7 @@ import { useTaxonomy } from './hooks/useTaxonomy';
 import { useAutoBackup } from './hooks/useAutoBackup';
 import { useExportHistory } from './hooks/useExportHistory';
 import { getRecentUsageByProblemId } from './utils/usageStats';
+import { buildTagIndex } from './utils/tagUtils';
 import { useConfirm } from './components/ConfirmProvider';
 function App() {
   // 1. GỌI CÁC THƯ KÝ (Hooks) ĐỂ LẤY DỮ LIỆU
@@ -41,6 +43,8 @@ function App() {
     purgeProblem,
     emptyTrash,
     saveImportedProblems,
+    renameTag,
+    deleteTag,
     checkDuplicate
   } = useProblems();
   const ui = useUIState();
@@ -66,6 +70,8 @@ function App() {
     if (ui.currentView === 'feed' || ui.currentView === 'dashboard' || ui.currentView === 'matrix') loadHistory();
   }, [ui.currentView, loadHistory]);
   const recentUsageByProblemId = useMemo(() => getRecentUsageByProblemId(historyItems), [historyItems]);
+  // Danh sách tag toàn kho (tag + số bài) — nguồn cho gợi ý khi gõ, lọc, và màn quản lý.
+  const tagIndex = useMemo(() => buildTagIndex(problems), [problems]);
 
   // 2. ĐĂNG KÝ PHÍM TẮT
   useKeyboardShortcuts({
@@ -202,6 +208,7 @@ function App() {
                   filterDifficulty={ui.filterDifficulty} onDifficulty={ui.setFilterDifficulty}
                   filterGrade={ui.filterGrade} onGrade={ui.setFilterGrade}
                   onlyUnused={ui.onlyUnused} onToggleOnlyUnused={() => ui.setOnlyUnused((v) => !v)}
+                  allTags={tagIndex} filterTags={ui.filterTags} onToggleTag={ui.toggleFilterTag} filterTagMode={ui.filterTagMode} onSetTagMode={ui.setFilterTagMode}
                   onClear={ui.clearFilters}
                   onCollapse={() => ui.setSidebarCollapsed(true)}
                 />
@@ -224,6 +231,7 @@ function App() {
                   problems={problems}
                   sortBy={ui.sortBy} filterTopic={ui.filterTopic} filterGrade={ui.filterGrade} filterDifficulty={ui.filterDifficulty} searchTerm={ui.searchTerm}
                   recentUsageByProblemId={recentUsageByProblemId} onlyUnused={ui.onlyUnused}
+                  filterTags={ui.filterTags} filterTagMode={ui.filterTagMode}
                   selectedHe={ui.selectedHe} unclassifiedMode={ui.unclassifiedMode}
                   onExitUnclassified={() => ui.setUnclassifiedMode(false)}
                   selectedIds={ui.selectedIds}
@@ -273,7 +281,7 @@ function App() {
           )}
 
           {ui.currentView === 'settings' && (
-            <SettingsPage onManageCategories={() => ui.setShowCategoryManager(true)} />
+            <SettingsPage onManageCategories={() => ui.setShowCategoryManager(true)} onManageTags={() => ui.setShowTagManager(true)} />
           )}
 
           {ui.currentView === 'trash' && (
@@ -290,7 +298,8 @@ function App() {
 
       {/* CÁC CỬA SỔ MODAL */}
       {ui.showAddModal && (
-        <AddProblemModal 
+        <AddProblemModal
+          allTags={tagIndex}
           onClose={() => ui.setShowAddModal(false)} 
           onSave={async (prob) => {
             const dups = checkDuplicate(prob.statement, prob.solution);
@@ -308,7 +317,8 @@ function App() {
       )}
 
       {ui.editingProblem && (
-        <EditProblemModal 
+        <EditProblemModal
+          allTags={tagIndex}
           problem={ui.editingProblem} 
           onClose={() => ui.setEditingProblem(null)} 
           onSave={async (prob) => {
@@ -327,7 +337,8 @@ function App() {
       )}
 
       {ui.showImportModal && (
-        <SmartImportModal 
+        <SmartImportModal
+          allTags={tagIndex}
           onClose={() => ui.setShowImportModal(false)} 
           checkDuplicate={checkDuplicate}
           onSave={async (newProbs) => {
@@ -358,6 +369,15 @@ function App() {
 
       {ui.showCategoryManager && (
         <CategoryManagerModal onClose={() => ui.setShowCategoryManager(false)} />
+      )}
+
+      {ui.showTagManager && (
+        <TagManagerModal
+          problems={problems}
+          onRenameTag={renameTag}
+          onDeleteTag={deleteTag}
+          onClose={() => ui.setShowTagManager(false)}
+        />
       )}
 
       {ui.selectedPreview && (

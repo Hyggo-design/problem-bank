@@ -11,10 +11,12 @@ const FilterSidebar = ({
   filterDifficulty, onDifficulty,
   filterGrade, onGrade,
   onlyUnused, onToggleOnlyUnused,
+  allTags = [], filterTags = [], filterTagMode = 'and', onToggleTag, onSetTagMode,
   onClear, onCollapse,
 }) => {
   const { categories, difficulties, grades } = useTaxonomy();
   const [expanded, setExpanded] = useState({});
+  const [tagQuery, setTagQuery] = useState('');
 
   const roots = useMemo(
     () => categories.filter((c) => !c.parent_id).sort((a, b) => a.position - b.position),
@@ -116,6 +118,35 @@ const FilterSidebar = ({
           ))}
         </div>
       </div>
+
+      {/* Tag — chọn nhiều + gạt VÀ/HOẶC (chỉ hiện khi kho có tag). */}
+      {allTags.length > 0 && (
+        <div>
+          <div className="sidebar-label">Tag</div>
+          <div style={{ display: 'flex', gap: 6, marginBottom: 6 }}>
+            <button className={`chip ${filterTagMode === 'and' ? 'on' : ''}`} onClick={() => onSetTagMode('and')}>Đủ mọi tag</button>
+            <button className={`chip ${filterTagMode === 'or' ? 'on' : ''}`} onClick={() => onSetTagMode('or')}>Bất kỳ tag</button>
+          </div>
+          <input
+            value={tagQuery}
+            onChange={(e) => setTagQuery(e.target.value)}
+            placeholder="tìm tag…"
+            style={{ width: '100%', padding: '0.4rem 0.5rem', borderRadius: 6, border: '1px solid var(--color-border)', background: 'var(--color-surface)', color: 'var(--color-text)', fontSize: '0.85rem', boxSizing: 'border-box', marginBottom: 6 }}
+          />
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, maxHeight: 160, overflowY: 'auto' }}>
+            {allTags
+              .filter((it) => filterTags.includes(it.tag) || it.tag.toLowerCase().includes(tagQuery.trim().toLowerCase()))
+              .map((it) => (
+                <button key={it.tag} className={`chip ${filterTags.includes(it.tag) ? 'on' : ''}`} onClick={() => onToggleTag(it.tag)}>
+                  {it.tag} ({it.count})
+                </button>
+              ))}
+          </div>
+          {filterTags.length > 0 && (
+            <button className="card-btn" style={{ marginTop: 6 }} onClick={() => filterTags.forEach((t) => onToggleTag(t))}>Bỏ chọn tag</button>
+          )}
+        </div>
+      )}
 
       <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.85rem', color: 'var(--color-text)', cursor: 'pointer' }}>
         <input type="checkbox" checked={onlyUnused} onChange={onToggleOnlyUnused} />

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FolderTree, Moon, Type, FileDown, KeyRound, Database, AlertTriangle } from 'lucide-react';
+import { FolderTree, Moon, Tag, FileDown, KeyRound, Database, AlertTriangle } from 'lucide-react';
 import { open, save } from '@tauri-apps/plugin-dialog';
 import { invoke } from '@tauri-apps/api/core';
 import { useToast } from '../hooks/useToast';
@@ -26,7 +26,7 @@ const Row = ({ icon, title, desc, action, soon }) => (
   </div>
 );
 
-const SettingsPage = ({ onManageCategories }) => {
+const SettingsPage = ({ onManageCategories, onManageTags }) => {
   const [templateFolder, setTemplateFolder] = useState(localStorage.getItem('pb-template-folder') || '');
   const pickFolder = async () => {
     const dir = await open({ directory: true, title: 'Chọn thư mục chứa file template (.tex)' });
@@ -183,12 +183,17 @@ const SettingsPage = ({ onManageCategories }) => {
         action={<button className="card-btn card-btn-primary" onClick={onManageCategories}>Mở</button>}
       />
       <Row
+        icon={<Tag size={20} />}
+        title="Quản lý tag"
+        desc="Xem danh sách tag + số bài; đổi tên, gộp, xoá tag trên toàn kho."
+        action={<button className="card-btn card-btn-primary" onClick={onManageTags}>Mở</button>}
+      />
+      <Row
         icon={<Moon size={20} />}
         title="Giao diện tối"
         desc={dark ? 'Đang bật (Tối).' : 'Đang tắt (Sáng).'}
         action={<button className="card-btn card-btn-primary" onClick={toggleDark}>{dark ? 'Chuyển Sáng' : 'Chuyển Tối'}</button>}
       />
-      <Row icon={<Type size={20} />} title="Cỡ chữ" desc="Phóng to/thu nhỏ chữ toàn app." soon />
       <Row
         icon={<FileDown size={20} />}
         title="Thư mục template xuất"

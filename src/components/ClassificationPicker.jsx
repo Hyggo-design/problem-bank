@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Search } from 'lucide-react';
 import { useTaxonomy, getRootHeId } from '../hooks/useTaxonomy';
+import TagChipInput from './TagChipInput';
 
 // =============================================================================
 // ClassificationPicker — bộ điều khiển phân loại DÙNG CHUNG cho form Thêm/Sửa/Import.
@@ -46,7 +47,7 @@ const PickerNode = ({ node, depth, childrenMap, categoryIds, visibleIds, onToggl
   );
 };
 
-const ClassificationPicker = ({ value, onChange }) => {
+const ClassificationPicker = ({ value, onChange, allTags = [] }) => {
   const { categories, difficulties, grades } = useTaxonomy();
   const [filter, setFilter] = useState('');
 
@@ -217,16 +218,9 @@ const ClassificationPicker = ({ value, onChange }) => {
         </div>
       )}
 
-      {/* Task 12: ô TAG tự do — chuỗi ngăn cách dấu phẩy, như form cũ. */}
+      {/* Ô TAG kiểu viên (chip) + gợi ý — thay ô chữ tự do cũ (Task quản lý tag). */}
       <div style={{ marginTop: '0.7rem' }}>
-        <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-text-muted)', marginBottom: '0.35rem' }}>Tags (cách nhau bởi dấu phẩy)</div>
-        <input
-          type="text"
-          value={tags}
-          onChange={(e) => onChange({ ...v, tags: e.target.value })}
-          placeholder="ví dụ: cực trị, hình nón, min-max"
-          style={{ width: '100%', padding: '0.55rem 0.6rem', borderRadius: '8px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)', fontSize: '0.88rem', boxSizing: 'border-box' }}
-        />
+        <TagChipInput value={tags} onChange={(newTags) => onChange({ ...v, tags: newTags })} allTags={allTags} />
       </div>
     </div>
   );
