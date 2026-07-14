@@ -7,13 +7,14 @@ import { useToast } from '../hooks/useToast';
 import ProblemCard from './ProblemCard';
 import { makeSearchFields, matchFields } from '../utils/searchText';
 import { rangeIds, unionSelection, clampIndex } from '../utils/feedSelection';
+import { parseTags, matchTagFilter } from '../utils/tagUtils';
 
 // ==========================================
 // FEED THẺ CHÍNH (cuộn vô tận với Virtuoso)
 // ==========================================
 const DataGrid = ({
   problems, sortBy, filterTopic, filterGrade, filterDifficulty, searchTerm, selectedHe, unclassifiedMode, selectedIds,
-  recentUsageByProblemId, onlyUnused,
+  recentUsageByProblemId, onlyUnused, filterTags = [], filterTagMode = 'and',
   onSelectChange, onSetSelection, onPreviewClick, onAddToCart, onDelete, onEdit,
   onBulkAddToCart, onBulkDelete, onClearSelection, onExitUnclassified,
 }) => {
@@ -60,6 +61,7 @@ const DataGrid = ({
       if (validBranchIds && !(p.categoryIds || []).some((id) => validBranchIds.has(id))) return false;
       if (filterGrade !== 'all' && !(p.gradeIds || []).includes(filterGrade)) return false;
       if (filterDifficulty !== 'all' && !Object.values(p.difficultyByHe || {}).includes(filterDifficulty)) return false;
+      if (!matchTagFilter(parseTags(p.tags), filterTags, filterTagMode)) return false;
       if (onlyUnused && recentUsageByProblemId[p.id]) return false;
       return true;
     });
@@ -73,7 +75,7 @@ const DataGrid = ({
         default: return 0;
       }
     });
-  }, [problems, sortBy, validBranchIds, filterGrade, filterDifficulty, searchTerm, selectedHe, unclassifiedMode, parentMap, searchIndex, onlyUnused, recentUsageByProblemId]);
+  }, [problems, sortBy, validBranchIds, filterGrade, filterDifficulty, searchTerm, selectedHe, unclassifiedMode, parentMap, searchIndex, onlyUnused, recentUsageByProblemId, filterTags, filterTagMode]);
 
   // Nhãn "khớp ở đâu" cho các bài đang hiển thị (chỉ khi đang tìm).
   const matchFieldsById = useMemo(() => {

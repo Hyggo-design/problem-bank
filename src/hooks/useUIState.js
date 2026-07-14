@@ -7,6 +7,8 @@ export const useUIState = () => {
   const [filterGrade, setFilterGrade] = useState('all');       // Task 16: lọc theo Lớp (grade id)
   const [filterDifficulty, setFilterDifficulty] = useState('all'); // Task 16: lọc theo Độ khó (difficulty id)
   const [onlyUnused, setOnlyUnused] = useState(false); // chỉ hiện bài CHƯA dùng trong đề đã xuất
+  const [filterTags, setFilterTags] = useState([]);        // lọc theo nhiều tag (mảng chuỗi tag)
+  const [filterTagMode, setFilterTagMode] = useState('and'); // 'and' = đủ mọi tag · 'or' = bất kỳ tag
   const [sortBy, setSortBy] = useState('date-new');
   const searchInputRef = useRef(null);
 
@@ -36,7 +38,13 @@ export const useUIState = () => {
     setFilterGrade('all');
     setFilterDifficulty('all');
     setOnlyUnused(false);
+    setFilterTags([]);
+    setFilterTagMode('and');
   };
+
+  // Bật/tắt một tag trong bộ lọc (tag là toàn cục — không gắn theo hệ).
+  const toggleFilterTag = (tag) =>
+    setFilterTags((prev) => (prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]));
 
   // GĐ3 — đổi hệ: xoá lựa chọn nhánh + độ khó cũ (thuộc hệ cũ); thoát chế độ chưa-phân-loại.
   const selectHe = (heId) => {
@@ -54,6 +62,7 @@ export const useUIState = () => {
     filterGrade, setFilterGrade,
     filterDifficulty, setFilterDifficulty,
     onlyUnused, setOnlyUnused,
+    filterTags, setFilterTags, toggleFilterTag, filterTagMode, setFilterTagMode,
     sortBy, setSortBy,
     searchInputRef, clearFilters,
 

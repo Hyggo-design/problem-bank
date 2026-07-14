@@ -205,6 +205,7 @@ function App() {
                   filterDifficulty={ui.filterDifficulty} onDifficulty={ui.setFilterDifficulty}
                   filterGrade={ui.filterGrade} onGrade={ui.setFilterGrade}
                   onlyUnused={ui.onlyUnused} onToggleOnlyUnused={() => ui.setOnlyUnused((v) => !v)}
+                  allTags={tagIndex} filterTags={ui.filterTags} onToggleTag={ui.toggleFilterTag} filterTagMode={ui.filterTagMode} onSetTagMode={ui.setFilterTagMode}
                   onClear={ui.clearFilters}
                   onCollapse={() => ui.setSidebarCollapsed(true)}
                 />
@@ -227,6 +228,7 @@ function App() {
                   problems={problems}
                   sortBy={ui.sortBy} filterTopic={ui.filterTopic} filterGrade={ui.filterGrade} filterDifficulty={ui.filterDifficulty} searchTerm={ui.searchTerm}
                   recentUsageByProblemId={recentUsageByProblemId} onlyUnused={ui.onlyUnused}
+                  filterTags={ui.filterTags} filterTagMode={ui.filterTagMode}
                   selectedHe={ui.selectedHe} unclassifiedMode={ui.unclassifiedMode}
                   onExitUnclassified={() => ui.setUnclassifiedMode(false)}
                   selectedIds={ui.selectedIds}
