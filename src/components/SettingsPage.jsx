@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FolderTree, Moon, Tag, FileDown, KeyRound, Database, AlertTriangle } from 'lucide-react';
+import { FolderTree, Moon, Tag, FileDown, KeyRound, Database, AlertTriangle, CopyCheck } from 'lucide-react';
 import { open, save } from '@tauri-apps/plugin-dialog';
 import { invoke } from '@tauri-apps/api/core';
 import { useToast } from '../hooks/useToast';
@@ -26,7 +26,7 @@ const Row = ({ icon, title, desc, action, soon }) => (
   </div>
 );
 
-const SettingsPage = ({ onManageCategories, onManageTags }) => {
+const SettingsPage = ({ onManageCategories, onManageTags, onScanDuplicates }) => {
   const [templateFolder, setTemplateFolder] = useState(localStorage.getItem('pb-template-folder') || '');
   const pickFolder = async () => {
     const dir = await open({ directory: true, title: 'Chọn thư mục chứa file template (.tex)' });
@@ -187,6 +187,12 @@ const SettingsPage = ({ onManageCategories, onManageTags }) => {
         title="Quản lý tag"
         desc="Xem danh sách tag + số bài; đổi tên, gộp, xoá tag trên toàn kho."
         action={<button className="card-btn card-btn-primary" onClick={onManageTags}>Mở</button>}
+      />
+      <Row
+        icon={<CopyCheck size={20} />}
+        title="Quét trùng toàn kho"
+        desc="Rà tất cả bài đang có, tìm các bài giống nhau để xem và dọn."
+        action={<button className="card-btn card-btn-primary" onClick={onScanDuplicates}>Mở</button>}
       />
       <Row
         icon={<Moon size={20} />}
