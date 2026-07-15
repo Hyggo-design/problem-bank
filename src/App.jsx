@@ -16,6 +16,7 @@ import SettingsPage from './components/SettingsPage';
 import TrashPage from './components/TrashPage';
 import DashboardPage from './components/DashboardPage';
 import MatrixPage from './components/MatrixPage';
+import DuplicateScanPage from './components/DuplicateScanPage';
 
 import { Toaster } from 'react-hot-toast';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
@@ -153,6 +154,19 @@ function App() {
     setPendingSave(null);
   };
 
+  // Xoá mềm 1 bài + toast Hoàn tác. Dùng chung cho feed (DataGrid) và màn Quét trùng.
+  const handleDeleteWithUndo = async (id) => {
+    if (await deleteProblem(id)) {
+      removeFromCart(id);
+      if (ui.selectedPreview?.id === id) ui.setSelectedPreview(null);
+      undoToast('Đã chuyển vào thùng rác', async () => {
+        if (!(await restoreProblem(id))) error('Chưa khôi phục được — thử lại nhé.');
+      });
+    } else {
+      error('Chưa xoá được — thử lại nhé.');
+    }
+  };
+
 // 4. RÁP GIAO DIỆN (UI)
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', backgroundColor: 'var(--color-bg)', fontFamily: 'Inter, sans-serif' }}>
@@ -242,17 +256,7 @@ function App() {
                   onClearSelection={() => ui.setSelectedIds([])}
                   onPreviewClick={(prob) => ui.setSelectedPreview(prob)}
                   onAddToCart={(prob) => { addToCart(prob); success('Đã thêm vào giỏ!'); }}
-                  onDelete={async (id) => {
-                    if (await deleteProblem(id)) {
-                      removeFromCart(id);
-                      if (ui.selectedPreview?.id === id) ui.setSelectedPreview(null);
-                      undoToast('Đã chuyển vào thùng rác', async () => {
-                        if (!(await restoreProblem(id))) error('Chưa khôi phục được — thử lại nhé.');
-                      });
-                    } else {
-                      error('Chưa xoá được — thử lại nhé.');
-                    }
-                  }}
+                  onDelete={handleDeleteWithUndo}
                   onEdit={(prob) => ui.setEditingProblem(prob)}
                 />
               </div>
@@ -281,7 +285,20 @@ function App() {
           )}
 
           {ui.currentView === 'settings' && (
-            <SettingsPage onManageCategories={() => ui.setShowCategoryManager(true)} onManageTags={() => ui.setShowTagManager(true)} />
+            <SettingsPage
+              onManageCategories={() => ui.setShowCategoryManager(true)}
+              onManageTags={() => ui.setShowTagManager(true)}
+              onScanDuplicates={() => ui.setCurrentView('duplicates')}
+            />
+          )}
+
+          {ui.currentView === 'duplicates' && (
+            <DuplicateScanPage
+              problems={problems}
+              onPreview={(prob) => ui.setSelectedPreview(prob)}
+              onDelete={handleDeleteWithUndo}
+              onBack={() => ui.setCurrentView('settings')}
+            />
           )}
 
           {ui.currentView === 'trash' && (
