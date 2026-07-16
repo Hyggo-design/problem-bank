@@ -1,12 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getDb } from '../utils/db';
+import { getDb, runTx } from '../utils/db';
 import { findDuplicates } from '../utils/findDuplicates';
 import {
-  insertProblem, updateProblemRow, insertImportedProblems,
-  softDeleteProblem, softDeleteMany, restoreProblemRow, purgeProblemRow, emptyTrashRows,
-  updateProblemTags,
+  buildInsertProblem, buildUpdateProblem, buildInsertImported,
+  buildRenameTag, buildDeleteTag, buildPurge, buildEmptyTrash,
+  softDeleteProblem, softDeleteMany, restoreProblemRow,
 } from '../utils/problemWrites';
-import { applyTagRename, applyTagDelete } from '../utils/tagUtils';
 
 // Hàm bọc thép chống crash khi parse JSON
 const safeJSONParse = (str) => {
@@ -76,8 +75,7 @@ export const useProblems = () => {
     try {
       // Validate cơ bản chống dữ liệu rác
       if (!newProblem || !newProblem.id) throw new Error("Bài tập thiếu ID");
-      const db = await getDb();
-      await insertProblem(db, newProblem);
+      await runTx(buildInsertProblem(newProblem));
       setProblems(prev => [newProblem, ...prev.filter(p => p.id !== newProblem.id)]);
       return true;
     } catch (error) {
@@ -89,8 +87,7 @@ export const useProblems = () => {
   // 3. CẬP NHẬT BÀI
   const updateProblem = async (updatedProblem) => {
     try {
-      const db = await getDb();
-      await updateProblemRow(db, updatedProblem);
+      await runTx(buildUpdateProblem(updatedProblem));
       setProblems(prev => prev.map(p => p.id === updatedProblem.id ? updatedProblem : p));
       return true;
     } catch (error) {
@@ -142,8 +139,7 @@ export const useProblems = () => {
   // 5c. XÓA HẲN 1 BÀI: xoá bản ghi + dọn 3 bảng nối phân loại
   const purgeProblem = async (id) => {
     try {
-      const db = await getDb();
-      await purgeProblemRow(db, id);
+      await runTx(buildPurge(id));
       await loadProblems();
       return true;
     } catch (error) {
@@ -155,8 +151,7 @@ export const useProblems = () => {
   // 5d. XÓA SẠCH THÙNG RÁC: xoá hẳn mọi bài đã đánh dấu xoá + dọn bảng nối của chúng
   const emptyTrash = async () => {
     try {
-      const db = await getDb();
-      await emptyTrashRows(db);
+      await runTx(buildEmptyTrash());
       await loadProblems();
       return true;
     } catch (error) {
@@ -169,8 +164,7 @@ export const useProblems = () => {
   const saveImportedProblems = async (newProblems) => {
     if (!newProblems || newProblems.length === 0) return true;
     try {
-      const db = await getDb();
-      await insertImportedProblems(db, newProblems);
+      await runTx(buildInsertImported(newProblems));
       // Gom lại update State 1 lần duy nhất để không giật màn hình
       setProblems(prev => {
         const existingIds = new Set(prev.map(p => p.id));
@@ -188,11 +182,7 @@ export const useProblems = () => {
   // Chỉ ghi những bài THỰC SỰ đổi chuỗi tags; xong nạp lại để state khớp CSDL.
   const renameTag = async (oldTag, newTag) => {
     try {
-      const db = await getDb();
-      for (const p of problems) {
-        const next = applyTagRename(p.tags || '', oldTag, newTag);
-        if (next !== (p.tags || '')) await updateProblemTags(db, p.id, next);
-      }
+      await runTx(buildRenameTag(problems, oldTag, newTag));
       await loadProblems();
       return true;
     } catch (error) { console.error("Lỗi đổi tên tag:", error); return false; }
@@ -200,11 +190,7 @@ export const useProblems = () => {
 
   const deleteTag = async (tag) => {
     try {
-      const db = await getDb();
-      for (const p of problems) {
-        const next = applyTagDelete(p.tags || '', tag);
-        if (next !== (p.tags || '')) await updateProblemTags(db, p.id, next);
-      }
+      await runTx(buildDeleteTag(problems, tag));
       await loadProblems();
       return true;
     } catch (error) { console.error("Lỗi xoá tag:", error); return false; }
