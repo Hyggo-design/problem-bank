@@ -186,6 +186,16 @@ export const getDb = () => {
         // 4. SEED: tạo sẵn 4 hệ mặc định (THCS, THPT, Chuyên, Olympic) nếu database còn trống
         await seedTaxonomy(db);
 
+        // Ghi nhớ ĐƯỜNG FILE TUYỆT ĐỐI mà SQLite đang mở (đúng cho cả ổ D lẫn fallback ổ C) —
+        // để lệnh transaction dưới Rust mở ĐÚNG file, không phải đoán path.
+        try {
+          const dl = await db.select('PRAGMA database_list');
+          const abs = (dl.find((r) => r.name === 'main') || {}).file || '';
+          if (abs) localStorage.setItem('pb-db-path-active', abs);
+        } catch (e) {
+          console.warn('Không lấy được đường file DB qua PRAGMA:', e);
+        }
+
         return db;
       } catch (error) {
         console.error("🚨 Lỗi khởi tạo SQLite:", error);
@@ -194,4 +204,27 @@ export const getDb = () => {
     })();
   }
   return dbPromise;
+};
+
+// Đường file DB tuyệt đối đang dùng (cache ở localStorage; thiếu thì hỏi PRAGMA 1 lần).
+export const getActiveDbPath = async () => {
+  let p = localStorage.getItem('pb-db-path-active');
+  if (p) return p;
+  const db = await getDb();
+  try {
+    const dl = await db.select('PRAGMA database_list');
+    p = (dl.find((r) => r.name === 'main') || {}).file || '';
+  } catch (e) { console.warn('PRAGMA database_list lỗi:', e); p = ''; }
+  if (p) localStorage.setItem('pb-db-path-active', p);
+  return p;
+};
+
+// Chạy CẢ CỤM lệnh trong 1 transaction dưới Rust (all-or-nothing).
+// Rỗng = no-op. Lỗi → NÉM (hook bắt → toast lỗi thật, không báo giả).
+export const runTx = async (statements) => {
+  if (!statements || statements.length === 0) return true;
+  const dbPath = await getActiveDbPath();
+  if (!dbPath) throw new Error('Không xác định được đường dẫn CSDL để ghi transaction');
+  await invoke('execute_tx', { dbPath, statements });
+  return true;
 };
