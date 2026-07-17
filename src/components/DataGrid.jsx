@@ -1,8 +1,8 @@
 import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { Virtuoso } from 'react-virtuoso';
 import { ShoppingCart, Trash2 } from 'lucide-react';
-import { useTaxonomy, getDescendantIds, getRootHeId } from '../hooks/useTaxonomy';
-import { groupClassificationByHe } from '../utils/classification';
+import { useTaxonomy, getDescendantIds } from '../hooks/useTaxonomy';
+import { groupClassificationByHe, buildRootHeMap } from '../utils/classification';
 import { useToast } from '../hooks/useToast';
 import ProblemCard from './ProblemCard';
 import { makeSearchFields, matchFields } from '../utils/searchText';
@@ -25,6 +25,8 @@ const DataGrid = ({
   const diffById = useMemo(() => Object.fromEntries(difficulties.map((d) => [d.id, d])), [difficulties]);
   const gradeById = useMemo(() => Object.fromEntries(grades.map((g) => [g.id, g])), [grades]);
   const parentMap = useMemo(() => Object.fromEntries(categories.map((c) => [c.id, c.parent_id])), [categories]);
+  // Bảng tra "nhánh -> hệ gốc" tính sẵn (một lần khi cây đổi), để lọc theo hệ khỏi leo cây mỗi lần.
+  const rootHeByCatId = useMemo(() => buildRootHeMap(parentMap), [parentMap]);
   const { success } = useToast();
 
   // childrenMap: parent_id -> [child id], để getDescendantIds lấy cả nhánh con khi lọc.
@@ -57,7 +59,7 @@ const DataGrid = ({
       if (unclassifiedMode) return (p.categoryIds || []).length === 0;
       // GĐ3 — khoá 1 hệ: chỉ giữ bài có nhánh leo về gốc đúng hệ đang chọn.
       if (!unclassifiedMode && selectedHe &&
-          !(p.categoryIds || []).some((cid) => getRootHeId(cid, parentMap) === selectedHe)) return false;
+          !(p.categoryIds || []).some((cid) => (rootHeByCatId[cid] ?? cid) === selectedHe)) return false;
       if (validBranchIds && !(p.categoryIds || []).some((id) => validBranchIds.has(id))) return false;
       if (filterGrade !== 'all' && !(p.gradeIds || []).includes(filterGrade)) return false;
       if (filterDifficulty !== 'all' && !Object.values(p.difficultyByHe || {}).includes(filterDifficulty)) return false;
@@ -75,7 +77,7 @@ const DataGrid = ({
         default: return 0;
       }
     });
-  }, [problems, sortBy, validBranchIds, filterGrade, filterDifficulty, searchTerm, selectedHe, unclassifiedMode, parentMap, searchIndex, onlyUnused, recentUsageByProblemId, filterTags, filterTagMode]);
+  }, [problems, sortBy, validBranchIds, filterGrade, filterDifficulty, searchTerm, selectedHe, unclassifiedMode, rootHeByCatId, searchIndex, onlyUnused, recentUsageByProblemId, filterTags, filterTagMode]);
 
   // Nhãn "khớp ở đâu" cho các bài đang hiển thị (chỉ khi đang tìm).
   const matchFieldsById = useMemo(() => {
