@@ -6,13 +6,13 @@ import {
 
 // "db giả" chạy trơn tru
 const okDb = () => ({
-  execute: jest.fn().mockResolvedValue({ rowsAffected: 1 }),
-  select: jest.fn().mockResolvedValue([]),
+  execute: vi.fn().mockResolvedValue({ rowsAffected: 1 }),
+  select: vi.fn().mockResolvedValue([]),
 });
 // "db giả" hỏng (mô phỏng đĩa đầy / CSDL khoá)
 const failDb = (msg = 'disk full') => ({
-  execute: jest.fn().mockRejectedValue(new Error(msg)),
-  select: jest.fn().mockRejectedValue(new Error(msg)),
+  execute: vi.fn().mockRejectedValue(new Error(msg)),
+  select: vi.fn().mockRejectedValue(new Error(msg)),
 });
 
 const sample = {

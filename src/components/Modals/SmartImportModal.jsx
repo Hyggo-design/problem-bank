@@ -21,7 +21,7 @@ const SmartImportModal = ({ onClose, onSave, checkDuplicate, allTags = [] }) => 
   const fileInputRef = useRef(null);
 
   // API key đọc lúc chạy: ưu tiên key đã lưu trong Cài đặt, fallback biến môi trường (lúc dev).
-  const apiKey = (localStorage.getItem('pb-gemini-key') || process.env.REACT_APP_GEMINI_API_KEY || '').trim();
+  const apiKey = (localStorage.getItem('pb-gemini-key') || import.meta.env.VITE_GEMINI_API_KEY || '').trim();
   const genAI = useMemo(() => (apiKey ? new GoogleGenerativeAI(apiKey) : null), [apiKey]);
 
   // --- XỬ LÝ KÉO THẢ & PASTE ẢNH ---
