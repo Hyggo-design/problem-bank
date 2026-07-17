@@ -1,6 +1,6 @@
 // Mock 2 gói Tauri để test được ngoài app.
-jest.mock('@tauri-apps/plugin-sql', () => ({ __esModule: true, default: { load: jest.fn() } }));
-jest.mock('@tauri-apps/api/core', () => ({ invoke: jest.fn() }));
+vi.mock('@tauri-apps/plugin-sql', () => ({ __esModule: true, default: { load: vi.fn() } }));
+vi.mock('@tauri-apps/api/core', () => ({ invoke: vi.fn() }));
 
 import { invoke } from '@tauri-apps/api/core';
 import { runTx } from './db';
