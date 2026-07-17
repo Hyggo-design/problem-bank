@@ -1,4 +1,4 @@
-import { groupClassificationByHe } from './classification';
+import { groupClassificationByHe, buildRootHeMap } from './classification';
 
 // Cây nhỏ: Toán Chuyên(tc) > Số học(sh) > {Đồng dư thức(ddt), Số nguyên tố(snt)}
 const catById = {
@@ -33,4 +33,23 @@ test('hai nhánh lá anh em: giữ cả hai (không nhầm là tiền tố của
   const problem = { categoryIds: ['ddt', 'snt'] };
   const groups = groupClassificationByHe(problem, catById, parentMap, diffById);
   expect(groups[0].paths).toHaveLength(2);
+});
+
+// buildRootHeMap: bảng tra "nhánh -> hệ gốc" tính sẵn để đường lọc khỏi leo cây.
+describe('buildRootHeMap', () => {
+  test('nhánh lá -> hệ gốc', () => {
+    const map = buildRootHeMap(parentMap);
+    expect(map.ddt).toBe('tc');
+    expect(map.snt).toBe('tc');
+  });
+  test('nhánh giữa -> hệ gốc', () => {
+    expect(buildRootHeMap(parentMap).sh).toBe('tc');
+  });
+  test('hệ gốc -> chính nó', () => {
+    expect(buildRootHeMap(parentMap).tc).toBe('tc');
+  });
+  test('id mồ côi (không có trong cây) -> KHÔNG có khoá (lọc sẽ fallback về chính id)', () => {
+    const map = buildRootHeMap(parentMap);
+    expect(map.khong_ton_tai).toBeUndefined();
+  });
 });
