@@ -12,6 +12,16 @@ const rootHeId = (catId, parentMap) => {
   return cur;
 };
 
+// Bảng tra "nhánh -> hệ gốc" tính sẵn MỘT LẦN cho cả cây, để đường lọc (DataGrid)
+// khỏi leo ngược parentMap cho từng bài mỗi lần lọc. Chỉ tính lại khi cây đổi.
+//   parentMap: { [catId]: parent_id }  (mọi id nhánh làm khoá)
+// Trả về: { [catId]: heIdGốc }. Hàm THUẦN — dùng lại `rootHeId` ở trên.
+export const buildRootHeMap = (parentMap) => {
+  const map = {};
+  for (const id of Object.keys(parentMap)) map[id] = rootHeId(id, parentMap);
+  return map;
+};
+
 export const groupClassificationByHe = (problem, catById, parentMap, diffById) => {
   const buildPath = (catId) => {
     const names = [];
