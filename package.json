@@ -1,6 +1,6 @@
 {
   "name": "problem-bank",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "Problem Bank Management System for Math Teachers",
   "private": true,
   "type": "module",
